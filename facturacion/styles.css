@@ -1,0 +1,781 @@
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+:root{
+    --bg:#f4f7fb;
+    --white:#ffffff;
+    --border:#e5e7eb;
+
+    --primary:#1d4ed8;
+    --primary-light:#eff6ff;
+    --primary-hover:#1e40af;
+
+    --text:#111827;
+    --text-light:#6b7280;
+
+    --green:#16a34a;
+    --green-bg:#dcfce7;
+
+    --red:#ef4444;
+    --red-bg:#fee2e2;
+
+    --shadow:0 4px 12px rgba(0,0,0,.05);
+
+    --radius:14px;
+}
+
+/* =========================
+   RESET
+========================= */
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    overflow-x:hidden;
+}
+
+
+.brand-name{
+    font-size:13px;
+    font-weight:700;
+    color:var(--primary);
+    letter-spacing:.3px;
+}
+
+.brand-motto{
+    font-size:10px;
+    color:var(--text-light);
+    margin-top:2px;
+}
+
+
+.nav-item:hover{
+    background:#f3f4f6;
+    color:var(--primary);
+}
+
+.nav-item.active{
+    background:var(--primary-light);
+    color:var(--primary);
+    font-weight:600;
+}
+
+
+.logout-btn:hover{
+    background:#fef2f2;
+}
+
+/* =========================
+   CONTENIDO PRINCIPAL
+========================= */
+.main-workspace{
+    padding: 24px;
+    min-height: 100vh;
+
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+}
+
+.greeting-box h1{
+    font-size:24px;
+    margin-bottom:4px;
+}
+
+.date-lbl{
+    font-size:13px;
+    color:var(--text-light);
+}
+
+/* =========================
+   KPI
+========================= */
+.kpi-metrics-row{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+}
+
+.metric-card-kpi{
+    background:var(--white);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px;
+
+    display:flex;
+    align-items:center;
+    gap:15px;
+
+    box-shadow:var(--shadow);
+}
+
+.kpi-icon-container{
+    width:50px;
+    height:50px;
+    border-radius:14px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:20px;
+}
+
+.blue-kpi .kpi-icon-container{
+    background:#dbeafe;
+    color:#2563eb;
+}
+
+.green-kpi .kpi-icon-container{
+    background:#dcfce7;
+    color:#16a34a;
+}
+
+.red-kpi .kpi-icon-container{
+    background:#fee2e2;
+    color:#ef4444;
+}
+
+.kpi-title{
+    font-size:12px;
+    color:var(--text-light);
+}
+
+.kpi-number{
+    display:block;
+    margin:4px 0;
+
+    font-size:25px;
+    font-weight:700;
+}
+
+.kpi-anchor{
+    font-size:12px;
+    color:var(--primary);
+    font-weight:600;
+}
+
+/* =========================
+   GRID
+========================= */
+.billing-grid-layout{
+    display:grid;
+    grid-template-columns:1fr 340px;
+    gap:22px;
+}
+
+/* =========================
+   PANEL
+========================= */
+.panel-card{
+    background:var(--white);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px;
+    box-shadow:var(--shadow);
+}
+
+/* =========================
+   TABLA
+========================= */
+.table-header-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.table-header-toolbar h2{
+    font-size:16px;
+}
+
+.toolbar-buttons{
+    display:flex;
+    gap:12px;
+}
+
+.btn-toolbar-pdf{
+    border:none;
+    background:var(--primary);
+    color:white;
+
+    padding:10px 14px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.btn-toolbar-pdf:hover{
+    background:var(--primary-hover);
+}
+
+.btn-toolbar-label{
+    background:#f3f4f6;
+    color:var(--text-light);
+
+    padding:10px 14px;
+
+    border-radius:10px;
+
+    font-size:12px;
+    font-weight:600;
+}
+
+.table-scroll-container{
+    overflow-x:auto;
+}
+
+.data-invoice-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.data-invoice-table th{
+    background:#f9fafb;
+
+    padding:14px;
+    text-align:left;
+
+    font-size:12px;
+    color:var(--text-light);
+
+    border-bottom:1px solid var(--border);
+}
+
+.data-invoice-table td{
+    padding:14px;
+    border-bottom:1px solid var(--border);
+
+    font-size:13px;
+}
+
+.data-invoice-table tr:hover{
+    background:#f9fafb;
+}
+
+.bold-cell{
+    font-weight:700;
+}
+
+/* CELDAS */
+.pacient-meta-cell,
+.doctor-meta-cell{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.pacient-meta-cell img{
+    width:35px;
+    height:35px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+.doctor-meta-cell img{
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    object-fit:cover;
+}
+
+/* FOOTER TABLA */
+.footer-summary-row td{
+    background:#f9fafb;
+    font-weight:600;
+}
+
+.total-final-sum{
+    color:var(--primary);
+    font-size:15px;
+    font-weight:700;
+}
+
+/* PAGINACION */
+.table-inline-pagination{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+}
+
+.pag-arrow{
+    width:28px;
+    height:28px;
+
+    border:none;
+    border-radius:8px;
+
+    background:#e5e7eb;
+    cursor:pointer;
+}
+
+/* =========================
+   GRAFICOS
+========================= */
+.charts-and-alerts-column{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+.chart-analytics-card h3{
+    font-size:15px;
+    margin-bottom:18px;
+}
+
+.chart-legends{
+    display:flex;
+    gap:14px;
+    margin-bottom:15px;
+}
+
+.leg-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+}
+
+.leg-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+}
+
+.color-blue-dot{
+    background:var(--primary);
+}
+
+/* =========================
+   GRAFICO BARRAS
+========================= */
+.pure-css-bar-chart{
+    display:flex;
+    gap:15px;
+    align-items:flex-end;
+    height:220px;
+}
+
+.y-axis-labels{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+
+    height:180px;
+
+    font-size:11px;
+    color:var(--text-light);
+}
+
+.bars-container-wrapper{
+    flex:1;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+
+    height:180px;
+
+    border-bottom:2px solid var(--border);
+
+    padding-bottom:10px;
+}
+
+.bar-group-month{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    flex:1;
+}
+
+.double-bars{
+    height:160px;
+
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+}
+
+.bar-fill-unit{
+    width:24px;
+    border-radius:10px 10px 0 0;
+
+    background:linear-gradient(
+        to top,
+        #1d4ed8,
+        #60a5fa
+    );
+
+    transition:.3s;
+}
+
+.bar-fill-unit:hover{
+    transform:scaleY(1.05);
+}
+
+.m-lbl{
+    font-size:12px;
+    color:var(--text-light);
+    font-weight:600;
+}
+
+/* =========================
+   GRAFICO LINEAL
+========================= */
+.sparkline-simulation-box{
+    display:flex;
+    gap:14px;
+}
+
+.line-graph-canvas{
+    flex:1;
+}
+
+.svg-curve{
+    width:100%;
+    height:140px;
+}
+
+.x-axis-dates{
+    display:flex;
+    justify-content:space-between;
+
+    margin-top:10px;
+
+    font-size:11px;
+    color:var(--text-light);
+}
+
+/* =========================
+   ALERTAS
+========================= */
+.bottom-alerts-layout-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.flex-alert-card{
+    display:flex;
+    gap:16px;
+}
+
+.alert-icon-accent{
+    width:45px;
+    height:45px;
+
+    border-radius:14px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:18px;
+}
+
+.red-accent{
+    background:#fee2e2;
+    color:#ef4444;
+}
+
+.gray-accent{
+    background:#f3f4f6;
+    color:#6b7280;
+}
+
+.alert-content-data h4{
+    margin-bottom:10px;
+}
+
+.alert-text-paragraph{
+    font-size:13px;
+    line-height:1.5;
+    color:#475569;
+}
+
+.alert-timestamp{
+    display:block;
+    margin-top:5px;
+
+    font-size:11px;
+    color:var(--text-light);
+}
+
+/* =========================
+   FOOTER
+========================= */
+.exclusive-view-notice{
+    text-align:center;
+}
+
+.exclusive-view-notice span{
+    background:#e0e7ff;
+    color:var(--primary);
+
+    padding:10px 18px;
+
+    border-radius:30px;
+
+    font-size:12px;
+    font-weight:600;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media(max-width:1200px){
+
+    .billing-grid-layout{
+        grid-template-columns:1fr;
+    }
+
+    .charts-and-alerts-column{
+        width:100%;
+    }
+}
+
+@media(max-width:900px){
+
+    .sidebar-aside{
+        width:80px;
+    }
+
+    .brand-text-wrapper,
+    .nav-item span,
+    .logout-btn span{
+        display:none;
+    }
+
+    .main-workspace{
+
+    width:100%;
+
+    padding:18px;
+}
+
+    .kpi-metrics-row{
+        grid-template-columns:1fr;
+    }
+
+    .bottom-alerts-layout-row{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:700px){
+
+    .workspace-header{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:20px;
+    }
+
+    .main-workspace{
+        padding:18px;
+    }
+
+    .table-header-toolbar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:12px;
+    }
+}
+/* =========================
+   MEJORA GRAFICA BARRAS
+========================= */
+
+.chart-analytics-card{
+    overflow:hidden;
+}
+
+.pure-css-bar-chart{
+    width:100%;
+    min-height:260px;
+
+    display:flex;
+    align-items:flex-end;
+    gap:18px;
+
+    margin-top:20px;
+}
+
+.y-axis-labels{
+    width:45px;
+    height:180px;
+
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+
+    font-size:11px;
+    font-weight:600;
+    color:#94a3b8;
+
+    flex-shrink:0;
+}
+
+.bars-container-wrapper{
+    flex:1;
+
+    height:200px;
+
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+
+    border-left:1px solid #e5e7eb;
+    border-bottom:2px solid #dbe2ea;
+
+    padding:0 10px 10px 14px;
+
+    position:relative;
+}
+
+.bar-group-month{
+    flex:1;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-end;
+
+    gap:10px;
+
+    height:100%;
+}
+
+.double-bars{
+    width:100%;
+    height:170px;
+
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+}
+
+.bar-fill-unit{
+    width:28px;
+    min-height:20px;
+
+    border-radius:10px 10px 0 0;
+
+    background:linear-gradient(
+        to top,
+        #1d4ed8,
+        #60a5fa
+    );
+
+    box-shadow:
+    0 4px 12px rgba(29,78,216,.25);
+
+    transition:.3s ease;
+}
+
+.bar-fill-unit:hover{
+    transform:translateY(-4px);
+}
+
+.m-lbl{
+    font-size:12px;
+    font-weight:600;
+    color:#64748b;
+}
+
+/* LINEAS GUIA */
+
+.bars-container-wrapper::before,
+.bars-container-wrapper::after{
+    content:"";
+    position:absolute;
+    left:0;
+    width:100%;
+    border-top:1px dashed #e5e7eb;
+}
+
+.bars-container-wrapper::before{
+    top:33%;
+}
+
+.bars-container-wrapper::after{
+    top:66%;
+}
+
+/* RESPONSIVE */
+
+@media(max-width:768px){
+
+    .pure-css-bar-chart{
+        overflow-x:auto;
+        padding-bottom:10px;
+    }
+
+    .bars-container-wrapper{
+        min-width:500px;
+    }
+}
+.main-workspace{
+
+    margin-left:260px;
+
+    width:calc(100% - 260px);
+
+    padding:28px;
+
+    min-height:100vh;
+}
+@media(max-width:768px){
+
+    .main-workspace{
+
+        margin-left:0;
+
+        width:100%;
+
+        padding:18px;
+    }
+}
+.kpi-metrics-row{
+    margin-top:10px;
+}
+
+.billing-grid-layout{
+    align-items:start;
+}
+
+.invoices-table-section{
+    overflow:hidden;
+}
+
+.data-invoice-table{
+    min-width:1100px;
+}
+
+.panel-card{
+    border-radius:18px;
+}
+
+.chart-analytics-card{
+    min-height:320px;
+}
+
+.bottom-alerts-layout-row{
+    margin-top:5px;
+}
+.facturacion-content{
+    width:100%;
+}
