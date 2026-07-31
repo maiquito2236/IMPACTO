@@ -1,0 +1,307 @@
+/* =========================================
+   MENU CSS AISLADO
+   NO AFECTA OTRAS PAGINAS
+========================================= */
+
+.menu-layout{
+    display: flex;
+}
+
+/* =========================================
+   SIDEBAR
+========================================= */
+
+.menu-layout .menu-sidebar{
+    width: 260px;
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* =========================================
+   LOGO
+========================================= */
+
+.menu-layout .menu-logo-area{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.menu-layout .menu-logo-icon{
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.menu-layout .menu-logo-text{
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-layout .menu-brand-name{
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: 0.5px;
+}
+
+.menu-layout .menu-brand-sub{
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* =========================================
+   NAV
+========================================= */
+
+.menu-layout .menu-nav{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex-grow: 1;
+}
+
+.menu-layout .menu-nav-item{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* HOVER */
+.menu-layout .menu-nav-item:hover{
+    background: #eff6ff;
+    color: #2563eb;
+    transform: translateX(3px);
+}
+
+/* ACTIVE */
+.menu-layout .menu-nav-item.active{
+    background: #2563eb;
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 6px 16px rgba(37,99,235,0.25);
+}
+
+/* ICON ACTIVE */
+.menu-layout .menu-nav-item.active i{
+    color: white;
+}
+
+/* =========================================
+   FOOTER
+========================================= */
+
+.menu-layout .menu-sidebar-footer{
+    border-top: 1px solid #e2e8f0;
+    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+.menu-layout .menu-logout-btn{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.menu-layout .menu-logout-btn:hover{
+    background: #fef2f2;
+}
+
+/* =========================================
+   MAIN CONTENT
+========================================= */
+
+.menu-layout .menu-main-content{
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    padding: 24px 32px;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.menu-layout .menu-main-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* =========================================
+   WELCOME
+========================================= */
+
+.menu-layout .menu-welcome-text h1{
+    font-size: 24px;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.menu-layout .menu-current-date{
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.menu-layout .menu-header-actions{
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+/* =========================================
+   BELL
+========================================= */
+
+.menu-layout .menu-notification-bell{
+    position: relative;
+}
+
+.menu-layout .menu-notification-bell a{
+    color: #64748b;
+    text-decoration: none;
+    font-size: 20px;
+}
+
+/* BADGE */
+.menu-layout .menu-bell-badge{
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================================
+   PROFILE
+========================================= */
+
+.menu-layout .menu-profile-avatar{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #dbeafe;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1100px){
+    .menu-layout .menu-sidebar{
+        width: 220px;
+    }
+    .menu-layout .menu-main-content{
+        margin-left: 220px;
+        width: calc(100% - 220px);
+    }
+}
+
+@media (max-width: 768px){
+    .menu-layout .menu-sidebar{
+        transform: translateX(-100%);
+    }
+    .menu-layout .menu-main-content{
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+}
+
+/* =========================================
+   RESET GENERAL
+========================================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background:#f7f9fb;
+}
+
+/* SCROLL */
+
+.menu-sidebar{
+    overflow-y:auto;
+}
+
+/* EVITA DESBORDAMIENTOS */
+
+.menu-main-content{
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+/* ICONOS */
+
+.menu-nav-item i,
+.menu-logout-btn i{
+    width:20px;
+    text-align:center;
+}
+
+/* =========================================
+   SWEETALERT2 GLOBAL AL FRENTE DE TODO
+========================================= */
+.swal2-container {
+    z-index: 999999 !important;
+}
+
