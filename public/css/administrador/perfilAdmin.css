@@ -1,0 +1,167 @@
+:root {
+    --primary:   #2563eb;
+    --primary-h: #1d4ed8;
+    --border:    #e2e8f0;
+    --text:      #0f172a;
+    --muted:     #64748b;
+    --blue-soft: #dbeafe;
+}
+
+/* =========================================
+   HEADER ESTILO NOTIFICACIONES
+========================================= */
+.noti-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 14px;
+}
+.noti-header-title h1 { font-size: 24px; font-weight: 700; color: var(--text); margin: 0; }
+.noti-header-title p { font-size: 13px; color: var(--muted); margin: 3px 0 0 0; }
+.avatar-wrap { position: relative; }
+/* AVATAR A 42PX EXACTOS */
+.noti-avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #dbeafe; }
+.avatar-text { background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+.avatar-status { position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; background: #22c55e; border: 2px solid #fff; }
+
+/* =========================================
+   ESTILOS BASE (TAMAÑOS REQUERIDOS: 42px)
+========================================= */
+.icon-42 {
+    width: 42px; 
+    height: 42px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 18px;
+}
+.rounded-circle { border-radius: 50%; }
+.bg-blue-soft { background: var(--blue-soft); }
+.text-blue { color: var(--primary); }
+.bg-light-gray { background: #f1f5f9; color: var(--primary); }
+.bg-blue { background: var(--primary); }
+.text-white { color: #fff; }
+.mt-3 { margin-top: 16px; }
+
+/* =========================================
+   MODO LECTURA - TARJETAS Y BANNER
+========================================= */
+.alert-success { background: #d1fae5; color: #065f46; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; display: flex; gap: 8px; align-items: center;}
+
+.profile-banner {
+    background: #fff; border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 24px; margin-bottom: 24px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+}
+.banner-info { display: flex; align-items: center; gap: 16px; }
+.banner-info h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--text); }
+.banner-info p { margin: 2px 0 0 0; font-size: 12px; color: var(--muted); }
+
+.btn-primary { 
+    background: var(--primary); color: #fff; padding: 9px 18px; border-radius: 8px; 
+    text-decoration: none; font-size: 13px; font-weight: 600; transition: 0.2s; 
+    display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
+}
+.btn-primary:hover { background: var(--primary-h); }
+
+/* GRID CSS PURO (REEMPLAZA A BOOTSTRAP) */
+.profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+@media (max-width: 1100px) { .profile-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .profile-grid { grid-template-columns: 1fr; } }
+
+.profile-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.card-header-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.card-header-title h4 { margin: 0; font-size: 15px; font-weight: 700; color: var(--text); }
+.card-body-list hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+
+.info-row { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
+.info-text { display: flex; flex-direction: column; }
+.info-text strong { font-size: 13px; color: var(--text); font-weight: 600; margin-bottom: 2px; }
+.info-text span { font-size: 12px; color: var(--muted); }
+.text-underline { text-decoration: underline; }
+
+/* BOTONES Y SWITCHES */
+.btn-outline-full { 
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px; 
+    border: 1px solid var(--primary); border-radius: 8px; color: var(--text); 
+    text-decoration: none; font-size: 13.5px; font-weight: 600; transition: 0.2s; 
+}
+.btn-outline-full:hover { background: var(--blue-soft); color: var(--primary); }
+
+.toggle-box { padding: 10px 14px; border: 1px solid var(--primary); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+.toggle-left { display: flex; align-items: center; gap: 10px; color: var(--primary); font-size: 14px; font-weight: 500; }
+.switch { position: relative; display: inline-block; width: 36px; height: 20px; margin: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* =========================================
+   MODO EDICIÓN - FORMULARIO 
+========================================= */
+.form-panel { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 32px; max-width: 800px; margin: 0 auto; }
+.form-header-center { text-align: center; margin-bottom: 32px; }
+.form-header-center h2 { font-size: 20px; font-weight: 700; margin: 10px 0 4px; color: var(--text); }
+.form-header-center p { font-size: 13px; color: var(--muted); margin: 0; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.mb-2 { margin-bottom: 8px; }
+
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 600px) { .form-grid-2 { grid-template-columns: 1fr; } }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 13px; font-weight: 600; color: var(--text); margin: 0;}
+.mt-16 { margin-top: 16px; }
+.mt-32 { margin-top: 32px; }
+
+.input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap > i:first-child { position: absolute; left: 14px; color: var(--muted); font-size: 14px; pointer-events: none; }
+.input-wrap input, .input-wrap select { 
+    width: 100%; padding: 10px 14px 10px 38px; border: 1px solid var(--border); 
+    border-radius: 8px; font-size: 13.5px; outline: none; background: #fff; 
+    transition: 0.2s; color: var(--text); font-family: inherit; box-sizing: border-box;
+}
+.input-wrap input:focus, .input-wrap select:focus { border-color: var(--primary); }
+.select-wrap-icon select { appearance: none; padding-right: 30px; }
+.arrow-down { position: absolute; right: 14px; color: var(--muted); font-size: 12px; pointer-events: none; }
+.eye-btn { position: absolute; right: 14px; color: var(--muted); font-size: 14px; cursor: pointer; }
+
+.form-actions { display: flex; gap: 12px; }
+.btn-cancel { flex: 1; text-align: center; background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 12px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.2s; }
+.btn-cancel:hover { background: #fca5a5; }
+.btn-submit { flex: 1; text-align: center; background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-submit:hover { background: var(--primary-h); }
+
+/* =========================================
+   ALERTAS DE ERROR (MODO EDICIÓN)
+========================================= */
+.alert-danger { 
+    background: #fee2e2; 
+    color: #b91c1c; 
+    padding: 14px 18px; 
+    border-radius: 10px; 
+    margin: 0 auto 20px auto; 
+    font-size: 14px; 
+    display: flex; 
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #fca5a5; 
+    max-width: 800px; /* Mismo ancho que el formulario */
+}
+
+.alert-danger-content { 
+    display: flex; 
+    gap: 10px; 
+    align-items: center; 
+    font-weight: 500;
+}
+
+.alert-close { 
+    cursor: pointer; 
+    color: #b91c1c; 
+    font-size: 16px; 
+    opacity: 0.7; 
+    transition: opacity 0.2s; 
+}
+
+.alert-close:hover { 
+    opacity: 1; 
+}
