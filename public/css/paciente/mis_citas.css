@@ -1,0 +1,329 @@
+/*=========================================================================
+   ESTILOS EXCLUSIVOS - MÓDULO: MIS CITAS (OPTIMIZADO Y SIN CÓDIGO MUERTO)
+   ========================================================================= */
+
+:root {
+    --text-dark-blue: #09244b;
+    --text-muted-gray: #64748b;
+    --border-color-soft: #e2e8f0;
+    --layout-bg-gray: #f8fafc;
+    
+    /* Paleta Cromática para Estados y Badges */
+    --color-programada: #0b57d0;
+    --color-programada-bg: #e8f0fe;
+    
+    --color-completada: #198754;
+    --color-completada-bg: #e6f4ea;
+    
+    --color-cancelada: #dc3545;
+    --color-cancelada-bg: #fce8e6;
+    
+    --color-no-asistio: #5f6368;
+    --color-no-asistio-bg: #f1f3f4;
+}
+
+.text-dark-blue {
+    color: var(--text-dark-blue) !important;
+}
+
+.font-sm { font-size: 13.5px !important; }
+.font-xs { font-size: 11.5px !important; }
+
+/* --- CONTENEDOR PRINCIPAL DE LA TABLA --- */
+.card-appointments {
+    border-radius: 16px !important;
+    background-color: #ffffff !important;
+    border: 1px solid var(--border-color-soft) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* --- BARRA DE MANDOS (BUSCADOR INTERACTIVO) --- */
+.input-group-custom {
+    border: 1px solid var(--border-color-soft);
+    border-radius: 10px !important;
+    height: 42px;
+    background-color: #ffffff;
+    transition: all 0.2s ease;
+}
+.input-group-custom:focus-within {
+    border-color: var(--color-programada);
+    box-shadow: 0 0 0 2px rgba(11, 87, 208, 0.1);
+}
+
+/* --- DISEÑO DE PESTAÑAS VISUALES (FILTROS) --- */
+.appointment-tabs-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.btn-tab-filter {
+    background-color: var(--layout-bg-gray) !important;
+    border: 1px solid transparent !important;
+    color: #475569 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 8px 16px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.btn-tab-filter:hover {
+    background-color: #e2e8f0 !important;
+    color: var(--text-dark-blue) !important;
+}
+.btn-tab-filter.active {
+    background-color: var(--color-programada-bg) !important;
+    color: var(--color-programada) !important;
+    border-color: rgba(11, 87, 208, 0.1) !important;
+    font-weight: 600 !important;
+}
+
+/* Colores de Iconos en Pestañas */
+.text-primary-icon { color: #64748b; }
+.btn-tab-filter.active .text-primary-icon { color: var(--color-programada); }
+.text-blue-icon { color: var(--color-programada); }
+.text-green-icon { color: var(--color-completada); }
+.text-red-icon { color: var(--color-cancelada); }
+.text-gray-icon { color: var(--color-no-asistio); }
+
+/* =========================================================================
+   ESTRUCTURA DE LA TABLA DE CITAS COPIADA DE LA IMAGEN
+   ========================================================================= */
+.table-appointments {
+    width: 100% !important;
+}
+.table-appointments thead th {
+    background-color: #ffffff !important;
+    color: #94a3b8 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 14px 16px !important;
+    border-bottom: 1px solid var(--border-color-soft) !important;
+    text-align: left !important;
+}
+.table-appointments tbody td {
+    padding: 16px 16px !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    background-color: #ffffff !important;
+    text-align: left !important;
+}
+.table-appointments tbody tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+/* --- CAJA DE BLOQUE CALENDARIO (FECHA) --- */
+.date-badge-box {
+    width: 52px;
+    height: 58px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #eff6ff;
+    color: var(--color-programada);
+}
+.date-badge-day { font-size: 19px; font-weight: 700; line-height: 1; }
+.date-badge-month { font-size: 10px; font-weight: 700; text-transform: uppercase; margin-top: 2px; }
+.date-badge-year { font-size: 9px; opacity: 0.7; }
+
+/* --- BADGES DE ESTADOS EXACTOS DE TU FOREACH --- */
+.status-badge {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 5px 14px !important;
+    border-radius: 20px !important;
+    display: inline-block !important;
+    text-align: center !important;
+}
+.status-pending { background-color: var(--color-programada-bg) !important; color: var(--color-programada) !important; }
+.status-completed { background-color: var(--color-completada-bg) !important; color: var(--color-completada) !important; }
+.status-cancelled { background-color: var(--color-cancelada-bg) !important; color: var(--color-cancelada) !important; }
+
+/* 🌟 AGREGADO: MAPEADO DE COLOR EXACTO PARA EL ESTADO NO ASISTIÓ */
+.status-no-asistio { 
+    background-color: var(--color-no-asistio-bg) !important; 
+    color: var(--color-no-asistio) !important; 
+    border: 1px solid var(--border-color-soft) !important;
+}
+
+/* =========================================================================
+   ACCIONES EN BOTONES CIRCULARES CON TOOLTIPS
+   ========================================================================= */
+.btn-action-circle {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    border: 1px solid var(--border-color-soft) !important;
+    background-color: #ffffff !important;
+    color: #64748b !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    padding: 0 !important;
+}
+.btn-action-circle:hover {
+    background-color: var(--layout-bg-gray) !important;
+    color: var(--text-dark-blue) !important;
+    border-color: #cbd5e1 !important;
+}
+.btn-action-circle.btn-cancel:hover {
+    color: var(--color-cancelada) !important;
+    background-color: var(--color-cancelada-bg) !important;
+    border-color: rgba(220, 53, 69, 0.2) !important;
+}
+
+/* --- TOOLTIP DINÁMICO AL PASAR EL RATÓN --- */
+.btn-action-circle .action-tooltip {
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background-color: var(--text-dark-blue);
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.15s ease;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+.btn-action-circle .action-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border-width: 4px; border-style: solid;
+    border-color: var(--text-dark-blue) transparent transparent transparent;
+}
+.btn-action-circle:hover .action-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Forzar centrado en la columna final */
+.table-appointments thead th:last-child,
+.table-appointments tbody td:last-child {
+    text-align: center !important;
+}
+
+/* --- ESTILOS DE SOPORTE INTERNO PARA EL MODAL DINÁMICO --- */
+.border-bottom-soft {
+    border-bottom: 1px solid #f1f5f9;
+}
+.box-icon-detail {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+.gap-3 { gap: 12px; }
+.gap-2 { gap: 8px; }
+.line-height-1 { line-height: 1.2; }
+
+/* Banners contextuales dentro del modal */
+.banner-bg-programada { background-color: #eff6ff; color: #1e40af; }
+.banner-bg-completada { background-color: #e6f4ea; color: #137333; }
+.banner-bg-cancelada { background-color: #fce8e6; color: #c5221f; }
+.banner-bg-no-asistio { background-color: #f1f3f4; color: #3c4043; }
+
+/* Headers contextuales dentro del modal */
+.header-bg-programada { background-color: #f8fafc; border: 1px solid #e2e8f0; color: var(--text-dark-blue); }
+.header-bg-completada { background-color: #e6f4ea; color: #137333; }
+.header-bg-cancelada { background-color: #fce8e6; color: #c5221f; }
+.header-bg-no-asistio { background-color: #f1f3f4; color: #3c4043; }
+
+/* =========================================================================
+   DISEÑO DE LA BARRA INFERIOR (CONTROLES Y PAGINACIÓN)
+   ========================================================================= */
+
+/* 1. Fondo gris y bordes de la barra inferior */
+#tablaCitas_wrapper > .row:last-child {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+    padding: 12px 20px !important;
+    margin: 0 !important;
+    border-radius: 0 0 16px 16px !important;
+    align-items: center !important;
+}
+
+/* 2. Agrupamos el texto y el botón a la izquierda */
+#tablaCitas_wrapper > .row:last-child > div:first-child {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 14px !important; 
+}
+
+/* 3. Estilo del texto "Mostrando 1 a X..." */
+#tablaCitas_wrapper .dt-info {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #64748b !important; 
+    font-size: 13.5px !important; 
+    font-weight: 400 !important;
+}
+
+/* 4. Reseteo de márgenes base y SEPARACIÓN DEL CUADRITO */
+#tablaCitas_wrapper .dt-length {
+    margin: 0 0 0 16px !important; /* El 16px empuja el cuadrito hacia la derecha separándolo del texto */
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+#tablaCitas_wrapper .dt-length label {
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* 5. DISEÑO EXACTO DEL BOTÓN (EL SELECTOR) */
+#tablaCitas_wrapper .dt-length select {
+    /* Quitamos la flecha fea por defecto del navegador */
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    
+    /* Estilos de tu diseño (Caja blanca, borde gris, bordes redondeados) */
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important; 
+    border-radius: 8px !important; 
+    padding: 6px 32px 6px 14px !important; /* Espacio a la derecha para la flechita */
+    color: #475569 !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+    min-width: 65px !important;
+    
+    /* Dibujamos la flechita (chevron) exacta con SVG para que se vea elegante */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 8px center !important;
+    background-size: 15px !important;
+    transition: border-color 0.2s;
+}
+
+/* Efecto hover sutil al pasar el mouse por el botón */
+#tablaCitas_wrapper .dt-length select:hover {
+    border-color: #94a3b8 !important;
+}

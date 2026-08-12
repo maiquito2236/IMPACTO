@@ -1,0 +1,214 @@
+/*=========================================================================
+    ESTILOS EXCLUSIVOS - MÓDULO: PAGOS (ODONTO ESTÉTICA)
+   ========================================================================= */
+:root {
+    --status-pendiente: #dc3545; /* rojo */
+    --status-abonando: #d97706; /* naranja */
+    --status-pagada: #198754; /* verde */
+}
+
+/* --- CLASES DE UTILIDAD FINANCIERA --- */
+.text-warning-dark { color: #f59e0b !important; }
+.text-secondary-dark { color: #475569; }
+.bg-light-gray { background-color: #f8fafc; }
+.fs-7 { font-size: 12px; }
+
+/* Dashboard Tarjetas de Saldos */
+.card-summary, 
+.main-data-card {
+    border-radius: 22px !important;
+    overflow: hidden;
+}
+.sidebar-detail-card {
+    border-radius: 16px !important;
+    background-color: #ffffff;
+}
+
+/* =========================================================================
+    TABLA DE PAGOS (BOOTSTRAP DATATABLES OVERRIDES)
+   ========================================================================= */
+#tablaPagos {
+    border-color: #dbe4f0;
+    width: 100% !important;
+}
+#tablaPagos thead th {
+    background: #f5f9ff !important;
+    color: #64748b !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: .4px !important;
+    padding: 12px 16px !important;
+    vertical-align: middle !important;
+}
+#tablaPagos tbody td {
+    font-size: 13px;
+    color: #1e293b;
+    padding: 10px 16px !important;
+    vertical-align: middle !important;
+}
+#tablaPagos tbody td:nth-child(4) {
+    font-weight: 700;
+    color: #0b57d0;
+}
+#tablaPagos tbody tr { transition: all .25s ease; }
+#tablaPagos tbody tr:hover { background-color: #f8fbff; }
+
+/* --- BADGES DE ESTADOS --- */
+.badge-pendiente{
+    background-color: var(--status-pendiente) !important;
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    padding:5px 12px;
+    border-radius:20px;
+}
+
+.badge-abonando{
+    background-color: var(--status-abonando) !important;
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    padding:5px 12px;
+    border-radius:20px;
+}
+
+.badge-pagada{
+    background-color: var(--status-pagada) !important;
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    padding:5px 12px;
+    border-radius:20px;
+}
+
+/* --- ACCIONES E ICONOS DE FILA --- */
+.action-icons { display: flex; justify-content: center; align-items: center; gap: 8px; }
+.action-icons a {
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: #f1f5f9; color: #64748b;
+    text-decoration: none; transition: .25s; flex-shrink: 0;
+}
+.action-icons a:hover {
+    background: #0b57d0; color: #fff !important; transform: translateY(-2px);
+}
+
+/* =========================================================================
+    OVERLAY OSCURO Y INTERACTIVO COMPLETO
+   ========================================================================= */
+#overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 9998; display: none;
+    backdrop-filter: blur(3px);
+}
+#panel-detalle, #modal-exportar {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); z-index: 9999; display: none;
+}
+#panel-detalle { width: 520px; max-width: 92%; }
+#modal-exportar { width: 360px; max-width: 90%; background: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.15); padding: 24px; border-radius: 22px !important; }
+
+#overlay.active, #panel-detalle.active, #modal-exportar.active { display: block; }
+
+/* Botones de Control de Modales */
+#cerrar-detalle, .btn-cerrar-panel {
+    background: #0b57d0; border: none; color: #ffffff;
+    font-weight: 600; font-size: 0.85rem; padding: 10px;
+    border-radius: 12px; display: inline-flex; width: 100%;
+    justify-content: center; transition: all 0.2s ease;
+}
+#cerrar-detalle:hover, .btn-cerrar-panel:hover { background: #0c4cb2; transform: translateY(-1px); }
+
+/* Ajustes de alineación para DataTables */
+.dt-container .dt-search { margin-bottom: 20px !important; }
+#tablaPagos thead th, #tablaPagos tbody td { text-align: left !important; }
+#tablaPagos thead th:nth-child(4), #tablaPagos tbody td:nth-child(4),
+#tablaPagos thead th:nth-child(5), #tablaPagos tbody td:nth-child(5),
+#tablaPagos thead th:nth-child(6), #tablaPagos tbody td:nth-child(6) { text-align: center !important; }
+.dt-container .dt-info, .dt-container .dt-paging { margin-top: 15px !important; }
+/*MODIFICACIONES EN LA TABLA PAGOS*/
+#tablaPagos tbody td:nth-child(4){
+    color:#1e293b !important;
+}
+
+#tablaPagos tbody td:nth-child(5){
+    color:#198754 !important;
+    font-weight:700;
+}
+
+#tablaPagos tbody td:nth-child(6){
+    color:#dc3545 !important;
+    font-weight:700;
+}
+/*ESTILOS PARA FLECHAS DE ORDENAMIENTO*/
+/* Asegurar espacio para las flechas en los encabezados ordenables */
+table.dataTable thead th {
+    position: relative;
+}
+/* --- NUEVA VISTA DE DETALLE (Tarjetas de Lectura) --- */
+.detail-card-container {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.financial-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.stat-box {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.stat-box .label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.stat-box .value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Resaltado especial para la Deuda */
+.deuda-box {
+    background: #fff5f5;
+    border: 1px solid #fee2e2;
+    padding: 15px;
+    border-radius: 16px;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.deuda-box .value {
+    color: #dc3545;
+    font-size: 18px;
+}
+
+/* Botón principal */
+.btn-back-custom {
+    background: #1e293b;
+    color: white;
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-back-custom:hover { background: #0f172a; }

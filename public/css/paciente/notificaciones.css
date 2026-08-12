@@ -1,0 +1,158 @@
+/* =========================================================================
+   ESTILOS EXCLUSIVOS - MÓDULO: NOTIFICACIONES (ODONTO ESTÉTICA)
+   Diseñado bajo estándares de arquitectura limpia y modular de CSS
+   ========================================================================= */
+
+/* --- CLASES DE UTILIDAD GENERALES DE ESTE MÓDULO --- */
+.font-xxs { font-size: 10px; }
+.px-1-5 { padding-left: 6px; padding-right: 6px; }
+
+/* =========================================================================
+   COMPONENTES ESPECÍFICOS DE NOTIFICACIONES
+   ========================================================================= */
+
+/* Filtros Superiores (Botones de Pestaña) */
+.btn-tab {
+    background-color: #ffffff;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.btn-tab:hover,
+.btn-tab.active {
+    background-color: var(--brand-light-blue);
+    color: var(--brand-blue);
+    border-color: #ccdffd;
+}
+
+/* Tarjetas de Alerta (Notification Cards) */
+.notification-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+}
+
+/* Indicador de mensaje no leído (Borde Azul de Figma) */
+.notification-card.unread {
+    border-left: 4px solid var(--brand-blue);
+}
+
+.notify-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark-blue);
+}
+
+.notify-text {
+    font-size: 13px;
+}
+
+.notify-dot {
+    width: 7px;
+    height: 7px;
+    background-color: var(--brand-blue);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Contenedores redondos para iconos de categorías */
+.notify-icon, .panel-icon-box {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+/* Paleta de colores pastel suave para las alertas */
+.bg-light-blue   { background-color: #e8f0fe; }
+.bg-light-green  { background-color: #e6f4ea; }
+.bg-light-purple { background-color: #f3e8ff; }
+.bg-light-cyan   { background-color: #e0f7fa; }
+.bg-light-gray   { background-color: #f1f5f9; }
+.bg-light-orange { background-color: #fff3e0; }
+
+.text-purple { color: #a855f7; }
+.text-cyan   { color: #00acc1; }
+.text-orange { color: #fb8c00; }
+
+/* Paneles Laterales de Resumen y Ajustes de Preferencias */
+.panel-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+}
+
+.panel-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-dark-blue);
+}
+
+/* Switch de Preferencias (Bootstrap custom overrides) */
+.form-check-input:checked {
+    background-color: var(--brand-blue) !important;
+    border-color: var(--brand-blue) !important;
+}
+
+.form-check-input {
+    cursor: pointer;
+}
+
+/* Botón de acción secundaria (Marcar todas leídas / Guardar preferencias) */
+.btn-action-outline {
+    border: 1px solid var(--brand-blue);
+    color: var(--text-dark-blue);
+    background-color: #ffffff;
+    font-weight: 500;
+    border-radius: 10px;
+    transition: all 0.25s ease;
+}
+
+.btn-action-outline:hover {
+    background-color: var(--brand-light-blue);
+    color: var(--brand-blue);
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(11, 87, 208, 0.08);
+}
+
+/* Punto de "no leída": feedback al pasar el mouse (es clickeable) */
+.notify-dot {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.notify-dot:hover {
+    transform: scale(1.6);
+}
+
+/* Pequeño realce a la tarjeta no leída para que destaque sutilmente */
+.notification-card.unread {
+    background-color: #fbfdff;
+}
+
+/* Estado vacío (sin notificaciones) */
+#notifications-container > .text-center.text-muted {
+    background-color: #ffffff;
+    border: 1px dashed #e2e8f0;
+    border-radius: 14px;
+}
+
+/* Responsive: en pantallas pequeñas las pestañas no se encogen feo */
+@media (max-width: 575.98px) {
+    .btn-tab {
+        flex: 1;
+        text-align: center;
+        padding: 8px 10px;
+    }
+}

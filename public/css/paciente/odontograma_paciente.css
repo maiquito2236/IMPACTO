@@ -1,0 +1,212 @@
+/* =========================================================================
+   ESTILOS EXCLUSIVOS - ODONTOGRAMA Y RESUMEN (PACIENTE)
+   ========================================================================= */
+
+/* ODONTOGRAMA */
+.odontogram-section {
+    overflow: hidden;
+}
+.odontogram-graphic {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    align-items: center;
+    overflow-x: auto;
+    padding: 30px 10px;
+}
+.teeth-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    min-width: 900px;
+}
+.tooth-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+.tooth-item:hover {
+    transform: scale(1.05);
+}
+.tooth-number {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+}
+.tooth-shape {
+    width: 32px;
+    height: 48px;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.tooth-shape.incisivo {
+    width: 20px;
+    height: 42px;
+    border-radius: 4px;
+}
+.tooth-shape.canino {
+    height: 44px;
+    width: 24px;
+    border-radius: 50% 50% 4px 4px;
+}
+.tooth-shape.premolar {
+    width: 28px;
+    height: 46px;
+    border-radius: 5px;
+}
+.tooth-shape.molar {
+    height: 54px;
+    width: 36px;
+    border-radius: 6px;
+}
+.tooth-shape.treated {
+    background-color: #2bc48a !important;
+    border-color: #1ea371 !important;
+    color: white;
+}
+
+/* ESTILOS DE EXPORTACIÓN A PDF */
+@media print {
+    @page {
+        margin: 0mm;
+        size: A4 portrait;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Ocultar elementos de UI */
+    .sidebar,
+    header,
+    .no-print,
+    #botones-acciones,
+    #toothModal {
+        display: none !important;
+    }
+
+    #print-header {
+        display: block !important;
+        margin-top: 15mm;
+    }
+
+    body {
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 0 15mm 15mm 15mm !important;
+    }
+
+    .main-content, main {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .odontogram-section {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        page-break-inside: avoid;
+    }
+
+    .tooth-item {
+        border: 1.5px solid #cbd5e1 !important;
+        background-color: #f8fafc !important;
+    }
+
+    .patient-card {
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    .right-summary-panel {
+        flex-wrap: wrap !important;
+    }
+    .summary-card {
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+    }
+
+    #print-tooth-details {
+        display: block !important;
+        page-break-before: auto;
+    }
+
+    .odontogram-graphic, main, .odontogram-section, body {
+        overflow: visible !important;
+        overflow-x: visible !important;
+    }
+
+    ::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .right-summary-panel,
+    .summary-card,
+    .patient-card,
+    #print-tooth-details > div > div {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+}
+
+/* MODO PDF CON JS */
+body.pdf-mode .sidebar,
+body.pdf-mode header,
+body.pdf-mode .no-print,
+body.pdf-mode #botones-acciones,
+body.pdf-mode #toothModal {
+    display: none !important;
+}
+
+body.pdf-mode #print-header {
+    display: block !important;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+body.pdf-mode { background-color: white !important; }
+
+body.pdf-mode main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    box-shadow: none !important;
+}
+
+body.pdf-mode .odontogram-section {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+body.pdf-mode .tooth-item {
+    border: 1.5px solid #cbd5e1 !important;
+    background-color: #f8fafc !important;
+}
+
+body.pdf-mode .patient-card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+body.pdf-mode .right-summary-panel { flex-wrap: wrap !important; }
+body.pdf-mode #print-tooth-details { display: block !important; margin-top: 20px;}
+
+body.pdf-mode .odontogram-graphic,
+body.pdf-mode main,
+body.pdf-mode .odontogram-section {
+    overflow: visible !important;
+    overflow-x: visible !important;
+}
