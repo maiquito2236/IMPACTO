@@ -1,0 +1,140 @@
+/* =========================================================================
+    ESTILOS EXCLUSIVOS - PANTALLA PRINCIPAL (DASHBOARD INICIO)
+   ========================================================================= */
+
+/* Contenedor base de tarjetas blancas con sombras suaves de Figma */
+.dashboard-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.03);
+    transition: transform 0.2s ease;
+}
+
+/* Cajas contenedoras pequeñas para iconos decorativos de sección */
+.card-icon-box {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+/* Paletas de colores semánticos para estados de tratamientos y alertas */
+.bg-success-light { background-color: #e6f6ec; }
+.text-success { color: #15803d !important; }
+
+.bg-danger-light { background-color: #fee2e2; }
+.text-danger { color: #b91c1c !important; }
+
+.bg-warning-light { background-color: #fef3c7; }
+.text-warning { color: #b45309 !important; }
+
+.bg-purple-light { background-color: #f3e8ff; }
+.text-purple { color: #6b21a8; }
+
+/* Tarjeta contenedora de fecha de citas */
+.date-badge {
+    background-color: #f0f7ff;
+    border-radius: 12px;
+    min-width: 75px;
+    border: 1px solid #d0e5ff;
+}
+
+/* Modificadores estéticos para balance visual de pagos */
+.section-payments-summary {
+    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+}
+
+.wallet-icon-container {
+    background-color: #e0f2fe;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0284c7;
+}
+
+/* Tabla interna de historial de citas */
+.custom-dashboard-table thead th {
+    background-color: #f8fafc;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.custom-dashboard-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.2s ease;
+}
+
+.custom-dashboard-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.custom-dashboard-table td {
+    padding: 12px 8px;
+}
+
+.table-dot-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* Hovers e interactividad de filas de recomendaciones */
+.info-row {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.info-row:hover {
+    background-color: #f8fafc;
+    transform: translateX(4px);
+}
+
+/* --- BOTONES CON COMPORTAMIENTO DE COLOR DEL DASHBOARD --- */
+.btn-action-outline {
+    border: none !important;
+    font-weight: 700;
+    transition: all 0.25s ease;
+}
+
+.btn-action-outline:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.05);
+}
+
+/* En reposo */
+.bg-primary-light.btn-action-outline {
+    background-color: #e8f0fe !important;
+    color: #0b57d0 !important;
+}
+
+/* Hover */
+.bg-primary-light.btn-action-outline:hover {
+    background-color: #d2e3fc !important;
+}
+
+.bg-success-light.btn-action-outline {
+    background-color: #e6f6ec !important;
+    color: #15803d !important;
+}
+.bg-success-light.btn-action-outline:hover {
+    background-color: #ccefd7 !important;
+}
+
+.bg-warning-light.btn-action-outline {
+    background-color: #fef3c7 !important;
+    color: #b45309 !important;
+}
+.bg-warning-light.btn-action-outline:hover {
+    background-color: #fde68a !important;
+}

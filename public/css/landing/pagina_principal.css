@@ -1,0 +1,472 @@
+/* ==========================================================================
+   CONFIGURACIONES GLOBALES Y VARIABLES (Actualizadas con colores del Dashboard)
+   ========================================================================== */
+:root {
+    --primary-dark: #041e49;       /* Azul oscuro profundo premium para los títulos principales */
+    --accent-blue: #0b57d0;        /* El azul vibrante del botón "Pedir Cita" e "Inicio" */
+    --cyan-text: #0b57d0;          /* Mantenemos la consistencia de marca con el azul vivo */
+    --body-text: #475569;          /* Gris pizarra limpio para mejor lectura del contenido */
+    --light-bg: #f8fafd;           /* El fondo azulado ultra claro de la interfaz y las tarjetas */
+    --white: #ffffff;
+    --border-color: #dde3ea;       /* Bordes más sutiles y claros del dashboard */
+    --border-radius-lg: 24px;
+    --border-radius-md: 16px;
+    --border-radius-sm: 8px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--body-text);
+    background-color: var(--white);
+    overflow-x: hidden;
+}
+
+/* Contenedor fluido de esquina a esquina */
+.container-fluid {
+    width: 100%;
+    padding: 0 4%;
+}
+
+.text-center { text-align: center; }
+
+/* Textos comunes */
+.sub-tag {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--cyan-text);
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 16px;
+}
+
+.section-title-left {
+    font-size: 34px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    margin-bottom: 24px;
+    line-height: 1.25;
+}
+
+.section-subtitle {
+    font-size: 15px;
+    color: var(--body-text);
+    margin-bottom: 48px;
+}
+
+.title-divider {
+    width: 40px;
+    height: 3px;
+    background-color: var(--cyan-text);
+    margin: 0 auto 48px auto;
+}
+
+/* Botones (Con el comportamiento de color del Dashboard) */
+.btn-primary {
+    background-color: var(--accent-blue); /* Botón azul vibrante por defecto */
+    color: var(--white);
+    padding: 14px 28px;
+    border-radius: var(--border-radius-sm);
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover { 
+    background-color: #0842a0; /* Un azul un poco más oscuro al pasar el cursor (hover clásico) */
+}
+.btn-sm { padding: 8px 18px; font-size: 14px; border-radius: 20px; } /* Más redondeado tipo píldora */
+.btn-flat { border-radius: var(--border-radius-sm); border: none; cursor: pointer; }
+.btn-link { color: var(--accent-blue); text-decoration: none; font-weight: 600; font-size: 14px; }
+
+/* ==========================================================================
+   NAVBAR (Fijo arriba de esquina a esquina - Modificado para Centrado)
+   ========================================================================== */
+.navbar {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(5px);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav-box {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr; /* Divide el espacio en 3 columnas perfectas */
+    align-items: center;
+    width: 100%;
+}
+
+/* Alinea el contenedor del logo a la izquierda */
+.nav-box .logo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+/* Fuerza a que el menú de navegación (Inicio, Nosotros, Servicios, Contacto) quede perfectamente en el centro */
+.nav-menu {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+}
+
+.nav-menu a {
+    text-decoration: none;
+    color: var(--body-text);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.nav-menu a:hover, 
+.nav-menu a.active { 
+    color: var(--accent-blue) !important; 
+    font-weight: 600 !important; 
+}
+
+/* Alinea los botones de Iniciar Sesión y Registrarse a la derecha */
+.nav-auth {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    justify-content: flex-end;
+}
+
+/* ==========================================================================
+   HERO SECTION (Ocupa el 100% de la pantalla inicial)
+   ========================================================================== */
+.hero-section {
+    width: 100%;
+    height: 100vh;
+    min-height: 650px;
+    display: flex;
+    align-items: center;
+    padding-top: 90px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background:
+        linear-gradient(
+            to right,
+            rgba(255,255,255,0.96) 0%,
+            rgba(255,255,255,0.90) 30%,
+            rgba(255,255,255,0.75) 60%,
+            rgba(255,255,255,0.55) 100%
+        ),
+        url('https://images.unsplash.com/photo-1629909615184-74f495363b67?q=80&w=1169&auto=format&fit=crop');
+
+    background-size: cover;
+    background-position: center;
+    filter: blur(2px);
+    transform: scale(1.05);
+
+    z-index: 0;
+}
+
+.hero-grid {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 40px;            /* Incrementado un poco el espacio para desahogar el texto */
+    align-items: center;  /* Alinea el texto centralizado verticalmente con la imagen estirada */
+    width: 100%;
+}
+
+.hero-title {
+    font-size: 4.2vw;
+    color: var(--primary-dark);
+    line-height: 1.15;
+    margin-bottom: 24px;
+    font-weight: 700;
+}
+
+.hero-title .highlight { color: var(--cyan-text); }
+.hero-text { font-size: 16px; color: var(--body-text); margin-bottom: 40px; max-width: 540px; }
+.hero-actions { display: flex; align-items: center; gap: 36px; }
+
+.hero-phone { display: flex; align-items: center; gap: 12px; }
+.phone-icon {
+    width: 46px;
+    height: 46px;
+    background-color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(11, 87, 208, 0.05);
+    border: 1px solid var(--border-color);
+}
+
+.phone-icon i {
+    font-size: 16px;
+}
+
+.phone-info span { display: block; font-size: 10px; font-weight: 700; color: var(--body-text); }
+.phone-info strong { font-size: 15px; color: var(--primary-dark); }
+
+.hero-image-container {
+    display: none;
+}
+
+.hero-img-box {
+    width: 100%;
+    max-width: 580px;
+    height: 100%; /* Toma por completo el alto asignado del contenedor */
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    z-index: 2;
+    box-shadow: 0 25px 50px rgba(11, 87, 208, 0.06);
+}
+
+/* Modificado para que la imagen estire perfectamente sin perder proporción */
+.hero-img-box img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    object-position: center; /* Enfoca el centro de la toma del consultorio */
+}
+
+.circle-decor-1 {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    border: 1px dashed #c4d6f2;
+    border-radius: 50%;
+    top: -20px;
+    right: 320px;
+    z-index: 1;
+}
+
+.circle-decor-2 {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    background-color: #e8f0fe;
+    border-radius: 50%;
+    bottom: -20px;
+    right: -20px;
+    z-index: 1;
+}
+
+.floating-badge {
+    position: absolute;
+    bottom: 40px;
+    left: -40px;
+    background-color: var(--white);
+    border-radius: var(--border-radius-md);
+    padding: 18px;
+    display: flex;
+    gap: 14px;
+    box-shadow: 0 12px 30px rgba(11, 87, 208, 0.08);
+    z-index: 3;
+    max-width: 280px;
+    border: 1px solid #e8f0fe;
+}
+
+.badge-icon { font-size: 20px; display: flex; align-items: center; }
+.badge-content h4 { font-size: 14px; color: var(--primary-dark); font-weight: 700; margin-bottom: 4px; }
+.floating-badge p { font-size: 12px; line-height: 1.45; }
+
+/* ==========================================================================
+   SECCIONES DE ABAJO (ACCESIBLES CON SCROLL)
+   ========================================================================== */
+.services-section, .about-section, .contact-section { 
+    padding: 120px 0; 
+}
+
+/* Especialidades & Carrusel */
+#servicesCarousel {
+    padding: 0 60px; /* Separación lateral para alojar las flechas de control */
+    position: relative;
+}
+
+.services-grid { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 40px;
+    padding: 20px 5px;
+}
+
+.service-card {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 50px 35px;
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(11, 87, 208, 0.05);
+}
+
+.card-icon-box { 
+    width: 52px; 
+    height: 52px; 
+    border-radius: var(--border-radius-sm); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 20px; 
+    margin-bottom: 28px; 
+    color: var(--accent-blue); /* Ajustado para dar uniformidad de marca al icono interno */
+}
+
+.bg-blue-light { background-color: #e8f0fe; }
+.bg-blue-cyan { background-color: #e3f2fd; }
+.bg-blue-dark-icon { background-color: #e8f0fe; }
+.service-card h3 { font-size: 20px; color: var(--primary-dark); margin-bottom: 14px; }
+.service-card p { font-size: 14px; margin-bottom: 28px; line-height: 1.5; }
+.card-link { font-size: 14px; font-weight: 600; color: var(--accent-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Controles de Flechas del Carrusel */
+#servicesCarousel .carousel-control-prev-icon,
+#servicesCarousel .carousel-control-next-icon {
+    background-color: var(--accent-blue);
+    border-radius: 50%;
+    padding: 20px;
+    background-size: 45%;
+}
+
+#servicesCarousel .carousel-control-prev { left: -10px; width: auto; }
+#servicesCarousel .carousel-control-next { right: -10px; width: auto; }
+
+/* Estilo de los Indicadores Inferiores */
+#servicesCarousel .carousel-indicators {
+    bottom: -50px;
+}
+
+#servicesCarousel .carousel-indicators button {
+    background-color: #cbd5e1;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+#servicesCarousel .carousel-indicators button.active {
+    background-color: var(--accent-blue);
+}
+
+/* Tarjeta especial discontinua del último slide */
+.style-invitation {
+    border: 2px dashed var(--border-color) !important;
+    background-color: var(--light-bg) !important;
+}
+
+/* Sobre Nosotros */
+.about-section { background-color: var(--light-bg); }
+.about-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: center; }
+.about-image-box { width: 100%; height: 500px; border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: 0 20px 40px rgba(11, 87, 208, 0.04); }
+.about-image-box img { width: 100%; height: 100%; object-fit: cover; }
+.about-text { font-size: 16px; margin-bottom: 24px; }
+.about-features { display: flex; gap: 40px; margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border-color); }
+.about-feat-item { display: flex; gap: 14px; }
+.feat-icon { font-size: 20px; display: flex; align-items: center; }
+.feat-info strong { font-size: 15px; color: var(--primary-dark); display: block; margin-bottom: 4px; }
+.feat-info p { font-size: 13px; }
+
+/* Contacto */
+.contact-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 50px; margin-top: 40px; }
+.info-card { background-color: var(--light-bg); border-radius: var(--border-radius-md); padding: 40px; margin-bottom: 30px; }
+.info-card h3 { font-size: 20px; color: var(--primary-dark); margin-bottom: 28px; }
+
+/* Alineación limpia de Font Awesome en los info-items */
+.info-item { 
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 24px; 
+}
+
+.info-item i {
+    flex-shrink: 0;
+    margin-right: 1rem;
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    color: var(--accent-blue);
+}
+
+.info-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-text strong { font-size: 14px; color: var(--primary-dark); display: block; margin-bottom: 2px; }
+.info-text p { font-size: 14px; margin: 0; color: var(--body-text); }
+.map-placeholder { height: 200px; background-color: #e2e8f0; border-radius: var(--border-radius-md); display: flex; flex-direction: column; justify-content: center; align-items: center; color: #718096; gap: 8px; }
+.map-placeholder .map-icon { font-size: 24px; color: var(--accent-blue); }
+
+.contact-form-card { background-color: var(--light-bg); border-radius: var(--border-radius-md); padding: 50px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.form-group label { font-size: 13px; font-weight: 600; color: var(--primary-dark); }
+.form-group input, .form-group textarea { padding: 16px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; font-family: inherit; font-size: 14px; background-color: var(--white); }
+.form-group input:focus, .form-group textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.1); }
+
+/* Footer */
+.main-footer { background-color: var(--light-bg); padding: 80px 0 30px 0; border-top: 1px solid var(--border-color); }
+.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.5fr; gap: 40px; padding-bottom: 40px; }
+.footer-brand h2 { font-size: 20px; color: var(--primary-dark); margin-bottom: 20px; }
+.footer-brand p { font-size: 14px; max-width: 280px; }
+.footer-links h4 { font-size: 15px; color: var(--primary-dark); margin-bottom: 20px; }
+.footer-links a, .footer-links p { display: block; font-size: 14px; color: var(--body-text); text-decoration: none; margin-bottom: 12px; }
+.footer-links a:hover { color: var(--accent-blue); }
+.footer-bottom { text-align: center; padding-top: 30px; font-size: 13px; border-top: 1px solid var(--border-color); }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+@media (max-width: 1024px) {
+    .hero-section { height: auto; padding-top: 140px; padding-bottom: 80px; }
+    .hero-grid, .about-grid, .contact-grid, .footer-grid { grid-template-columns: 1fr; }
+    .navbar .nav-menu { display: none; }
+    .hero-content { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .hero-title { font-size: 42px; }
+    .hero-actions { flex-direction: column; gap: 24px; }
+    .hero-image-container { justify-content: center; margin-top: 50px; height: 450px; }
+    .floating-badge { left: 50%; transform: translateX(-50%); bottom: -20px; }
+    .form-row { grid-template-columns: 1fr; }
+    .about-image-box { height: 350px; }
+    
+    /* Adaptación del carrusel en tablets y móviles */
+    #servicesCarousel { padding: 0; }
+    .services-grid { grid-template-columns: 1fr; gap: 20px; }
+    #servicesCarousel .carousel-control-prev, 
+    #servicesCarousel .carousel-control-next { display: none; } /* Ocultamos flechas para navegación táctil nativa */
+}

@@ -1,0 +1,215 @@
+/* =========================================================================
+    ESTILOS UNIFICADOS - MÓDULO: PERFIL Y ACTUALIZACIÓN (ODONTO ESTÉTICA)
+    Diseñado bajo estándares de arquitectura limpia y modular de CSS
+   ========================================================================= */
+
+/* =========================================================================
+    BLOQUE 1: INTERFAZ DE MODO LECTURA (PERFIL)
+   ========================================================================= */
+
+/* --- TARJETA SUPERIOR DE PERFIL (Banner Informativo) --- */
+.profile-banner {
+    background-color: #ffffff;
+    border-radius: 16px;
+}
+
+.profile-card-badge {
+    background-color: #d3e3fd;
+    border-radius: 12px;
+    padding: 15px 30px;
+}
+
+/* --- SECCIÓN DE DATOS (HOVERS E INTERACTIVIDAD DE FILAS) --- */
+.info-row {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.info-row:hover {
+    background-color: #f8fafc;
+    transform: translateX(4px);
+}
+
+.data-icon-box {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--brand-blue);
+}
+
+/* --- COLUMNA DE SEGURIDAD Y BOTONES DE ACCIÓN --- */
+.btn-action-outline {
+    border: 1px solid var(--brand-blue);
+    color: var(--text-dark-blue);
+    background-color: #ffffff;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.btn-action-outline:hover {
+    background-color: var(--brand-light-blue);
+    color: var(--brand-blue);
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(11, 87, 208, 0.08);
+}
+
+.form-check-input:checked {
+    background-color: var(--brand-blue);
+    border-color: var(--brand-blue);
+}
+
+
+/* =========================================================================
+   BLOQUE 2: INTERFAZ DE MODO EDICIÓN (FORMULARIO ACTUALIZAR)
+   ========================================================================= */
+
+/* --- CONTENEDOR INTERNO FORMULARIO --- */
+.form-update-container {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(30, 41, 59, 0.03);
+}
+
+/* --- ICONO SUPERIOR DEL FORMULARIO --- */
+.form-profile-icon {
+    background-color: #2b73ff;
+    color: #ffffff;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 15px;
+    font-size: 1.4rem;
+}
+
+/* --- 🌟 SUBTÍTULO CABECERA (CORREGIDO ERROR DE PEGADO) --- */
+.form-update-container .subtitle {
+    color: #64748b;
+    font-size: 0.88rem;
+    margin-bottom: 40px !important; /* 🚀 Esto separa el texto del inicio de los inputs */
+}
+
+/* --- GRILLA E INPUTS DEL FORMULARIO --- */
+.form-grid-custom {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-group-custom {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group-custom label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 6px;
+}
+
+.input-icon-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon-container input,
+.input-icon-container select {
+    width: 100%;
+    padding: 10px 15px 10px 42px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #1e293b;
+    outline: none;
+    background-color: #ffffff;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.input-icon-container input:focus,
+.input-icon-container select:focus {
+    border-color: #0b57d0;
+}
+
+.input-icon-container .icon-left {
+    position: absolute;
+    left: 16px;
+    color: #64748b;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.select-icon-box::after {
+    content: "\f078"; 
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    right: 16px;
+    color: #64748b;
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+.pass-toggle-eye {
+    position: absolute;
+    right: 16px;
+    color: #64748b;
+    cursor: pointer;
+}
+
+/* --- CONTENEDOR DE ACCIONES BARRA INFERIOR --- */
+.form-actions-group {
+    margin-top: 40px !important;
+}
+
+/* --- BOTONES DEL PANEL --- */
+.btn-submit-update {
+    background-color: #0346ce;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: all 0.2s ease;
+}
+
+.btn-submit-update:hover {
+    background-color: #023193;
+    transform: scale(1.01);
+}
+
+.btn-cancel-danger {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel-danger:hover {
+    background-color: #fca5a5;
+    color: #7f1d1d;
+    transform: scale(1.01);
+}
+
+/* --- ADAPTACIÓN MÓVIL --- */
+@media (max-width: 768px) {
+    .form-grid-custom {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}

@@ -1,0 +1,722 @@
+:root {
+    --bg-primary: #f8fafc;
+    --bg-sidebar: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --accent-blue: #1a56db;
+    --accent-blue-light: #eff6ff;
+    --accent-green: #22c55e;
+    --accent-green-light: #dcfce7;
+    --accent-red: #ef4444;
+    --accent-yellow: #eab308;
+    --border-color: #e2e8f0;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-main);
+}
+/* ========================================
+   INTEGRACIÓN MENU GLOBAL
+======================================== */
+
+.menu-layout{
+    display:flex;
+    min-height:100vh;
+    width:100%;
+}
+
+.main-content{
+    flex:1;
+    min-width:0;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: fixed;
+    height: 100vh;
+    left: 0; top: 0;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 24px;
+}
+
+.logo-icon {
+    background-color: var(--accent-blue-light);
+    color: var(--accent-blue);
+    width: 40px; height: 40px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+}
+
+.logo-text { display: flex; flex-direction: column; }
+.brand-name { font-weight: 700; font-size: 14px; color: var(--accent-blue); }
+.brand-sub { font-size: 10px; color: var(--text-muted); }
+
+.nav-menu { display: flex; flex-direction: column; gap: 8px; flex-grow: 1; }
+.nav-item {
+    display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+    color: var(--text-muted); text-decoration: none; font-size: 14px;
+    font-weight: 500; border-radius: var(--radius-md);
+}
+.nav-item:hover, .nav-item.active { background-color: var(--accent-blue-light); color: var(--accent-blue); }
+.sidebar-footer { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border-color); padding-top: 16px; }
+.logout-btn { display: flex; align-items: center; gap: 14px; padding: 12px 16px; color: var(--accent-red); text-decoration: none; font-size: 14px; }
+
+/* CONTENIDO */
+.main-content{
+    width:100%;
+    padding:0;
+    margin:0;
+}
+.main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.welcome-text h1 { font-size: 22px; font-weight: 700; }
+.current-date { font-size: 13px; color: var(--text-muted); }
+.header-actions { display: flex; align-items: center; gap: 20px; }
+.btn-primary { background-color: var(--accent-blue); color: white; border: none; padding: 10px 18px; font-size: 14px; font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.notification-bell { position: relative; font-size: 20px; color: var(--text-muted); }
+.bell-badge { position: absolute; top: -4px; right: -4px; background-color: var(--accent-red); color: white; font-size: 9px; width: 15px; height: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+
+/* TARJETA PACIENTE */
+.patient-card{
+    background:#fff;
+    border:1px solid var(--border-color);
+
+    border-radius:18px;
+
+    padding:20px 24px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:24px;
+
+    box-shadow:
+        0 2px 10px rgba(15,23,42,.04);
+}
+.patient-info-block { display: flex; align-items: center; gap: 16px; }
+.patient-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
+.patient-details h2 { font-size: 16px; font-weight: 600; }
+.patient-details p { font-size: 13px; color: var(--text-muted); }
+.btn-more-options { background: none; border: none; color: var(--text-muted); font-size: 18px; }
+
+/* TABS */
+.tabs-container{
+
+    display:flex;
+    gap:10px;
+
+    margin-bottom:24px;
+
+    border:none;
+}
+.tab-button{
+
+    border:none;
+
+    background:#fff;
+
+    padding:12px 18px;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+    color:var(--text-muted);
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+.tab-button.active{
+
+    background:#eff6ff;
+    color:#2563eb;
+}
+
+/* SECCIONES COMPONENTES */
+.dashboard-block{
+    background:#fff;
+
+    border:1px solid #e2e8f0;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:
+        0 2px 10px rgba(15,23,42,.04);
+
+    margin-bottom:24px;
+}
+.block-header h3{
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.odontogram-section .block-header{
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 25px;
+}
+.link-view-all { font-size: 12px; color: var(--accent-blue); text-decoration: none; }
+
+/* ODONTOGRAMA */
+.odontogram-graphic{
+
+    display:flex;
+    flex-direction:column;
+    gap:40px;
+
+    align-items:center;
+
+    overflow-x:auto;
+
+    padding:30px 10px;
+}
+.teeth-row{
+    min-width:900px;
+}
+.tooth-item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.tooth-number { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.tooth-shape { width: 32px; height: 48px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.tooth-shape.molar { height: 54px; width: 36px; border-radius: 6px; }
+.tooth-shape.canino { height: 44px; width: 24px; border-radius: 50% 50% 4px 4px; }
+.tooth-shape.blue-status { background-color: var(--accent-blue-light); border-color: var(--accent-blue); color: var(--accent-blue); }
+.tooth-shape.red-status { background-color: #fef2f2; border-color: var(--accent-red); color: var(--accent-red); }
+.tooth-shape.crown-status { background-color: #fef9c3; border-color: var(--accent-yellow); color: #a16207; }
+
+/* GRID */
+.two-columns-grid { display: grid; grid-template-columns: 1fr 400px; gap: 24px; }
+.right-sub-column { display: flex; flex-direction: column; gap: 24px; }
+
+/* TIMELINE */
+.timeline { display: flex; flex-direction: column; position: relative; padding-left: 140px; }
+.timeline::before { content: ''; position: absolute; left: 148px; top: 10px; bottom: 10px; width: 2px; background-color: var(--border-color); }
+.timeline-item { display: flex; position: relative; margin-bottom: 28px; }
+.timeline-meta { position: absolute; left: -140px; width: 110px; text-align: right; display: flex; flex-direction: column; }
+.timeline-meta .time { font-size: 13px; font-weight: 600; }
+.timeline-meta .date { font-size: 11px; color: var(--text-muted); }
+.timeline-point { position: absolute; left: 5px; top: 4px; width: 8px; height: 8px; background-color: #cbd5e1; border-radius: 50%; z-index: 10; }
+.timeline-item.main-highlight .timeline-point { background-color: var(--accent-blue); box-shadow: 0 0 0 4px var(--accent-blue-light); }
+.timeline-body { padding-left: 32px; flex-grow: 1; }
+.timeline-body h4 { font-size: 14px; font-weight: 600; }
+.body-header { display: flex; justify-content: space-between; align-items: center; }
+.doctor-tag { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.badge { padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 20px; }
+.status-finished { background-color: var(--accent-green-light); color: #166534; }
+.timeline-gallery { display: flex; gap: 8px; margin-top: 10px; }
+.timeline-gallery img { width: 70px; height: 50px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-color); }
+
+/* SECCIÓN ARCHIVOS */
+.select-filter { border: 1px solid var(--border-color); padding: 6px 12px; font-size: 12px; border-radius: var(--radius-sm); }
+.files-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.file-card{
+
+    border:1px solid #e2e8f0;
+
+    border-radius:14px;
+
+    padding:12px;
+
+    background:#fff;
+
+    transition:.25s;
+
+    cursor:pointer;
+}
+.img-thumb { height: 64px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+.img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.img-thumb.double { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.pdf-thumb { height: 64px; background-color: #fef2f2; color: var(--accent-red); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 4px; margin-bottom: 8px; }
+.pdf-thumb i { font-size: 24px; }
+.pdf-tag { font-size: 9px; font-weight: bold; }
+.file-name { display: block; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.file-date { font-size: 10px; color: var(--text-muted); }
+
+/* ALERTAS */
+.alert-box { border: 1px solid #fee2e2; background-color: #fff5f5; border-radius: var(--radius-md); padding: 16px; display: flex; align-items: center; gap: 14px; }
+.alert-icon-wrapper { background-color: #fef2f2; color: var(--accent-red); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.alert-text p { font-size: 13px; font-weight: 500; color: #991b1b; }
+.link-action { margin-left: auto; font-size: 12px; color: var(--accent-blue); text-decoration: none; font-weight: 600; }
+
+.selected-tooth {
+    transform: scale(1.08);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.file-card {
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.file-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:
+        0 10px 20px rgba(0,0,0,.08);
+}
+
+.notification-bell {
+    cursor: pointer;
+}
+
+.btn-more-options {
+    cursor: pointer;
+}
+.tooth-item {
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.tooth-item:hover {
+    transform: scale(1.05);
+}
+
+.tooth-shape {
+    transition: all 0.2s ease;
+}
+/* =========================
+FILTROS TIMELINE
+========================= */
+
+.timeline-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.timeline-filter {
+    border: none;
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.timeline-filter.active {
+    background: #2563eb;
+    color: white;
+}
+
+.timeline-filter:hover {
+    transform: translateY(-2px);
+}
+
+/* =========================
+ANIMACIÓN TIMELINE
+========================= */
+
+.timeline-item {
+    animation: fadeUp 0.35s ease;
+}
+
+@keyframes fadeUp {
+
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   ESTILOS PARA EXPORTACIÓN PDF
+   ========================= */
+.pdf-mode * {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+}
+
+.timeline-item{
+
+    background:#fff;
+
+    border:1px solid #e2e8f0;
+
+    border-radius:14px;
+
+    padding:16px;
+
+    margin-bottom:18px;
+}
+.timeline-body h4{
+    color:#0f172a;
+}
+.tooth-modal{
+
+    position:fixed;
+    inset:0;
+
+    background:rgba(15,23,42,.45);
+
+    display:none;
+
+    justify-content:center;
+    align-items:center;
+
+    z-index:3000;
+}
+
+.tooth-modal.active{
+    display:flex;
+}
+
+.modal-content{
+
+    width:90%;
+    max-width:650px;
+
+    background:#fff;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    box-shadow:
+        0 20px 40px rgba(0,0,0,.15);
+}
+
+.modal-header{
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:22px 28px;
+
+    border-bottom:1px solid #e2e8f0;
+}
+
+.modal-body{
+    padding:28px;
+}
+
+.close-modal{
+
+    border:none;
+    background:none;
+
+    font-size:22px;
+
+    cursor:pointer;
+}
+
+.info-grid{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:15px;
+
+    margin-top:20px;
+}
+
+.info-box,
+.info-card{
+
+    border:1px solid #e2e8f0;
+
+    border-radius:12px;
+
+    padding:15px;
+}
+
+.label{
+
+    display:block;
+
+    font-size:12px;
+
+    color:#64748b;
+
+    margin-bottom:5px;
+}
+@media (max-width:1200px){
+
+    .two-columns-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+@media (max-width:768px){
+
+    .main-content{
+        padding:15px;
+    }
+
+    .patient-card{
+        flex-direction:column;
+        gap:15px;
+        align-items:flex-start;
+    }
+
+    .tabs-container{
+        flex-wrap:wrap;
+    }
+
+    .info-grid{
+        grid-template-columns:1fr;
+    }
+}
+.menu-layout .main-workspace .main-content{
+
+    width: 100%;
+
+    padding: 0;
+
+    margin: 0;
+}
+.odontogram-section{
+    overflow: hidden;
+}
+
+.teeth-row{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    min-width:900px;
+}
+.tooth-shape.incisivo{
+    width:20px;
+    height:42px;
+    border-radius:4px;
+}
+
+.tooth-shape.premolar{
+    width:28px;
+    height:46px;
+    border-radius:5px;
+}
+.tooth-shape {
+    width: 32px;
+    height: 48px;
+}
+.tooth-shape.treated { background-color: #2bc48a !important; border-color: #1ea371 !important; color: white; 
+}
+
+.timeline-container { background: #fff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+}
+
+.timeline-item { border-left: 3px solid #3b82f6; padding-left: 20px; margin-bottom: 25px; position: relative; 
+}
+
+.timeline-item::before { content: ''; position: absolute; left: -10px; top: 0; width: 17px; height: 17px; background: #3b82f6; border-radius: 50%; border: 3px solid #eff6ff; 
+}
+/* =========================================================
+   ESTILOS EXCLUSIVOS PARA IMPRESIÓN Y EXPORTACIÓN A PDF
+   ========================================================= */
+@media print {
+    /* 1. ELIMINA URLs, FECHAS Y PÁGINAS DEL NAVEGADOR */
+    @page {
+        margin: 0mm; /* Esto borra los encabezados/pies de página nativos */
+        size: A4 portrait;
+    }
+
+    /* 2. FORZAR LA IMPRESIÓN A TODO COLOR (Para los rectángulos/dientes) */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 3. OCULTAR ELEMENTOS INDESEADOS (Menús, Saludo, Botones) */
+    /* Nota: Añadimos 'header' y la clase genérica del saludo superior */
+    .menu-layout nav, 
+    .menu-layout aside, 
+    header, /* Oculta la barra superior si usa etiqueta header */
+    .top-header, /* Oculta la barra superior si usa esta clase */
+    .header-dashboard,
+    .user-greeting-bar, /* Posibles clases de tu layouts/menu.php */
+    #botones-acciones, 
+    .tabs-container, 
+    .link-view-all, 
+    #toothModal {
+        display: none !important;
+    }
+
+    /* 4. MOSTRAR TU LOGO OFICIAL */
+    #print-header {
+        display: block !important;
+        margin-top: 15mm; /* Damos un margen superior porque quitamos el del navegador */
+    }
+
+    /* 5. CONFIGURACIÓN DEL PAPEL BLANCO */
+    body {
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 0 15mm 15mm 15mm !important; /* Márgenes internos para que no toque los bordes */
+    }
+
+    .main-content {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+
+    /* 6. MEJORAR LOS RECTÁNGULOS (ODONTOGRAMA) */
+    .odontogram-section {
+        border: none !important; /* Quita cajas o barras oscuras debajo */
+        box-shadow: none !important;
+        background: transparent !important;
+        page-break-inside: avoid; /* Evita que el odontograma se parta a la mitad */
+    }
+
+    .tooth-item {
+        border: 1.5px solid #cbd5e1 !important; /* Borde nítido para los rectángulos */
+        background-color: #f8fafc !important; /* Fondo claro por defecto */
+    }
+    
+    .tooth-shape.treated {
+        background-color: #2bc48a !important; /* Fuerza el color verde de tratamiento */
+        border-color: #2bc48a !important;
+    }
+
+    .patient-card {
+        box-shadow: none !important;
+        border: 1px solid #e2e8f0 !important;
+    }
+
+    /* 7. EVITAR CORTES DE PÁGINA EN LAS CAJAS INFERIORES */
+    .right-summary-panel {
+        flex-wrap: wrap !important;
+    }
+    .summary-card {
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+    }
+    .timeline-item {
+        page-break-inside: avoid !important;
+    }
+    /* Mostrar la lista de detalles de los dientes solo en PDF */
+    #print-tooth-details {
+        display: block !important;
+        page-break-before: auto;
+    }
+
+    /* 🔥 ELIMINAR BARRAS DE DESPLAZAMIENTO (Scrollbars) */
+    .odontogram-graphic, .main-content, .odontogram-section, body {
+        overflow: visible !important;
+        overflow-x: visible !important;
+    }
+    
+    ::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* 🔥 EVITAR CORTES DE PÁGINA A LA MITAD DE LAS CAJAS */
+    .timeline-section, 
+    .timeline-item, 
+    .right-summary-panel, 
+    .summary-card, 
+    .patient-card,
+    #print-tooth-details > div > div {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+}
+/* =========================================================
+   REGLAS PARA QUE EL PDF SE VEA EXACTAMENTE IGUAL A IMPRIMIR
+   ========================================================= */
+body.pdf-mode .menu-layout nav, 
+body.pdf-mode .menu-layout aside, 
+body.pdf-mode header, 
+body.pdf-mode .top-header, 
+body.pdf-mode .header-dashboard, 
+body.pdf-mode .user-greeting-bar, 
+body.pdf-mode #botones-acciones, 
+body.pdf-mode .tabs-container, 
+body.pdf-mode .link-view-all, 
+body.pdf-mode #toothModal {
+    display: none !important;
+}
+
+body.pdf-mode #print-header { 
+    display: block !important; 
+    margin-top: 10px; 
+    margin-bottom: 20px; 
+}
+
+body.pdf-mode { background-color: white !important; }
+
+body.pdf-mode .main-content { 
+    width: 100% !important; 
+    margin: 0 !important; 
+    padding: 10px !important; 
+    box-shadow: none !important; 
+}
+
+body.pdf-mode .odontogram-section { 
+    border: none !important; 
+    box-shadow: none !important; 
+    background: transparent !important; 
+}
+
+body.pdf-mode .tooth-item { 
+    border: 1.5px solid #cbd5e1 !important; 
+    background-color: #f8fafc !important; 
+}
+
+body.pdf-mode .tooth-shape.treated { 
+    background-color: #2bc48a !important; 
+    border-color: #2bc48a !important; 
+}
+
+body.pdf-mode .patient-card { 
+    box-shadow: none !important; 
+    border: 1px solid #e2e8f0 !important; 
+}
+
+body.pdf-mode .right-summary-panel { flex-wrap: wrap !important; }
+body.pdf-mode #print-tooth-details { display: block !important; margin-top: 20px;}
+
+/* Ocultar barras grises/scrollbars al tomar la foto para el PDF */
+body.pdf-mode .odontogram-graphic, 
+body.pdf-mode .main-content, 
+body.pdf-mode .odontogram-section { 
+    overflow: visible !important; 
+    overflow-x: visible !important; 
+}
