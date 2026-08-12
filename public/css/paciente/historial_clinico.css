@@ -1,0 +1,105 @@
+/* =========================================================================
+   ESTILOS EXCLUSIVOS - SECCIÓN HISTORIAS CLÍNICAS (INTERNA)
+   ========================================================================= */
+
+/* Contenedor de las tarjetas de métricas superiores */
+.metric-card-custom {
+    border-radius: 16px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #f1f5f9 !important;
+    padding: 1rem 1.25rem !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    height: 100% !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Caja de color para los iconos de las métricas */
+.icon-box-metric {
+    width: 52px !important;
+    height: 52px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.3rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* Paleta de colores pastel para los iconos de las métricas */
+.bg-blue-light { background-color: #eef2ff !important; color: #4f46e5 !important; }
+.bg-purple-light { background-color: #faf5ff !important; color: #9333ea !important; }
+.bg-green-light { background-color: #f0fdf4 !important; color: #16a34a !important; }
+.bg-orange-light { background-color: #fff7ed !important; color: #ea580c !important; }
+
+/* Píldoras de estados del tratamiento */
+.badge-type {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    padding: 4px 12px !important;
+    border-radius: 20px !important;
+    display: inline-block !important;
+}
+.badge-treatment { background-color: #eff6ff !important; color: #1d4ed8 !important; }
+.badge-consult { background-color: #f0fdf4 !important; color: #166534 !important; }
+
+/* Limpieza de la estructura rígida de DataTables para mantener el diseño flotante */
+.table-datatable-custom tbody, 
+.table-datatable-custom tr, 
+.table-datatable-custom td {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.card-row-historical {
+    transition: all 0.2s ease-in-out !important;
+}
+
+.card-row-historical:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+    border-color: #cbd5e1 !important;
+}
+
+/* --- COMPONENTES COMPARTIDOS: MODAL RESUMEN CLÍNICO --- */
+.border-bottom-soft {
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+.box-icon-detail {
+    width: 32px !important;
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 14px !important;
+}
+.status-badge {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 5px 14px !important;
+    border-radius: 20px !important;
+    display: inline-block !important;
+    text-align: center !important;
+}
+.status-pending { background-color: #e8f0fe !important; color: #0b57d0 !important; }
+.status-completed { background-color: #e6f4ea !important; color: #198754 !important; }
+.status-cancelled { background-color: #fce8e6 !important; color: #dc3545 !important; }
+
+/* Banners contextuales dentro del modal */
+.banner-bg-programada { background-color: #eff6ff !important; color: #1e40af !important; }
+.banner-bg-completada { background-color: #e6f4ea !important; color: #137333 !important; }
+.banner-bg-cancelada { background-color: #fce8e6 !important; color: #c5221f !important; }
+
+/* Headers de control de estado dentro del modal */
+.header-bg-programada { background-color: #f8fafc !important; border: 1px solid #e2e8f0 !important; color: #09244b !important; }
+.header-bg-completada { background-color: #e6f4ea !important; color: #137333 !important; }
+.header-bg-cancelada { background-color: #fce8e6 !important; color: #c5221f !important; }
+
+.text-justify {
+    text-align: justify !important;
+    text-justify: inter-word !important;
+}
+.line-height-sm {
+    line-height: 1.4 !important;
+}

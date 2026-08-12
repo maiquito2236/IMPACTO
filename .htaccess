@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /LOGIN_ORIGINAL/
+
+# Si es un archivo o directorio que existe fsicamente, srvelo directamente
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# De lo contrario, pasa toda la ruta como el parmetro 'action' a index.php
+RewriteRule ^(.*)$ index.php?action=$1 [QSA,L]

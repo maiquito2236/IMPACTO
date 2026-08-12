@@ -1,0 +1,349 @@
+/* =========================================
+   ESTILOS ESPECÍFICOS PARA MÓDULO "OTROS"
+========================================= */
+
+/* Contenedor Principal (Reemplaza al panel global para evitar conflictos) */
+.panel-otros {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+    margin-top: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+/* Encabezado Interno */
+.header-otros {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 30px 30px 15px 30px;
+}
+
+.icon-circle-otros {
+    width: 48px;
+    height: 48px;
+    background-color: #eff6ff;
+    color: #0d6efd; 
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.titles-otros h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 4px 0;
+}
+
+.titles-otros p {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Pestañas */
+.tabs-otros {
+    display: flex;
+    gap: 30px;
+    padding: 0 30px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tab-btn-otros {
+    padding: 12px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.tab-btn-otros:hover { color: #1e293b; }
+
+.tab-btn-otros.active {
+    color: #0d6efd;
+    font-weight: 600;
+    border-bottom: 2px solid #0d6efd;
+}
+
+/* Barra de Acciones */
+.toolbar-otros {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+}
+
+.btn-primary-otros {
+    background-color: #0d6efd;
+    color: #ffffff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.btn-primary-otros:hover { background-color: #0b5ed7; }
+
+.toolbar-right-otros {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.search-box-otros {
+    position: relative;
+    width: 250px;
+}
+
+.search-box-otros i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.search-box-otros input {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    outline: none;
+    font-family: inherit;
+}
+
+.search-box-otros input:focus { border-color: #0d6efd; }
+
+.btn-outline-otros {
+    background-color: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 9px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Tabla */
+.table-container-otros {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.table-otros {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.table-otros thead {
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table-otros th {
+    padding: 12px 15px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+.table-otros th:first-child { padding-left: 30px; }
+.table-otros th:last-child { padding-right: 30px; }
+
+.table-otros td {
+    padding: 16px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.table-otros td:first-child { padding-left: 30px; }
+.table-otros td:last-child { padding-right: 30px; }
+
+.table-otros tr:hover { background-color: #f8fafc; }
+
+.col-id-otros { font-size: 12px; color: #94a3b8; }
+
+.proc-name-otros { font-size: 13px; font-weight: 600; color: #1e293b; }
+.proc-desc-otros { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+.col-duracion-otros { font-size: 13px; color: #475569; }
+.col-duracion-otros i { color: #94a3b8; margin-right: 4px; }
+
+.col-precio-otros { font-size: 13px; font-weight: 600; color: #1e293b; }
+
+/* Badges / Píldoras */
+.badge-otros {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Colores de Categorías */
+.cat-preventivo { background-color: #eff6ff; color: #2563eb; } 
+.cat-restaurador { background-color: #dcfce7; color: #16a34a; } 
+.cat-quirurgico { background-color: #f3e8ff; color: #9333ea; } 
+.cat-estetico { background-color: #ffedd5; color: #ea580c; } 
+
+/* Colores de Estado */
+.est-activo { background-color: #dcfce7; color: #16a34a; }
+.est-inactivo { background-color: #fee2e2; color: #dc2626; }
+
+/* Botones de Acción */
+.actions-group-otros { display: flex; gap: 8px; }
+
+.btn-action {
+    background: none;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background 0.15s;
+}
+.btn-action.edit { color: #0d6efd; }
+.btn-action.delete { color: #dc2626; }
+.btn-action.more { color: #94a3b8; }
+.btn-action:hover { background-color: #f1f5f9; }
+
+/* Paginación */
+.pagination-otros {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.page-info-otros { font-size: 13px; color: #64748b; }
+
+.page-controls-otros { display: flex; gap: 4px; align-items: center; }
+
+.page-btn {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.page-btn:hover:not(.active) { background: #f8fafc; }
+.page-btn.active {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #ffffff;
+    font-weight: 500;
+}
+.page-btn.nav { display: flex; align-items: center; gap: 6px; }
+.page-dots { color: #94a3b8; margin: 0 4px; }
+
+/* =========================================
+   MODAL NUEVO PROCEDIMIENTO
+========================================= */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    width: 450px;
+    max-width: 90%;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    color: #1e293b;
+}
+
+.form-group {
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13.5px;
+    color: #1e293b;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+    border-color: #0d6efd;
+}
+
+.btn-primary-otros {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-primary-otros:hover {
+    background-color: #0b5ed7;
+}

@@ -1,0 +1,163 @@
+/* =========================================================================
+   ESTILOS EXCLUSIVOS - MÓDULO: TRATAMIENTOS (ODONTO ESTÉTICA)
+   Diseñado bajo estándares de arquitectura limpia y modular de CSS
+   ========================================================================= */
+
+/* --- TARJETA SUPERIOR DE PERFIL (Banners y Contenedores Blancos) --- */
+.profile-banner {
+    background-color: #ffffff;
+    border-radius: 16px;
+}
+
+.profile-card-badge {
+    background-color: #d3e3fd;
+    border-radius: 12px;
+    padding: 15px 30px;
+}
+
+/* --- SECCIÓN DE DATOS (HOVERS E INTERACTIVIDAD DE TARJETA-COUNTERS) --- */
+.info-row {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.info-row:hover {
+    background-color: #f8fafc;
+    transform: translateX(4px); /* Desplazamiento sutil a la derecha */
+}
+
+.data-icon-box {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--brand-blue);
+}
+
+/* --- COLUMNA DE ACCIONES Y BOTONES DE FILTRADO --- */
+.btn-action-outline {
+    border: 1px solid var(--brand-blue);
+    color: var(--text-dark-blue);
+    background-color: #ffffff;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.btn-action-outline:hover {
+    background-color: var(--brand-light-blue);
+    color: var(--brand-blue);
+    transform: scale(1.02); /* Inflado milimétrico */
+    box-shadow: 0 4px 10px rgba(11, 87, 208, 0.08);
+}
+
+/* Botón alternador (Lista/Tarjetas) */
+.btn-white {
+    background-color: #ffffff;
+    color: var(--brand-blue);
+}
+
+/* --- FORMATOS ESPECÍFICOS DE INPUTS --- */
+.border-light-subtle {
+    border-color: #e2e8f0 !important;
+}
+.search-box-container input:focus {
+    box-shadow: none;
+    border-color: #e2e8f0;
+}
+
+/* --- PERSONALIZACIÓN DE FILAS E INTERACTIVIDAD DE LA TABLA --- */
+.table-custom thead th {
+    border-bottom: 2px solid #edf2f7;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.info-row-table {
+    transition: background-color 0.2s ease;
+}
+.info-row-table:hover {
+    background-color: #f8fafc;
+}
+
+/* --- TEXTOS COLOREADOS PERSONALIZADOS --- */
+.text-success-custom { color: #1e7e34; }
+.text-warning-custom { color: #b06000; }
+
+/* --- BADGES DE ESPECIALIDADES --- */
+.badge-custom {
+    padding: 6px 14px;
+    border-radius: 12px;
+    display: inline-block;
+    text-align: center;
+}
+.badge-ortodoncia { background-color: #e8f0fe; color: #1a73e8; }
+.badge-endodoncia { background-color: #e6f4ea; color: #137333; }
+.badge-preventivo { background-color: #fef7e0; color: #b06000; }
+.badge-implante { background-color: #f3e8ff; color: #6b21a8; }
+
+/* --- BADGES DE ESTADOS --- */
+.badge-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-block;
+}
+.bg-success-light { background-color: #e6f4ea; }
+.bg-warning-light { background-color: #fef7e0; }
+.bg-success-solid { background-color: #137333; }
+
+/* ==========================================================
+   HEADER DE SECCIÓN - TRATAMIENTOS(indicie mis tratamientos)
+   ========================================================== */
+
+.page-section-header{
+    display:flex;
+    align-items:center;
+    gap:16px;
+
+    background:#ffffff;
+    padding:18px 22px;
+
+    border-radius:16px;
+    border:1px solid #e2e8f0;
+
+    box-shadow:0 4px 12px rgba(11,87,208,.04);
+
+    margin-bottom:24px;
+}
+
+.section-icon{
+    width:56px;
+    height:56px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:14px;
+
+    background:#e8f0fe;
+    color:#0b57d0;
+
+    font-size:22px;
+}
+
+.section-title{
+    font-size:22px;
+    font-weight:700;
+    color:var(--text-dark-blue);
+}
+
+.section-subtitle{
+    font-size:13px;
+    color:#64748b;
+}
+
+.page-section-header .section-title{
+    margin-bottom:4px !important;
+}
+
+.page-section-header .section-subtitle{
+    margin-bottom:0 !important;
+}
