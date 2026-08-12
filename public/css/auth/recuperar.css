@@ -1,0 +1,57 @@
+body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #E6F2FF; 
+            min-height: 100vh; 
+            position: relative; 
+            overflow-x: hidden;
+        }
+        .bg-star { position: absolute; color: #BCD8F8; font-size: 1.8rem; pointer-events: none; }
+        .star-1 { top: 22%; left: 24%; } .star-2 { top: 24%; right: 24%; } 
+        .star-3 { bottom: 35%; left: 10%; } .star-4 { bottom: 38%; right: 12%; }
+        
+        .waves-container {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; line-height: 0; pointer-events: none; z-index: 1;
+        }
+        .waves-container svg { position: relative; display: block; width: calc(100% + 1.3px); height: 120px; }
+        .wave-bg { fill: #D3E7FF; }
+
+        .card-custom { 
+            border: none; border-radius: 2rem; box-shadow: 0 15px 40px rgba(15, 98, 254, 0.08); 
+            background: #ffffff; max-width: 520px; width: 100%; position: relative; z-index: 5;
+        }
+        .avatar-circle { 
+            width: 60px; height: 60px; background-color: #0F62FE; color: white; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.8rem;
+        }
+        .btn-action { 
+            background-color: #0F62FE; border: none; border-radius: 0.6rem; 
+            font-weight: 600; padding: 0.8rem; color: white; font-size: 1rem;
+        }
+        .btn-action:hover { background-color: #054AD0; color: white; }
+        
+        /* EXPLICACIÓN PARA EXPOSICIÓN: Estilo secundario para el botón de reenvío cuando está deshabilitado */
+        .btn-link-custom {
+            color: #0F62FE;
+            font-weight: 600;
+            text-decoration: none;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+        .btn-link-custom:hover:not(:disabled) { color: #054AD0; text-decoration: underline; }
+        .btn-link-custom:disabled { color: #A0AEC0; cursor: not-allowed; text-decoration: none; }
+        
+        .input-group-custom { position: relative; }
+        .input-group-custom i {
+            position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+            color: #A0AEC0; font-size: 1.1rem; z-index: 10;
+        }
+        .input-group-custom .form-control { 
+            border: 1px solid #E2E8F0; border-radius: 0.6rem; 
+            padding: 0.75rem 1rem 0.75rem 2.8rem; background-color: #ffffff; font-size: 0.95rem;
+        }
+        .input-group-custom .form-control:focus { box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.12); border-color: #0F62FE; }
+        .input-group-custom .eye-icon { position: absolute; right: 15px; left: auto; cursor: pointer; color: #A0AEC0; }

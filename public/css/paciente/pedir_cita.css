@@ -1,0 +1,152 @@
+/* =========================================================================
+   ESTILOS EXCLUSIVOS - MÓDULO: AGENDAR CITA (ODONTO ESTÉTICA)
+   Diseñado bajo estándares de arquitectura limpia y modular de CSS
+   ========================================================================= */
+
+/* --- CONFIGURACIONES ESPECÍFICAS DE ESTE MÓDULO --- */
+.text-success { color: var(--success-teal) !important; }
+.line-height-sm { line-height: 1.35; }
+.text-light-gray { color: #cbd5e1; }
+
+/* --- ANIMACIONES HOVER: SELECCIONAR SERVICIO --- */
+.service-card {
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); /* Transición suave de aceleración */
+}
+
+/* Efecto hover interactivo */
+.service-card:hover {
+    border-color: var(--brand-blue);
+    transform: translateY(-2px); /* Eleva la tarjeta sutilmente */
+    box-shadow: 0 6px 15px rgba(11, 87, 208, 0.12); /* Sombra suave azul */
+    background-color: #fafbfc;
+}
+
+/* Estado seleccionado de la tarjeta */
+.service-card.selected {
+    border-color: var(--brand-blue);
+    background-color: #f8fafc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+/* Radio Button personalizado de Figma */
+.custom-radio-circle {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #cbd5e1;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    transition: border-color 0.2s;
+}
+
+.service-card.selected .custom-radio-circle,
+.doc-card.selected .custom-radio-circle {
+    border-color: var(--brand-blue);
+}
+
+.service-card.selected .custom-radio-circle::after,
+.doc-card.selected .custom-radio-circle::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background-color: var(--brand-blue);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* --- CALENDARIO DINÁMICO --- */
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    row-gap: 12px;
+}
+
+.calendar-days div {
+    padding: 4px 0;
+}
+
+.day-active {
+    background-color: var(--brand-blue);
+    color: white;
+    border-radius: 50%;
+    font-weight: bold;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- ANIMACIONES HOVER: SELECCIONAR HORA --- */
+.btn-hour {
+    background-color: transparent;
+    border: 1px solid #e2e8f0;
+    color: var(--text-dark-blue);
+    transition: all 0.2s ease;
+}
+
+/* Efecto hover en las horas */
+.btn-hour:hover {
+    border-color: var(--brand-blue);
+    background-color: var(--brand-light-blue);
+    color: var(--brand-blue);
+    transform: scale(1.04); /* Crece sutilmente */
+    font-weight: 500;
+}
+
+/* Relleno de botones activos */
+.btn-hour.active {
+    background-color: var(--brand-light-blue) !important;
+    border-color: var(--brand-blue) !important;
+    color: var(--brand-blue) !important;
+    font-weight: bold;
+}
+
+/* --- BOTONES DE ACCIÓN (Bootstrap Overrides) --- */
+.btn-primary {
+    background-color: var(--brand-blue);
+    border: none;
+}
+.btn-primary:hover {
+    background-color: #0842a0;
+}
+
+.btn-outline-primary {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+}
+.btn-outline-primary:hover {
+    background-color: var(--brand-light-blue);
+    color: var(--brand-blue);
+    border-color: var(--brand-blue);
+}
+
+.btn-cancelar {
+    border-color: #e2e8f0;
+    color: var(--text-dark-blue);
+}
+.btn-cancelar:hover {
+    background-color: #f1f5f9;
+    color: #ef4444;
+    border-color: #f1f5f9;
+}
+
+/* --- RESPONSIVIDAD PARA EL GRID DE 3 COLUMNAS --- */
+@media (min-width: 1024px) {
+    .col-1024-4 {
+        flex: 0 0 auto;
+        width: 33.33333333%;
+    }
+}
