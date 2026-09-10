@@ -1,0 +1,83 @@
+body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #E6F2FF; 
+            min-height: 100vh; 
+            position: relative; 
+            overflow-x: hidden;
+        }
+        /* Estrellas decorativas del fondo idénticas al Login */
+        .bg-star { position: absolute; color: #BCD8F8; font-size: 1.8rem; pointer-events: none; }
+        .star-1 { top: 10%; left: 12%; } 
+        .star-2 { top: 12%; right: 12%; } 
+        .star-3 { bottom: 20%; left: 8%; } 
+        .star-4 { bottom: 22%; right: 8%; }
+        
+        /* Ondas inferiores decorativas */
+        .waves-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            line-height: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .waves-container svg {
+            position: relative;
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 120px;
+        }
+        .wave-bg { fill: #D3E7FF; }
+
+        /* Contenedor de la Tarjeta adaptado para doble columna */
+        .card-register { 
+            border: none; 
+            border-radius: 2rem; 
+            box-shadow: 0 15px 40px rgba(15, 98, 254, 0.08); 
+            background: #ffffff; 
+            max-width: 650px; 
+            width: 100%; 
+            position: relative;
+            z-index: 5;
+        }
+        
+        /* Icono de usuario azul circular */
+        .avatar-circle { 
+            width: 60px; 
+            height: 60px; 
+            background-color: #0F62FE; 
+            color: white; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin: 0 auto 1rem; 
+            font-size: 1.8rem;
+        }
+        
+        /* Botón azul rey de Figma */
+        .btn-registrar { 
+            background-color: #0F62FE; 
+            border: none; 
+            border-radius: 0.6rem; 
+            font-weight: 600; 
+            padding: 0.8rem; 
+            color: white; 
+            font-size: 1rem;
+        }
+        .btn-registrar:hover { background-color: #054AD0; color: white; }
+        
+        /* Inputs estilizados del Login */
+        .form-control, .form-select { 
+            border: 1px solid #E2E8F0; 
+            border-radius: 0.6rem; 
+            padding: 0.75rem 1rem; 
+            background-color: #ffffff; 
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .form-control:focus, .form-select:focus { 
+            box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.12); 
+            border-color: #0F62FE; 
+        }

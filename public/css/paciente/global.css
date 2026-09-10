@@ -1,0 +1,75 @@
+/* =========================================================================
+   ESTILOS MAESTROS GLOBALES - DOCUMENTOS GUÍA (PARTIALS)
+   ========================================================================= */
+
+:root {
+    --bg-main: #e2edf8;             /* Fondo azulado claro general de la app */
+    --bg-sidebar: #ffffff;          /* Fondo blanco para el menú lateral */
+    --text-dark-blue: #1e293b;      /* Gris pizarra oscuro para títulos */
+    --brand-blue: #0b57d0;          /* Azul vibrante principal */
+    --brand-light-blue: #e8f0fe;    /* Azul pastel para hovers */
+}
+
+body {
+    background-color: var(--bg-main);
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Mantiene la aplicación fija en pantalla completa */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* --- CLASES DE UTILIDAD GENERAL --- */
+.bg-primary-light { background-color: var(--brand-light-blue); }
+.text-dark-blue { color: var(--text-dark-blue); }
+.font-xs { font-size: 11px; }
+.font-sm { font-size: 13px; }
+.py-2-5 { padding-top: 10px; padding-bottom: 10px; }
+
+/* --- SIDEBAR IZQUIERDO REUTILIZABLE --- */
+.sidebar {
+    width: 250px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid #e2e8f0;
+    height: 100%;
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+.custom-nav-link {
+    color: var(--brand-blue) !important;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 12px 15px !important;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.custom-nav-link:hover, 
+.custom-nav-link.active {
+    background-color: var(--brand-light-blue);
+}
+
+.logout-btn {
+    margin-top: auto;
+}
+
+/* --- BARRA SUPERIOR REUTILIZABLE (HEADER) --- */
+.btn-pedir-cita {
+    border-radius: 12px;
+}
+
+.header-profile-img {
+    width: 48px; 
+    height: 48px;
+}
+
+/* --- RESPONSIVIDAD DEL MENÚ --- */
+@media (max-width: 991px) {
+    body { overflow: auto; height: auto; }
+    .container-fluid { flex-direction: column; height: auto !important; }
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid #e2e8f0; }
+    .sidebar nav { flex-direction: row !important; overflow-x: auto; }
+    .logout-btn { margin-top: 0; }
+}
