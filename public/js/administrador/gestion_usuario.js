@@ -5,7 +5,7 @@ let filtroActual       = "Todos";
 let especialidades     = [];      // catálogo cargado desde la BD
 let consultorios       = [];      // catálogo cargado desde la BD
 
-const API = '/LOGIN_ORIGINAL/api_gestion_usuario';
+const API = '/api_gestion_usuario';
 
 // Rol que obliga a tener especialidad + consultorio asignados
 const ROL_ODONTOLOGO = 2;
@@ -75,7 +75,7 @@ function dibujarDonut(conteoPorRol, total) {
 
 // ─── Helpers de fetch ────────────────────────────────────────
 async function apiGet(op) {
-    const res  = await fetch(`${API}&op=${op}`);
+    const res  = await fetch(`${API}?op=${op}`);
     return res.json();
 }
 

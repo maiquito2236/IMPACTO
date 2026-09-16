@@ -18,7 +18,7 @@ function fechaHoy() {
 async function cargarFacturasDB() {
     try {
         // El ?t=... obliga al navegador a no usar caché y traer los datos frescos
-        const response = await fetch('/LOGIN_ORIGINAL/admin/facturacion/listar?t=' + new Date().getTime(), {
+        const response = await fetch('/api_facturacion/listar?t=' + new Date().getTime(), {
             headers: { 'Cache-Control': 'no-cache' }
         });
         const data = await response.json();
@@ -147,7 +147,7 @@ function recalcularKPIs() {
 
 async function cargarConfiguracionPrueba() {
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/facturacion/configuracion');
+        const response = await fetch('/api_facturacion/configuracion');
         const data = await response.json();
         
         if (data.status === 'success') {
@@ -206,7 +206,7 @@ async function editarPorcentaje(idOdontologo, nombre, porcentajeActual) {
 
     if (nuevoPorcentaje) {
         try {
-            const response = await fetch('/LOGIN_ORIGINAL/admin/facturacion/configuracion/actualizar', {
+            const response = await fetch('/api_facturacion/configuracion/actualizar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_odontologo: idOdontologo, porcentaje: parseFloat(nuevoPorcentaje) })
@@ -231,7 +231,7 @@ document.getElementById("btnCalcular")?.addEventListener("click", async function
     if(!idDoc || !mes) return mostrarToast("Selecciona el Odontólogo y el Mes", "error");
 
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/facturacion/liquidacion/calcular', {
+        const response = await fetch('/api_facturacion/liquidacion/calcular', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_odontologo: idDoc, mes: mes })
@@ -258,7 +258,7 @@ document.getElementById("btnRegistrarEgreso")?.addEventListener("click", async f
     if (!liqDataTemporal || liqDataTemporal.total_pagado <= 0) return mostrarToast("No hay producción para registrar.", "error");
 
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/facturacion/liquidacion/guardar', {
+        const response = await fetch('/api_facturacion/liquidacion/guardar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(liqDataTemporal)
@@ -345,13 +345,13 @@ function exportarIndividual(formato) {
     }
     
     // Abrir en nueva pestaña
-    window.open(`/LOGIN_ORIGINAL/admin/facturacion/exportar-individual?id=${idFactura}&formato=${formato}`, '_blank');
+    window.open(`/api_facturacion/exportar-individual?id=${idFactura}&formato=${formato}`, '_blank');
 }
 
 async function cargarKPIsReal() {
     try {
         // Obtenemos Resumen y Cierre en una sola petición
-        const response = await fetch('/LOGIN_ORIGINAL/admin/facturacion/resumen?t=' + new Date().getTime());
+        const response = await fetch('/api_facturacion/resumen?t=' + new Date().getTime());
         const res = await response.json();
         
         if (res.status === 'success') {
@@ -439,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const idFacturaBD = parseInt(numFactura.replace("FAC-", "")); 
 
             try {
-                const response = await fetch('/LOGIN_ORIGINAL/admin/facturacion/pago/guardar', {
+                const response = await fetch('/api_facturacion/pago/guardar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ factura_id: idFacturaBD, metodo: metodo, monto: monto })
@@ -525,5 +525,5 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Llama a la ruta exportar pasando el tipo correcto
-        window.open(`/LOGIN_ORIGINAL/admin/facturacion/exportar?tipo=${tipoReporte}&formato=${formato}&mes=${mesExportar}`, '_blank');
+        window.open(`/api_facturacion/exportar?tipo=${tipoReporte}&formato=${formato}&mes=${mesExportar}`, '_blank');
     });

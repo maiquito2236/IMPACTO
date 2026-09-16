@@ -14,7 +14,7 @@ let fechaBase     = new Date();
 // ── 2. CARGA DESDE LA BASE DE DATOS ───────────────
 
 function cargarCitasDesdeBD() {
-    fetch('/LOGIN_ORIGINAL/admin/agenda/obtener_citas')
+    fetch('/api_agenda/obtener_citas')
         .then(r => r.text())
         .then(text => {
             try { return JSON.parse(text); }
@@ -71,7 +71,7 @@ function colorPorEstado(estado) {
 }
 
 function cargarListasDesdeBD() {
-    fetch('/LOGIN_ORIGINAL/admin/agenda/obtener_citas?listas=1')
+    fetch('/api_agenda/obtener_citas?listas=1')
         .then(r => r.json())
         .then(data => {
             pacientesDB    = data.pacientes    || [];
@@ -131,7 +131,7 @@ async function actualizarHorasDisponibles(idFecha, idOdontologo, idHora, horaSel
     if (!fecha || !odon) return;
 
     try {
-        const res = await fetch(`/LOGIN_ORIGINAL/admin/agenda/obtener_horas_ocupadas?fecha=${fecha}&id_odontologo=${odon}`);
+        const res = await fetch(`/api_agenda/obtener_horas_ocupadas?fecha=${fecha}&id_odontologo=${odon}`);
         const ocupadas = await res.json();
         if (ocupadas.status === "error") throw new Error(ocupadas.message);
 
@@ -160,7 +160,7 @@ async function actualizarHorasDisponiblesReprogramar(fecha, idOdontologo, idHora
     if (!fecha || !idOdontologo) return;
 
     try {
-        const res = await fetch(`/LOGIN_ORIGINAL/admin/agenda/obtener_horas_ocupadas?fecha=${fecha}&id_odontologo=${idOdontologo}`);
+        const res = await fetch(`/api_agenda/obtener_horas_ocupadas?fecha=${fecha}&id_odontologo=${idOdontologo}`);
         const ocupadas = await res.json();
         if (ocupadas.status === "error") throw new Error(ocupadas.message);
 
@@ -424,7 +424,7 @@ document.getElementById("formCita").addEventListener("submit", e => {
         mostrarToast("Completa todos los campos obligatorios.", "error"); return;
     }
 
-    fetch('/LOGIN_ORIGINAL/admin/agenda/guardar_cita', {
+    fetch('/api_agenda/guardar_cita', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paciente_id: pacienteId, odontologo_id: odontologoId, fecha, hora, tratamiento })
@@ -459,7 +459,7 @@ function abrirModalCancelar(id, e) {
     const motivo = prompt(`Motivo de cancelación para la cita de ${c.paciente}:`, "Cancelada por administrador");
     if (motivo === null) return; // el usuario canceló el prompt
 
-    fetch('/LOGIN_ORIGINAL/admin/agenda/cancelar_cita', {
+    fetch('/api_agenda/cancelar_cita', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_cita: id, motivo })
@@ -504,7 +504,7 @@ document.getElementById("formReprogramar").addEventListener("submit", e => {
                         ? document.getElementById("rCitaMotivo").value
                         : "Reprogramada desde administrador";
 
-    fetch('/LOGIN_ORIGINAL/admin/agenda/reprogramar_cita', {
+    fetch('/api_agenda/reprogramar_cita', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -24,7 +24,7 @@ function mostrarToast(mensaje, tipo = "success") {
 
 async function cargarKPIs() {
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/kpis?t=' + Date.now());
+        const response = await fetch('/api_consultorios/kpis?t=' + Date.now());
         const res = await response.json();
         if (res.status === 'success') {
             const d = res.data;
@@ -45,7 +45,7 @@ async function cargarKPIs() {
 
 async function cargarConsultorios() {
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/listar?t=' + Date.now());
+        const response = await fetch('/api_consultorios/listar?t=' + Date.now());
         const res = await response.json();
         if (res.status === 'success') {
             dbConsultorios = res.data;
@@ -110,7 +110,7 @@ function filtrarConsultorios() {
 
 async function verDetalle(id) {
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/detalle?id=' + id);
+        const response = await fetch('/api_consultorios/detalle?id=' + id);
         const res = await response.json();
         if (res.status === 'success') {
             const c = res.data;
@@ -197,11 +197,11 @@ async function verDetalle(id) {
 async function cargarTabAsignar() {
     try {
         // Cargar consultorios disponibles
-        const resC = await fetch('/LOGIN_ORIGINAL/admin/consultorio/listar?t=' + Date.now());
+        const resC = await fetch('/api_consultorios/listar?t=' + Date.now());
         const dataC = await resC.json();
 
         // Cargar odontólogos sin consultorio
-        const resO = await fetch('/LOGIN_ORIGINAL/admin/consultorio/odontologos-disponibles?t=' + Date.now());
+        const resO = await fetch('/api_consultorios/odontologos-disponibles?t=' + Date.now());
         const dataO = await resO.json();
 
         if (dataC.status === 'success') {
@@ -232,7 +232,7 @@ async function ejecutarAsignacion() {
     }
 
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/asignar', {
+        const response = await fetch('/api_consultorios/asignar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ consultorio_id: parseInt(consultorioId), odontologo_id: parseInt(odontologoId) })
@@ -258,7 +258,7 @@ async function ejecutarAsignacion() {
 
 async function cargarHistorial() {
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/historial?t=' + Date.now());
+        const response = await fetch('/api_consultorios/historial?t=' + Date.now());
         const res = await response.json();
         if (res.status === 'success') {
             const tbody = document.getElementById("tbodyHistorial");
@@ -309,8 +309,8 @@ async function guardarConsultorio(e) {
     if (!nombre) return mostrarToast("El nombre es obligatorio", "error");
 
     const endpoint = id
-        ? '/LOGIN_ORIGINAL/admin/consultorio/actualizar'
-        : '/LOGIN_ORIGINAL/admin/consultorio/crear';
+        ? '/api_consultorios/actualizar'
+        : '/api_consultorios/crear';
 
     const payload = id
         ? { id: parseInt(id), nombre, ubicacion, descripcion }
@@ -329,6 +329,14 @@ async function guardarConsultorio(e) {
             document.getElementById("modalCrear").style.display = "none";
             cargarConsultorios();
             cargarKPIs();
+            
+            // Si el modal de detalles estaba abierto por debajo, actualizamos sus datos al instante
+            if (id) {
+                const modalDetalle = document.getElementById("modalDetalle");
+                if (modalDetalle && modalDetalle.style.display === "flex") {
+                    verDetalle(id);
+                }
+            }
         } else {
             mostrarToast(res.message, "error");
         }
@@ -341,7 +349,7 @@ async function guardarConsultorio(e) {
 
 async function abrirModalEditar(id) {
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/detalle?id=' + id);
+        const response = await fetch('/api_consultorios/detalle?id=' + id);
         const res = await response.json();
         if (res.status === 'success') {
             const c = res.data;
@@ -373,7 +381,7 @@ async function eliminarConsultorio(id, nombre) {
 
     if (result.isConfirmed) {
         try {
-            const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/eliminar', {
+            const response = await fetch('/api_consultorios/eliminar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id })
@@ -411,7 +419,7 @@ async function desasignarOdontologo(consultorioId, nombre) {
 
     if (result.isConfirmed) {
         try {
-            const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/desasignar', {
+            const response = await fetch('/api_consultorios/desasignar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ consultorio_id: consultorioId, motivo: result.value })
@@ -471,7 +479,7 @@ async function cambiarEstadoConsultorio(id, estado, nombre) {
 
     if (result.isConfirmed) {
         try {
-            const response = await fetch('/LOGIN_ORIGINAL/admin/consultorio/estado', {
+            const response = await fetch('/api_consultorios/estado', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: id, estado: estado })

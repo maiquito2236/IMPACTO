@@ -11,7 +11,6 @@
     
     <!-- CSS de tu proyecto usando asset() de Laravel -->
     <link rel="stylesheet" href="{{ asset('css/administrador/global.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/administrador/dashboard.css') }}">
     
     <!-- Por si alguna vista necesita CSS extra -->
     @stack('css')
@@ -68,6 +67,16 @@
                 <a href="/admin/perfil" class="menu-nav-item">
                     <i class="fa-solid fa-user-tie"></i> Mi Perfil
                 </a>
+                <a href="/admin/notificaciones" class="menu-nav-item {{ request()->is('admin/notificaciones') ? 'active' : '' }}">
+                    <i class="fa-solid fa-bell"></i> Notificaciones
+                </a>
+                        <!-- Mostrar botón de carga masiva solo si estamos en Usuarios, Agenda, Facturas u Horarios -->
+                @if(request()->is('admin/usuarios', 'admin/agenda', 'admin/facturacion', 'admin/horarios'))
+                    <button class="menu-nav-item" style="background-color: #10b981; color: white; border: none; width: calc(100% - 40px); margin: 10px 20px; border-radius: 8px; text-align: left; cursor: pointer;">
+                        <i class="fa-solid fa-file-csv" style="color: white;"></i> Carga Masiva
+                    </button>
+                @endif
+
                 <a href="/salir" class="menu-nav-item">
                     <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
                 </a>
@@ -79,25 +88,25 @@
         <!-- INICIO DEL CONTENIDO PRINCIPAL -->
         <main class="menu-main-content">
 
-            <!-- HEADER SUPERIOR -->
+                        <!-- HEADER SUPERIOR -->
             <header class="menu-main-header">
                 <div class="menu-welcome-text">
-                    <!-- Más adelante reemplazaremos esto con los datos reales del usuario logueado en Laravel -->
-                    <h1>¡Hola, Administrador!</h1>
-                    <p class="menu-current-date">Hoy es {{ date('d / m / Y') }}</p>
+                    <!-- Si hay usuario logueado mostramos su nombre, si no, ponemos un texto temporal -->
+                    <h1>¡Hola, {{ Auth::check() ? Auth::user()->NOMBRES : 'Admin Sistema' }}!</h1>
+                    
+                    <!-- Fecha automática idéntica a la original -->
+                    <p class="menu-current-date">Hoy es {{ \Carbon\Carbon::now()->locale('es')->isoFormat('D \d\e MMMM \d\e Y') }}</p>
                 </div>
 
                 <div class="menu-header-actions">
                     <div style="width: 42px; height: 42px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: 2px solid #dbeafe;">
-                        A
+                        <!-- Inicial del nombre -->
+                        {{ Auth::check() ? substr(Auth::user()->NOMBRES, 0, 1) : 'A' }}
                     </div>
                 </div>
             </header>
 
-            <!-- AQUI ES DONDE SE INYECTARÁ EL CONTENIDO DE CADA PÁGINA -->
-            <div class="contenido-dinamico" style="padding: 20px;">
-                @yield('contenido')
-            </div>
+            @yield('contenido')
 
         </main>
         <!-- FIN DEL CONTENIDO PRINCIPAL -->

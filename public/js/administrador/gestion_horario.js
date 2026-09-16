@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── CARGA DE DATOS ───────────
 async function cargarDatosIniciales() {
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/horarios/listar');
+        const response = await fetch('/api_horarios/listar');
         const json = await response.json();
         
         window.odontologosDB = json.data || []; 
@@ -257,13 +257,18 @@ function editarHorario(idHorario) {
     if (window.tsOdontologo) window.tsOdontologo.setValue(o.ODONTOLOGO_ID_ODONTOLOGO, true);
     document.getElementById('hora_inicio').value = o.HORA_INICIO.substring(0, 5);
     document.getElementById('hora_fin').value = o.HORA_FIN.substring(0, 5);
-    document.getElementById('jornada').value = o.JORNADA;
+    let jornadaDB = o.JORNADA;
+    if (jornadaDB === 'Día Completo' || jornadaDB === 'Jornada completa') {
+        jornadaDB = 'Jornada Completa';
+    }
+    
+    document.getElementById('jornada').value = jornadaDB;
     document.getElementById('consultorio').value = o.CONSULTORIO || '';
 
     const grupoDescanso = document.getElementById('grupo-descanso');
     const dInicio = document.getElementById('descanso_inicio');
     const dFin = document.getElementById('descanso_fin');
-    if (o.JORNADA === 'Jornada Completa') {
+    if (jornadaDB === 'Jornada Completa') {
         if (grupoDescanso) grupoDescanso.style.display = 'block';
         if (dInicio) dInicio.value = o.descanso_inicio ? o.descanso_inicio.substring(0, 5) : '';
         if (dFin) dFin.value = o.descanso_fin ? o.descanso_fin.substring(0, 5) : '';
@@ -298,7 +303,7 @@ async function guardarHorario() {
     formData.append('descanso_fin', document.getElementById('descanso_fin').value);
 
     try {
-        const response = await fetch('/LOGIN_ORIGINAL/admin/horarios/guardar', { method: 'POST', body: formData });
+        const response = await fetch('/api_horarios/guardar', { method: 'POST', body: formData });
         const data = await response.json(); 
 
         if (data.status === "success") {
@@ -346,7 +351,7 @@ async function eliminarHorario(idHorario) {
     try {
         const formData = new FormData();
         formData.append('id_horario', idHorario);
-        const url = window.location.origin + '/LOGIN_ORIGINAL/admin/horarios/eliminar';
+        const url = window.location.origin + '/api_horarios/eliminar';
 
         const response = await fetch(url, { method: 'POST', body: formData });
         const res = await response.json();
@@ -515,6 +520,10 @@ function configurarEventosModal() {
     const grupoDescanso = document.getElementById('grupo-descanso');
     if (selectJornada && grupoDescanso) {
         selectJornada.addEventListener('change', () => {
+            // Cuando cambie la jornada, limpiar horas de inicio y fin para que el admin las asigne
+            document.getElementById('hora_inicio').value = '';
+            document.getElementById('hora_fin').value = '';
+
             if (selectJornada.value === 'Jornada Completa') {
                 grupoDescanso.style.display = 'block';
             } else {
