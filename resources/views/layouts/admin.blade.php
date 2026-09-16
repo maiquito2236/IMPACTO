@@ -64,7 +64,7 @@
             </nav>
 
             <div class="menu-sidebar-footer">
-                <a href="/admin/perfil" class="menu-nav-item">
+                <a href="/admin/perfil" class="menu-nav-item {{ request()->is('admin/perfil*') ? 'active' : '' }}">
                     <i class="fa-solid fa-user-tie"></i> Mi Perfil
                 </a>
                 <a href="/admin/notificaciones" class="menu-nav-item {{ request()->is('admin/notificaciones') ? 'active' : '' }}">

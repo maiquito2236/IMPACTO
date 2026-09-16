@@ -1,4 +1,4 @@
-/* ========================================================
+﻿/* ========================================================
    NOTIFICACIONES — administrador
    Odonto Estética
    Los datos vienen de la BD a través de NOTIFICACIONES_BD
@@ -251,7 +251,7 @@ async function marcarLeida(id) {
   const fd = new FormData();
   fd.append("id", id);
   try {
-    const r = await fetch("/LOGIN_ORIGINAL/admin/notificaciones/marcar_leida", { method:"POST", body:fd });
+    const r = await fetch("/api_notificaciones/marcar_leida", { method:"POST", body:fd });
     const j = await r.json();
     if (j.success) {
       const n = notificaciones.find(x => x.id === id);
@@ -282,7 +282,7 @@ async function marcarTodas() {
   if (!hayNoLeidas) { toast("Ya no hay notificaciones sin leer.", "warning"); return; }
 
   try {
-    const r = await fetch("/LOGIN_ORIGINAL/admin/notificaciones/marcar_todas", { method:"POST" });
+    const r = await fetch("/api_notificaciones/marcar_todas", { method:"POST" });
     const j = await r.json();
     if (j.success) {
       notificaciones.forEach(n => { if (!n.archivada) n.estado = "Leída"; });
@@ -305,7 +305,7 @@ async function marcarSeleccionadasLeidas() {
   const promesas = ids.map(id => {
     const f = new FormData();
     f.append("id", id);
-    return fetch("/LOGIN_ORIGINAL/admin/notificaciones/marcar_leida", { method:"POST", body:f });
+    return fetch("/api_notificaciones/marcar_leida", { method:"POST", body:f });
   });
 
   try {
@@ -462,7 +462,7 @@ function init() {
 
   /* NUEVA CITA */
   $("btn-nueva-cita").addEventListener("click", () => {
-    window.location.href = "/LOGIN_ORIGINAL/admin/agenda";
+    window.location.href = "/admin/agenda";
   });
 
   /* CERRAR DROPDOWNS */

@@ -1,4 +1,4 @@
-/* =========================================================
+﻿/* =========================================================
    REPORTES — reportes.js  (conectado a BD real)
    Odonto Estética — Administrador
    ========================================================= */
@@ -7,7 +7,7 @@
 let periodoActivo = "este-mes";
 let datosActuales = null;
 
-const API_URL = "/LOGIN_ORIGINAL/admin/reportes/api";
+const API_URL = "/api_reportes";
 
 /* ── 2. HELPERS ──────────────────────────────────────────── */
 const fmt = n => n < 0
@@ -31,7 +31,7 @@ async function cargarDatos(periodo) {
   try {
     overlay.style.display = 'flex';
 
-    const res = await fetch(`${API_URL}&periodo=${periodo}`);
+    const res = await fetch(`${API_URL}?periodo=${periodo}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
     const json = await res.json();

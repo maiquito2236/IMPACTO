@@ -17,13 +17,20 @@ return Application::configure(basePath: dirname(__DIR__))
             'api_gestion_usuario',
             'api_agenda/*',
             'api_horarios/*',
-            'api_consultorios/*'
+            'api_consultorios/*',
+            'api_facturacion/*',
+            'api_facturacion',
+            'api_reportes',
+            'api_reportes/*',
+            'api_otros/*',
+            'api_otros',
+            'api_notificaciones/*',
+            'api_notificaciones',
+            'admin/facturacion/cargar-csv',
+            'admin/perfil/actualizar'
         ]);
     })
 
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
-
-    
-

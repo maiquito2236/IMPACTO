@@ -1,4 +1,4 @@
-// =====================================================
+﻿// =====================================================
 // OTROS CATÁLOGOS ODONTO ESTÉTICA — Admin
 // =====================================================
 
@@ -184,7 +184,7 @@ if (formProc) {
             return;
         }
 
-        const endpoint = id ? '/LOGIN_ORIGINAL/admin/otros/editar_procedimiento' : '/LOGIN_ORIGINAL/admin/otros/guardar_procedimiento';
+        const endpoint = id ? '/api_otros/editar_procedimiento' : '/api_otros/guardar_procedimiento';
         const swalTitle = id ? '¡Actualizado!' : '¡Añadido!';
         const swalText = id ? 'Procedimiento actualizado exitosamente' : 'Procedimiento añadido exitosamente';
         
@@ -212,7 +212,7 @@ if (formProc) {
                     confirmButtonColor: '#3b82f6',
                     timer: 2000
                 }).then(() => {
-                    window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                    window.location.href = '/admin/otros?tab=' + currentActiveTab;
                 });
             } else {
                 mostrarToast("Error: " + (res.message || "Intenta de nuevo"), "error");
@@ -235,7 +235,7 @@ window.eliminarProcedimiento = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/LOGIN_ORIGINAL/admin/otros/eliminar_procedimiento', {
+            fetch('/api_otros/eliminar_procedimiento', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_procedimiento: id })
@@ -250,7 +250,7 @@ window.eliminarProcedimiento = function(id) {
                         confirmButtonColor: '#3b82f6',
                         timer: 2000
                     }).then(() => {
-                        window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                        window.location.href = '/admin/otros?tab=' + currentActiveTab;
                     });
                 } else {
                     mostrarToast("Error al inactivar", "error");
@@ -303,7 +303,7 @@ if (formEsp) {
         };
 
         const isEdit = data.id_especialidad !== "";
-        const url = isEdit ? '/LOGIN_ORIGINAL/admin/otros/editar_especialidad' : '/LOGIN_ORIGINAL/admin/otros/guardar_especialidad';
+        const url = isEdit ? '/api_otros/editar_especialidad' : '/api_otros/guardar_especialidad';
 
         fetch(url, {
             method: 'POST',
@@ -321,7 +321,7 @@ if (formEsp) {
                     confirmButtonColor: '#3b82f6',
                     timer: 2000
                 }).then(() => {
-                    window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                    window.location.href = '/admin/otros?tab=' + currentActiveTab;
                 });
             } else {
                 mostrarToast("Error: " + (res.message || "Error desconocido"), "error");
@@ -346,7 +346,7 @@ window.eliminarEspecialidad = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/LOGIN_ORIGINAL/admin/otros/eliminar_especialidad', {
+            fetch('/api_otros/eliminar_especialidad', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_especialidad: id })
@@ -361,7 +361,7 @@ window.eliminarEspecialidad = function(id) {
                         confirmButtonColor: '#3b82f6',
                         timer: 2000
                     }).then(() => {
-                        window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                        window.location.href = '/admin/otros?tab=' + currentActiveTab;
                     });
                 } else {
                     mostrarToast("Error al inactivar", "error");
@@ -403,7 +403,7 @@ if (formEps) {
         };
 
         const isEdit = data.id_eps !== "";
-        const url = isEdit ? '/LOGIN_ORIGINAL/admin/otros/editar_eps' : '/LOGIN_ORIGINAL/admin/otros/guardar_eps';
+        const url = isEdit ? '/api_otros/editar_eps' : '/api_otros/guardar_eps';
 
         fetch(url, {
             method: 'POST',
@@ -421,7 +421,7 @@ if (formEps) {
                     confirmButtonColor: '#3b82f6',
                     timer: 2000
                 }).then(() => {
-                    window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                    window.location.href = '/admin/otros?tab=' + currentActiveTab;
                 });
             } else {
                 mostrarToast("Error: " + (res.message || "Error desconocido"), "error");
@@ -457,7 +457,7 @@ window.eliminarEps = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/LOGIN_ORIGINAL/admin/otros/eliminar_eps', {
+            fetch('/api_otros/eliminar_eps', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_eps: id })
@@ -472,7 +472,7 @@ window.eliminarEps = function(id) {
                         confirmButtonColor: '#3b82f6',
                         timer: 2000
                     }).then(() => {
-                        window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                        window.location.href = '/admin/otros?tab=' + currentActiveTab;
                     });
                 } else {
                     mostrarToast("Error al inactivar", "error");
@@ -515,7 +515,7 @@ if (formAlg) {
         };
 
         const isEdit = data.id_alergia !== "";
-        const url = isEdit ? '/LOGIN_ORIGINAL/admin/otros/editar_alergia' : '/LOGIN_ORIGINAL/admin/otros/guardar_alergia';
+        const url = isEdit ? '/api_otros/editar_alergia' : '/api_otros/guardar_alergia';
 
         fetch(url, {
             method: 'POST',
@@ -533,7 +533,7 @@ if (formAlg) {
                     confirmButtonColor: '#3b82f6',
                     timer: 2000
                 }).then(() => {
-                    window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                    window.location.href = '/admin/otros?tab=' + currentActiveTab;
                 });
             } else {
                 mostrarToast("Error: " + (res.message || "Error desconocido"), "error");
@@ -570,7 +570,7 @@ window.eliminarAlergia = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/LOGIN_ORIGINAL/admin/otros/eliminar_alergia', {
+            fetch('/api_otros/eliminar_alergia', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_alergia: id })
@@ -585,7 +585,7 @@ window.eliminarAlergia = function(id) {
                         confirmButtonColor: '#3b82f6',
                         timer: 2000
                     }).then(() => {
-                        window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                        window.location.href = '/admin/otros?tab=' + currentActiveTab;
                     });
                 } else {
                     mostrarToast("Error al inactivar", "error");
@@ -628,7 +628,7 @@ if (formEnf) {
         };
 
         const isEdit = data.id_enfermedad !== "";
-        const url = isEdit ? '/LOGIN_ORIGINAL/admin/otros/editar_enfermedad' : '/LOGIN_ORIGINAL/admin/otros/guardar_enfermedad';
+        const url = isEdit ? '/api_otros/editar_enfermedad' : '/api_otros/guardar_enfermedad';
 
         fetch(url, {
             method: 'POST',
@@ -646,7 +646,7 @@ if (formEnf) {
                     confirmButtonColor: '#3b82f6',
                     timer: 2000
                 }).then(() => {
-                    window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                    window.location.href = '/admin/otros?tab=' + currentActiveTab;
                 });
             } else {
                 mostrarToast("Error: " + (res.message || "Error desconocido"), "error");
@@ -683,7 +683,7 @@ window.eliminarEnfermedad = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/LOGIN_ORIGINAL/admin/otros/eliminar_enfermedad', {
+            fetch('/api_otros/eliminar_enfermedad', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_enfermedad: id })
@@ -698,7 +698,7 @@ window.eliminarEnfermedad = function(id) {
                         confirmButtonColor: '#3b82f6',
                         timer: 2000
                     }).then(() => {
-                        window.location.href = '/LOGIN_ORIGINAL/admin/otros?tab=' + currentActiveTab;
+                        window.location.href = '/admin/otros?tab=' + currentActiveTab;
                     });
                 } else {
                     mostrarToast("Error al inactivar", "error");
