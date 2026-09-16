@@ -36,7 +36,6 @@
                 <div class="kpi-info">
                     <h3>Ingresos del Día</h3>
                     <div class="number">$ 2,850.00</div>
-                    <div class="trend green"><i class="fa-solid fa-arrow-trend-up"></i> +18% vs ayer</div>
                 </div>
             </div>
             <div class="kpi-card">
@@ -44,7 +43,6 @@
                 <div class="kpi-info">
                     <h3>Ingresos del Mes</h3>
                     <div class="number">$ 38,650.00</div>
-                    <div class="trend green"><i class="fa-solid fa-arrow-trend-up"></i> +12% este mes</div>
                 </div>
             </div>
             <div class="kpi-card">

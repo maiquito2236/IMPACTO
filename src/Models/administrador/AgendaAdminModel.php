@@ -155,7 +155,7 @@ class AgendaAdminModel {
             $horasOcupadasCitas = $stmt->fetchAll(PDO::FETCH_COLUMN, 0);
 
             // Fetch dentist schedule
-            $sqlSch = "SELECT HORA_INICIO, HORA_FIN FROM horario_disponibilidad WHERE ODONTOLOGO_ID_ODONTOLOGO = ? AND FECHA = ? AND ESTADO = 'Disponible'";
+            $sqlSch = "SELECT HORA_INICIO, HORA_FIN, descanso_inicio, descanso_fin FROM horario_disponibilidad WHERE ODONTOLOGO_ID_ODONTOLOGO = ? AND FECHA = ? AND ESTADO = 'Disponible'";
             $stmtSch = $this->db->prepare($sqlSch);
             $stmtSch->execute([$id_odontologo, $fecha]);
             $schedule = $stmtSch->fetchAll(PDO::FETCH_ASSOC);
@@ -176,7 +176,15 @@ class AgendaAdminModel {
             foreach ($schedule as $s) {
                 $start = (int)date('H', strtotime($s['HORA_INICIO']));
                 $end = (int)date('H', strtotime($s['HORA_FIN']));
+                
+                $descanso_start = $s['descanso_inicio'] ? (int)date('H', strtotime($s['descanso_inicio'])) : -1;
+                $descanso_end = $s['descanso_fin'] ? (int)date('H', strtotime($s['descanso_fin'])) : -1;
+
                 for ($i = $start; $i < $end; $i++) {
+                    if ($i >= $descanso_start && $i < $descanso_end && $descanso_start != -1) {
+                        continue;
+                    }
+
                     $h = str_pad($i, 2, '0', STR_PAD_LEFT);
                     $allowedHours[] = $h . ':00';
                     $allowedHours[] = $h . ':30';

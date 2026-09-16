@@ -329,6 +329,14 @@ async function guardarConsultorio(e) {
             document.getElementById("modalCrear").style.display = "none";
             cargarConsultorios();
             cargarKPIs();
+            
+            // Si el modal de detalles estaba abierto por debajo, actualizamos sus datos al instante
+            if (id) {
+                const modalDetalle = document.getElementById("modalDetalle");
+                if (modalDetalle && modalDetalle.style.display === "flex") {
+                    verDetalle(id);
+                }
+            }
         } else {
             mostrarToast(res.message, "error");
         }
