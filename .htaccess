@@ -1,0 +1,6 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /proyectlaravel/
+    RewriteRule ^$ public/ [L,R=302]
+    RewriteRule ^((?!public/).*)$ public/$1 [L,R=302]
+</IfModule>

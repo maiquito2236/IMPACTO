@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData();
             formData.append('id', id);
 
-            fetch('/LOGIN_ORIGINAL/paciente/notificaciones/marcar_leida', {
+            fetch('/paciente/notificaciones/marcar_leida', {
                 method: 'POST',
                 body: formData
             }).catch(err => console.error('Error al marcar como leída:', err));
@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actualizarBadgeSinLeer(0, true);
             btnMarkAll.style.display = 'none';
 
-            fetch('/LOGIN_ORIGINAL/paciente/notificaciones/marcar_todas', { method: 'POST' })
+            fetch('/paciente/notificaciones/marcar_todas', { method: 'POST' })
                 .catch(err => console.error('Error en actualización masiva:', err));
         });
     }

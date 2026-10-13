@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 1. CARGAR DATOS GENERALES Y ODONTOGRAMA
     function cargarOdontograma(targetDate = null) {
-        let url = `index.php?action=odontologo/historial_clinico/datos_odontograma&paciente_id=${pacienteId}`;
+        let url = `/odontologo/historial_clinico/datos_odontograma&paciente_id=${pacienteId}`;
         if (targetDate) {
             url += `&target_date=${targetDate}`;
         }
@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2. CARGAR TIMELINE
-    fetch(`index.php?action=odontologo/historial_clinico/datos_timeline&paciente_id=${pacienteId}`)
+    fetch(`/odontologo/historial_clinico/datos_timeline&paciente_id=${pacienteId}`)
         .then(res => res.json())
         .then(evoluciones => {
             if (!timelineContainer) return;
@@ -318,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 formData.append('pdf', pdfBlob, `Historia_Clinica_${docId}.pdf`);
                 formData.append('cita_id', citaId);
                 formData.append('paciente_id', pacienteId);
-                fetch('index.php?action=odontologo/historial_clinico/guardar_y_enviar_pdf', {
+                fetch('/odontologo/historial_clinico/guardar_y_enviar_pdf', {
                     method: 'POST',
                     body: formData
                 })

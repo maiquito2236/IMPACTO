@@ -109,9 +109,9 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
         e.preventDefault();
         const idFactura = $(this).data('id');
 
-        $('#btn-modal-pdf').attr('href', '/LOGIN_ORIGINAL/exportarPdf?id=' + idFactura);
-        $('#btn-modal-print').attr('href', '/LOGIN_ORIGINAL/imprimir?id=' + idFactura);
-        $('#btn-modal-excel').attr('href', '/LOGIN_ORIGINAL/exportarExcel?id=' + idFactura);
+        $('#btn-modal-pdf').attr('href', '/exportarPdf?id=' + idFactura);
+        $('#btn-modal-print').attr('href', '/imprimir?id=' + idFactura);
+        $('#btn-modal-excel').attr('href', '/exportarExcel?id=' + idFactura);
 
         $('#overlay, #modal-exportar').addClass('active');
     });
@@ -163,7 +163,7 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
         };
 
         try {
-            const resp = await fetch("/LOGIN_ORIGINAL/paciente/pagos/guardar", {
+            const resp = await fetch("/paciente/pagos/guardar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(data)

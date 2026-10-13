@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function cargarHistoriales() {
-        fetch('index.php?action=odontologo/tratamientos/listar')
+        fetch('/odontologo/tratamientos/listar')
             .then(res => res.json())
             .then(data => renderTable(data))
             .catch(err => console.error("Error al cargar la tabla de historiales:", err));

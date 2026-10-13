@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (filtroEstado) filtroEstado.addEventListener("change", aplicarFiltros);
 
     // 4. PETICIÓN INICIAL DE DATOS AL BACKEND
-    fetch('/LOGIN_ORIGINAL/odontologo/pacientes/listar')
+    fetch('/odontologo/pacientes/listar')
         .then(response => response.json())
         .then(data => {
             todosLosPacientes = data;

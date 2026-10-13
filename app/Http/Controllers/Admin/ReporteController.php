@@ -214,18 +214,14 @@ class ReporteController extends Controller
 
     private function obtenerIngresosPorTratamiento($inicio, $fin)
     {
+        // Consulta sobre la VISTA SQL vista_ingresos_procedimiento
         $sql = "SELECT 
-                    pr.NOMBRE_PROCEDIMIENTO AS nombre,
-                    SUM((hchp.PRECIO_APLICADO * hchp.CANTIDAD) * (pg.MONTO / f.TOTAL)) AS ingresos
-                FROM pago pg
-                INNER JOIN factura f ON pg.FACTURA_ID_FACTURA = f.ID_FACTURA
-                INNER JOIN historia_clinica hc ON f.HISTORIA_CLINICA_ID_HISTORIA_CLINICA = hc.ID_HISTORIA_CLINICA
-                INNER JOIN historia_clinica_has_procedimientos hchp ON hc.ID_HISTORIA_CLINICA = hchp.HISTORIA_CLINICA_ID_HISTORIA_CLINICA
-                INNER JOIN procedimientos pr ON hchp.PROCEDIMIENTOS_ID_PROCEDIMIENTO = pr.ID_PROCEDIMIENTO
-                WHERE pg.ESTADO = 'PAGADO' 
-                  AND pg.FECHA_PAGO BETWEEN ? AND ?
-                  AND f.TOTAL > 0
-                GROUP BY pr.ID_PROCEDIMIENTO, pr.NOMBRE_PROCEDIMIENTO
+                    NOMBRE_PROCEDIMIENTO AS nombre,
+                    SUM(INGRESO_PROPORCIONAL) AS ingresos
+                FROM vista_ingresos_procedimiento
+                WHERE ESTADO_PAGO = 'PAGADO' 
+                  AND FECHA_PAGO BETWEEN ? AND ?
+                GROUP BY ID_PROCEDIMIENTO, NOMBRE_PROCEDIMIENTO
                 ORDER BY ingresos DESC
                 LIMIT 8";
 

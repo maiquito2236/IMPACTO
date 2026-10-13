@@ -22,11 +22,11 @@ class DashboardController extends Controller
         $pacientesAtendidos = Cita::whereDate('FECHA_HORA', $hoy)->where('ESTADO_CITA_ID', 2)->count();
         $ingresosHoy = Pago::whereDate('FECHA_PAGO', $hoy)->whereRaw("UPPER(ESTADO) = 'PAGADO'")->sum('MONTO');
 
-        // 2. Gráfica de Dona (Estado Citas Hoy)
-        $estadoCitasHoy = Cita::join('estado_cita', 'cita.ESTADO_CITA_ID', '=', 'estado_cita.ID_ESTADO')
-            ->whereDate('cita.FECHA_HORA', $hoy)
-            ->select('estado_cita.NOMBRE_ESTADO', DB::raw('COUNT(cita.ID_CITA) as cantidad'))
-            ->groupBy('estado_cita.NOMBRE_ESTADO')
+        // 2. Gráfica de Dona (Estado Citas Hoy usando vista_citas)
+        $estadoCitasHoy = DB::table('vista_citas')
+            ->whereDate('FECHA_HORA', $hoy)
+            ->select('ESTADO_CITA as NOMBRE_ESTADO', DB::raw('COUNT(ID_CITA) as cantidad'))
+            ->groupBy('ESTADO_CITA')
             ->get();
 
         // 3. Actividad (Líneas SVG)
@@ -82,12 +82,14 @@ class DashboardController extends Controller
             }
         }
 
-        // 4. Próximas Citas y Recordatorios
-        $proximasCitas = Cita::join('paciente', 'cita.PACIENTE_ID_PACIENTE', '=', 'paciente.ID_PACIENTE')
-            ->join('usuarios', 'paciente.USUARIOS_ID_USUARIOS', '=', 'usuarios.ID_USUARIOS')
-            ->select('cita.ID_CITA', DB::raw("DATE_FORMAT(cita.FECHA_HORA, '%d %b') as fecha_corta"), 'cita.MOTIVO', DB::raw("CONCAT(usuarios.NOMBRES, ' ', usuarios.APELLIDOS) AS paciente_nombre"))
-            ->where('cita.FECHA_HORA', '>=', now())->whereIn('cita.ESTADO_CITA_ID', [1, 2])
-            ->orderBy('cita.FECHA_HORA', 'ASC')->take(4)->get();
+        // 4. Próximas Citas y Recordatorios (usando vista_citas)
+        $proximasCitas = DB::table('vista_citas')
+            ->select('ID_CITA', DB::raw("DATE_FORMAT(FECHA_HORA, '%d %b') as fecha_corta"), 'MOTIVO', 'NOMBRE_PACIENTE AS paciente_nombre')
+            ->where('FECHA_HORA', '>=', now())
+            ->whereIn('ESTADO_CITA_ID', [1, 2])
+            ->orderBy('FECHA_HORA', 'ASC')
+            ->take(4)
+            ->get();
 
         $recordatorios = Notificacion::where('ESTADO', 'NO_LEIDA')->orderBy('FECHA_ENVIO', 'DESC')->take(4)->get();
 

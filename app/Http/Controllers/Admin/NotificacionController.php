@@ -25,19 +25,17 @@ class NotificacionController extends Controller
             ->delete();
 
         $sql = "SELECT
-                    n.ID_NOTIFICACIONES,
-                    n.MENSAJE,
-                    n.FECHA_ENVIO,
-                    n.ESTADO,
-                    tn.NOMBRE AS TIPO_NOMBRE,
-                    u.NOMBRES AS USUARIO_NOMBRES,
-                    u.APELLIDOS AS USUARIO_APELLIDOS
-                FROM notificaciones n
-                INNER JOIN tipo_notificacion tn ON n.TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION = tn.ID_TIPO_NOTIFICACION
-                LEFT JOIN usuarios u ON n.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
-                WHERE n.USUARIOS_ID_USUARIOS = ?
-                   OR (n.USUARIOS_ID_USUARIOS IS NULL AND tn.ROL_DESTINO = 1)
-                ORDER BY n.FECHA_ENVIO DESC";
+                    ID_NOTIFICACIONES,
+                    MENSAJE,
+                    FECHA_ENVIO,
+                    ESTADO,
+                    TIPO_NOMBRE,
+                    NOMBRE_USUARIO AS USUARIO_NOMBRES,
+                    '' AS USUARIO_APELLIDOS
+                FROM vista_notificaciones
+                WHERE ID_USUARIOS = ?
+                   OR (USUARIOS_ID_USUARIOS IS NULL AND ROL_DESTINO = 1)
+                ORDER BY FECHA_ENVIO DESC";
 
         $notificacionesRaw = DB::select($sql, [$usuarioId]);
         $totalAlertas = count($notificacionesRaw);
@@ -78,19 +76,17 @@ class NotificacionController extends Controller
             switch ($op) {
                 case 'listar':
                     $sql = "SELECT
-                                n.ID_NOTIFICACIONES,
-                                n.MENSAJE,
-                                n.FECHA_ENVIO,
-                                n.ESTADO,
-                                tn.NOMBRE AS TIPO_NOMBRE,
-                                u.NOMBRES AS USUARIO_NOMBRES,
-                                u.APELLIDOS AS USUARIO_APELLIDOS
-                            FROM notificaciones n
-                            INNER JOIN tipo_notificacion tn ON n.TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION = tn.ID_TIPO_NOTIFICACION
-                            LEFT JOIN usuarios u ON n.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
-                            WHERE n.USUARIOS_ID_USUARIOS = ?
-                               OR (n.USUARIOS_ID_USUARIOS IS NULL AND tn.ROL_DESTINO = 1)
-                            ORDER BY n.FECHA_ENVIO DESC";
+                                ID_NOTIFICACIONES,
+                                MENSAJE,
+                                FECHA_ENVIO,
+                                ESTADO,
+                                TIPO_NOMBRE,
+                                NOMBRE_USUARIO AS USUARIO_NOMBRES,
+                                '' AS USUARIO_APELLIDOS
+                            FROM vista_notificaciones
+                            WHERE ID_USUARIOS = ?
+                               OR (USUARIOS_ID_USUARIOS IS NULL AND ROL_DESTINO = 1)
+                            ORDER BY FECHA_ENVIO DESC";
                     $datos = DB::select($sql, [$usuarioId]);
                     return response()->json(['success' => true, 'data' => $datos]);
 

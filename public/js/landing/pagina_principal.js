@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (navegoHaciaAtras) {
             // 🚀 Destruye la persistencia del token del servidor llamando al método salir.
             // Si el usuario da "Adelante", el navegador rebotará obligatoriamente al login.
-            window.location.replace("/LOGIN_ORIGINAL/salir");
+            window.location.replace("/salir");
         }
     };
 })();

@@ -114,7 +114,7 @@ $(document).ready(function () {
         const formData = new FormData();
         formData.append('fecha', fechaSeleccionada);
 
-        fetch('/LOGIN_ORIGINAL/paciente/cita/horas-disponibles-ajax', {
+        fetch('/paciente/cita/horas-disponibles-ajax', {
             method: 'POST',
             body: formData
         })
@@ -250,7 +250,7 @@ $(document).ready(function () {
         const formData = new FormData();
         formData.append('id_cita', idCita);
 
-        fetch('/LOGIN_ORIGINAL/paciente/cita/detalle-ajax', {
+        fetch('/paciente/cita/detalle-ajax', {
             method: 'POST',
             body: formData
         })

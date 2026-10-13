@@ -211,6 +211,97 @@
 /* Colores de Estado */
 .est-activo { background-color: #dcfce7; color: #16a34a; }
 .est-inactivo { background-color: #fee2e2; color: #dc2626; }
+.est-pendiente { background-color: #fef3c7; color: #d97706; }
+
+/* Badge Alerta Contador en Tab */
+.badge-tab-alerta {
+    background-color: #ef4444;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 4px;
+    line-height: 1;
+}
+
+/* KPI Cards de Contactos */
+.contactos-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px 30px 10px 30px;
+}
+
+.contactos-kpi-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.contactos-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.contactos-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.contactos-kpi-icon.total { background: #eff6ff; color: #2563eb; }
+.contactos-kpi-icon.pendientes { background: #fef3c7; color: #d97706; }
+.contactos-kpi-icon.contactados { background: #dcfce7; color: #16a34a; }
+
+.contactos-kpi-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.contactos-kpi-info .kpi-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.contactos-kpi-info .kpi-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Botón WhatsApp */
+.btn-whatsapp-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #25d366;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 4px;
+    transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-whatsapp-action:hover {
+    background-color: #1ebc59;
+    color: #ffffff;
+    transform: scale(1.05);
+}
 
 /* Botones de Acción */
 .actions-group-otros { display: flex; gap: 8px; }

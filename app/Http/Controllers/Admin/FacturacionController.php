@@ -16,13 +16,11 @@ class FacturacionController extends Controller
     {
         // Citas completadas pendientes por facturar
         $citas = DB::select("
-            SELECT c.ID_CITA, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS NOMBRE_PACIENTE, c.FECHA_ATENCION, c.MOTIVO
-            FROM cita c
-            INNER JOIN paciente p ON c.PACIENTE_ID_PACIENTE = p.ID_PACIENTE
-            INNER JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
-            WHERE c.ESTADO_CITA_ID = 2 
-            AND c.ID_CITA NOT IN (SELECT CITA_ID_CITA FROM factura WHERE CITA_ID_CITA IS NOT NULL)
-            ORDER BY c.FECHA_ATENCION DESC
+            SELECT ID_CITA, NOMBRE_PACIENTE, FECHA_ATENCION, MOTIVO
+            FROM vista_citas
+            WHERE ESTADO_CITA_ID = 2 
+            AND ID_CITA NOT IN (SELECT CITA_ID_CITA FROM factura WHERE CITA_ID_CITA IS NOT NULL)
+            ORDER BY FECHA_ATENCION DESC
         ");
 
         return view('admin.facturacion.index', compact('citas'));
@@ -138,39 +136,11 @@ class FacturacionController extends Controller
 
     private function listarFacturas()
     {
-        $sql = "SELECT 
-                    f.ID_FACTURA AS id,
-                    f.FECHA_EMISION AS fecha_emision,
-                    f.TOTAL AS total,
-                    CASE 
-                        WHEN IFNULL(p_totales.total_pagado, 0) >= f.TOTAL THEN 'Pagada'
-                        WHEN IFNULL(p_totales.total_pagado, 0) > 0 THEN 'Abonada'
-                        ELSE 'Emitida'
-                    END AS estado,
-                    IFNULL(CONCAT(u.NOMBRES, ' ', u.APELLIDOS), 'Paciente Temporal') AS paciente,
-                    IFNULL(proc_hc.nombres_procedimientos, 'Tratamiento General') AS tratamiento,
-                    IFNULL(p_totales.total_pagado, 0) AS pagado
-                FROM factura f
-                LEFT JOIN cita c ON f.CITA_ID_CITA = c.ID_CITA
-                LEFT JOIN estado_cita ec ON c.ESTADO_CITA_ID = ec.ID_ESTADO
-                LEFT JOIN (
-                    SELECT FACTURA_ID_FACTURA, SUM(MONTO) AS total_pagado 
-                    FROM pago WHERE ESTADO = 'PAGADO' 
-                    GROUP BY FACTURA_ID_FACTURA
-                ) p_totales ON f.ID_FACTURA = p_totales.FACTURA_ID_FACTURA
-                LEFT JOIN historia_clinica hc ON f.HISTORIA_CLINICA_ID_HISTORIA_CLINICA = hc.ID_HISTORIA_CLINICA
-                LEFT JOIN paciente p ON (hc.PACIENTE_ID_PACIENTE = p.ID_PACIENTE OR f.PACIENTE_ID_PACIENTE = p.ID_PACIENTE)
-                LEFT JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
-                LEFT JOIN (
-                    SELECT hchp.HISTORIA_CLINICA_ID_HISTORIA_CLINICA, 
-                           GROUP_CONCAT(pr.NOMBRE_PROCEDIMIENTO SEPARATOR ', ') AS nombres_procedimientos
-                    FROM historia_clinica_has_procedimientos hchp
-                    INNER JOIN procedimientos pr ON hchp.PROCEDIMIENTOS_ID_PROCEDIMIENTO = pr.ID_PROCEDIMIENTO
-                    GROUP BY hchp.HISTORIA_CLINICA_ID_HISTORIA_CLINICA
-                ) proc_hc ON hc.ID_HISTORIA_CLINICA = proc_hc.HISTORIA_CLINICA_ID_HISTORIA_CLINICA
-                ORDER BY f.ID_FACTURA DESC";
-
-        return DB::select($sql);
+        return DB::select("
+            SELECT id, fecha_emision, total, estado, paciente, tratamiento, pagado 
+            FROM vista_facturas_admin 
+            ORDER BY id DESC
+        ");
     }
 
     private function crearFactura($data)
@@ -187,11 +157,9 @@ class FacturacionController extends Controller
 
             if ((float)$data['total'] > 0) {
                 $refs = DB::selectOne("
-                    SELECT hc.PACIENTE_ID_PACIENTE, hc.ODONTOLOGO_ID_ODONTOLOGO, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) as paciente_nombre 
-                    FROM historia_clinica hc 
-                    INNER JOIN paciente p ON hc.PACIENTE_ID_PACIENTE = p.ID_PACIENTE 
-                    INNER JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS 
-                    WHERE hc.ID_HISTORIA_CLINICA = ?
+                    SELECT ID_PACIENTE AS PACIENTE_ID_PACIENTE, ID_ODONTOLOGO AS ODONTOLOGO_ID_ODONTOLOGO, NOMBRE_PACIENTE as paciente_nombre 
+                    FROM vista_historia_clinica 
+                    WHERE ID_HISTORIA_CLINICA = ?
                 ", [$data['historia_clinica_id']]);
 
                 if ($refs) {
@@ -246,12 +214,10 @@ class FacturacionController extends Controller
     {
         $sql = "SELECT 
                     o.ID_ODONTOLOGO,
-                    CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS doctor,
-                    e.NOMBRE_ESPECIALIDAD AS especialidad,
+                    o.NOMBRE_COMPLETO AS doctor,
+                    o.NOMBRE_ESPECIALIDAD AS especialidad,
                     IFNULL(cc.PORCENTAJE, 40.00) AS porcentaje
-                FROM odontologo o
-                INNER JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
-                INNER JOIN especialidad e ON o.ESPECIALIDAD_ID_ESPECIALIDAD = e.ID_ESPECIALIDAD
+                FROM vista_odontologos o
                 LEFT JOIN configuracion_comisiones cc ON o.ID_ODONTOLOGO = cc.ODONTOLOGO_ID_ODONTOLOGO";
                 
         return DB::select($sql);
@@ -323,10 +289,9 @@ class FacturacionController extends Controller
             ]);
 
             $odontologo = DB::selectOne("
-                SELECT o.USUARIOS_ID_USUARIOS, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS odontologo_nombre 
-                FROM odontologo o 
-                JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS 
-                WHERE o.ID_ODONTOLOGO = ?
+                SELECT ID_USUARIOS AS USUARIOS_ID_USUARIOS, NOMBRE_COMPLETO AS odontologo_nombre 
+                FROM vista_odontologos 
+                WHERE ID_ODONTOLOGO = ?
             ", [$idOdontologo]);
 
             $nombreOdontologo = $odontologo ? $odontologo->odontologo_nombre : 'Odontólogo';
@@ -417,13 +382,10 @@ class FacturacionController extends Controller
 
                 $refs = DB::selectOne("
                     SELECT 
-                        p.ID_PACIENTE AS PACIENTE_ID_PACIENTE, 
-                        CONCAT(u.NOMBRES, ' ', u.APELLIDOS) as paciente_nombre 
-                    FROM factura f 
-                    LEFT JOIN historia_clinica hc ON f.HISTORIA_CLINICA_ID_HISTORIA_CLINICA = hc.ID_HISTORIA_CLINICA 
-                    JOIN paciente p ON (hc.PACIENTE_ID_PACIENTE = p.ID_PACIENTE OR f.PACIENTE_ID_PACIENTE = p.ID_PACIENTE) 
-                    JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS 
-                    WHERE f.ID_FACTURA = ?
+                        PACIENTE_ID_PACIENTE, 
+                        paciente as paciente_nombre 
+                    FROM vista_facturas_admin
+                    WHERE id = ?
                 ", [$idFactura]);
 
                 if ($refs) {
@@ -484,38 +446,18 @@ class FacturacionController extends Controller
     private function obtenerFacturaIndividualData($idFactura)
     {
         $sql = "SELECT 
-                    f.ID_FACTURA,
-                    f.FECHA_EMISION,
-                    f.TOTAL,
-                    IFNULL(CONCAT(u.NOMBRES, ' ', u.APELLIDOS), 'Paciente Temporal') AS paciente,
-                    IFNULL(u.NUMERO_DOCUMENTO, 'N/A') AS documento,
-                    IFNULL(u.CORREO, 'N/A') AS correo,
-                    IFNULL(u.TELEFONO, 'N/A') AS telefono,
-                    IFNULL(proc_hc.nombres_procedimientos, 'Tratamiento General') AS tratamiento,
-                    IFNULL(p_totales.total_pagado, 0) AS pagado,
-                    CASE 
-                        WHEN IFNULL(p_totales.total_pagado, 0) >= f.TOTAL THEN 'Pagada'
-                        WHEN IFNULL(p_totales.total_pagado, 0) > 0 THEN 'Abonada'
-                        ELSE 'Emitida'
-                    END AS estado
-                FROM factura f
-                LEFT JOIN cita c ON f.CITA_ID_CITA = c.ID_CITA
-                LEFT JOIN (
-                    SELECT FACTURA_ID_FACTURA, SUM(MONTO) AS total_pagado 
-                    FROM pago WHERE ESTADO = 'PAGADO' 
-                    GROUP BY FACTURA_ID_FACTURA
-                ) p_totales ON f.ID_FACTURA = p_totales.FACTURA_ID_FACTURA
-                LEFT JOIN historia_clinica hc ON f.HISTORIA_CLINICA_ID_HISTORIA_CLINICA = hc.ID_HISTORIA_CLINICA
-                LEFT JOIN paciente p ON (hc.PACIENTE_ID_PACIENTE = p.ID_PACIENTE OR f.PACIENTE_ID_PACIENTE = p.ID_PACIENTE)
-                LEFT JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
-                LEFT JOIN (
-                    SELECT hchp.HISTORIA_CLINICA_ID_HISTORIA_CLINICA, 
-                           GROUP_CONCAT(pr.NOMBRE_PROCEDIMIENTO SEPARATOR ', ') AS nombres_procedimientos
-                    FROM historia_clinica_has_procedimientos hchp
-                    INNER JOIN procedimientos pr ON hchp.PROCEDIMIENTOS_ID_PROCEDIMIENTO = pr.ID_PROCEDIMIENTO
-                    GROUP BY hchp.HISTORIA_CLINICA_ID_HISTORIA_CLINICA
-                ) proc_hc ON hc.ID_HISTORIA_CLINICA = proc_hc.HISTORIA_CLINICA_ID_HISTORIA_CLINICA
-                WHERE f.ID_FACTURA = ?";
+                    id AS ID_FACTURA,
+                    fecha_emision AS FECHA_EMISION,
+                    total AS TOTAL,
+                    paciente,
+                    documento,
+                    correo,
+                    telefono,
+                    tratamiento,
+                    pagado,
+                    estado
+                FROM vista_facturas_admin
+                WHERE id = ?";
 
         $factura = DB::selectOne($sql, [$idFactura]);
 
@@ -551,10 +493,9 @@ class FacturacionController extends Controller
                 SELECT e.MES_LIQUIDADO as mes, 
                        e.MONTO_TOTAL_PRODUCCION as produccion, 
                        e.MONTO_PAGADO as total_pagado,
-                       CONCAT(u.NOMBRES, ' ', u.APELLIDOS) as doctor
+                       o.NOMBRE_COMPLETO as doctor
                 FROM egresos e
-                JOIN odontologo o ON e.ODONTOLOGO_ID_ODONTOLOGO = o.ID_ODONTOLOGO
-                JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
+                JOIN vista_odontologos o ON e.ODONTOLOGO_ID_ODONTOLOGO = o.ID_ODONTOLOGO
                 WHERE e.MES_LIQUIDADO = ?
             ", [$mes]);
         }
@@ -747,7 +688,7 @@ class FacturacionController extends Controller
                 $monto = (float)trim($row[3]); $total = (float)trim($row[4]); $estado = trim($row[5]);
 
                 try {
-                    $pac = DB::selectOne("SELECT p.ID_PACIENTE FROM paciente p INNER JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS WHERE u.NUMERO_DOCUMENTO = ?", [$docPaciente]);
+                    $pac = DB::selectOne("SELECT ID_PACIENTE FROM vista_pacientes WHERE NUMERO_DOCUMENTO = ?", [$docPaciente]);
                     if (!$pac) throw new Exception("Paciente con documento $docPaciente no encontrado");
 
                     DB::beginTransaction();

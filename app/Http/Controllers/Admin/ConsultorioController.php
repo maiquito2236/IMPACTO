@@ -87,24 +87,20 @@ class ConsultorioController extends Controller
     // --- MÉTODOS PRIVADOS DE BASE DE DATOS ---
 
     private function listarConsultorios() {
-        $sql = "SELECT c.ID_CONSULTORIO, c.NOMBRE, c.UBICACION, c.DESCRIPCION, c.ESTADO, o.ID_ODONTOLOGO, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS doctor_nombre, e.NOMBRE_ESPECIALIDAD AS especialidad FROM consultorio c LEFT JOIN odontologo o ON o.CONSULTORIO_ID_CONSULTORIO = c.ID_CONSULTORIO LEFT JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS LEFT JOIN especialidad e ON o.ESPECIALIDAD_ID_ESPECIALIDAD = e.ID_ESPECIALIDAD ORDER BY c.ID_CONSULTORIO ASC";
-        return DB::select($sql);
+        return DB::select("SELECT * FROM vista_consultorios ORDER BY ID_CONSULTORIO ASC");
     }
 
     private function obtenerConsultorioPorId($id) {
-        $sql = "SELECT c.ID_CONSULTORIO, c.NOMBRE, c.UBICACION, c.DESCRIPCION, c.ESTADO, o.ID_ODONTOLOGO, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS doctor_nombre, e.NOMBRE_ESPECIALIDAD AS especialidad FROM consultorio c LEFT JOIN odontologo o ON o.CONSULTORIO_ID_CONSULTORIO = c.ID_CONSULTORIO LEFT JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS LEFT JOIN especialidad e ON o.ESPECIALIDAD_ID_ESPECIALIDAD = e.ID_ESPECIALIDAD WHERE c.ID_CONSULTORIO = ?";
-        $res = DB::select($sql, [$id]);
+        $res = DB::select("SELECT * FROM vista_consultorios WHERE ID_CONSULTORIO = ?", [$id]);
         return empty($res) ? null : $res[0];
     }
 
     private function obtenerOdontologosSinConsultorio() {
-        $sql = "SELECT o.ID_ODONTOLOGO, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS doctor_nombre, e.NOMBRE_ESPECIALIDAD AS especialidad FROM odontologo o INNER JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS INNER JOIN especialidad e ON o.ESPECIALIDAD_ID_ESPECIALIDAD = e.ID_ESPECIALIDAD WHERE o.CONSULTORIO_ID_CONSULTORIO IS NULL ORDER BY u.NOMBRES ASC";
-        return DB::select($sql);
+        return DB::select("SELECT ID_ODONTOLOGO, NOMBRE_COMPLETO AS doctor_nombre, NOMBRE_ESPECIALIDAD AS especialidad FROM vista_odontologos WHERE ID_CONSULTORIO IS NULL ORDER BY NOMBRES ASC");
     }
 
     private function obtenerTodosOdontologos() {
-        $sql = "SELECT o.ID_ODONTOLOGO, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS doctor_nombre, e.NOMBRE_ESPECIALIDAD AS especialidad, o.CONSULTORIO_ID_CONSULTORIO FROM odontologo o INNER JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS INNER JOIN especialidad e ON o.ESPECIALIDAD_ID_ESPECIALIDAD = e.ID_ESPECIALIDAD ORDER BY u.NOMBRES ASC";
-        return DB::select($sql);
+        return DB::select("SELECT ID_ODONTOLOGO, NOMBRE_COMPLETO AS doctor_nombre, NOMBRE_ESPECIALIDAD AS especialidad, ID_CONSULTORIO AS CONSULTORIO_ID_CONSULTORIO FROM vista_odontologos ORDER BY NOMBRES ASC");
     }
 
     private function crearConsultorio($data) {
@@ -193,8 +189,7 @@ class ConsultorioController extends Controller
     }
 
     private function obtenerHistorialAsignaciones() {
-        $sql = "SELECT h.ID_HISTORIAL, c.NOMBRE AS consultorio_nombre, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS doctor_nombre, h.FECHA_ASIGNACION, h.FECHA_DESASIGNACION, h.MOTIVO_CAMBIO FROM historial_asignacion_consultorio h INNER JOIN consultorio c ON h.CONSULTORIO_ID = c.ID_CONSULTORIO INNER JOIN odontologo o ON h.ODONTOLOGO_ID = o.ID_ODONTOLOGO INNER JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS ORDER BY h.FECHA_ASIGNACION DESC";
-        return DB::select($sql);
+        return DB::select("SELECT * FROM vista_historial_consultorio ORDER BY FECHA_ASIGNACION DESC");
     }
 
     private function obtenerResumenKPIs() {

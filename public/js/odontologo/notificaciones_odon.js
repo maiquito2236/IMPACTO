@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 formData.append('id', idNotificacion);
 
-                const fetchUrl = window.IS_PACIENTE_MODULE ? '/LOGIN_ORIGINAL/paciente/notificaciones/marcar_leida' : '/LOGIN_ORIGINAL/odontologo/notificaciones/marcar_leida';
+                const fetchUrl = window.IS_PACIENTE_MODULE ? '/paciente/notificaciones/marcar_leida' : '/odontologo/notificaciones/marcar_leida';
                 fetch(fetchUrl, {
                     method: 'POST',
                     body: formData
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             actualizarContadores();
             aplicarFiltros();
 
-            const fetchUrlMasivo = window.IS_PACIENTE_MODULE ? '/LOGIN_ORIGINAL/paciente/notificaciones/marcar_todas' : '/LOGIN_ORIGINAL/odontologo/notificaciones/marcar_todas_leidas';
+            const fetchUrlMasivo = window.IS_PACIENTE_MODULE ? '/paciente/notificaciones/marcar_todas' : '/odontologo/notificaciones/marcar_todas_leidas';
             fetch(fetchUrlMasivo)
             .catch(err => console.error("Error en actualización masiva:", err));
         });

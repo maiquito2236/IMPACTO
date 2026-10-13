@@ -61,22 +61,48 @@ class AgendaController extends Controller
 
     private function listarCitas($inicio, $fin) {
         $where = ''; $params = [];
-        if ($inicio && $fin) { $where = "WHERE DATE(c.FECHA_HORA) BETWEEN ? AND ?"; $params = [$inicio, $fin]; }
-        $sql = "SELECT c.ID_CITA AS id_cita, DATE(c.FECHA_HORA) AS fecha_cita, TIME_FORMAT(c.FECHA_HORA, '%H:%i') AS hora_cita, HOUR(c.FECHA_HORA) AS hora_num, ec.NOMBRE_ESTADO AS estado, c.MOTIVO AS tratamiento, CONCAT(u_pac.NOMBRES, ' ', u_pac.APELLIDOS) AS paciente, CONCAT(u_odo.NOMBRES, ' ', u_odo.APELLIDOS) AS odontologo, o.ID_ODONTOLOGO AS id_odontologo, p.ID_PACIENTE AS id_paciente, IFNULL(con.NOMBRE, 'Sin asignar') AS consultorio FROM cita c INNER JOIN estado_cita ec ON c.ESTADO_CITA_ID = ec.ID_ESTADO INNER JOIN paciente p ON c.PACIENTE_ID_PACIENTE = p.ID_PACIENTE INNER JOIN usuarios u_pac ON p.USUARIOS_ID_USUARIOS = u_pac.ID_USUARIOS INNER JOIN odontologo o ON c.ODONTOLOGO_ID_ODONTOLOGO = o.ID_ODONTOLOGO INNER JOIN usuarios u_odo ON o.USUARIOS_ID_USUARIOS = u_odo.ID_USUARIOS LEFT JOIN consultorio con ON o.CONSULTORIO_ID_CONSULTORIO = con.ID_CONSULTORIO $where ORDER BY c.FECHA_HORA ASC";
+        if ($inicio && $fin) { $where = "WHERE FECHA BETWEEN ? AND ?"; $params = [$inicio, $fin]; }
+        $sql = "SELECT 
+                    ID_CITA AS id_cita, 
+                    FECHA AS fecha_cita, 
+                    TIME_FORMAT(FECHA_HORA, '%H:%i') AS hora_cita, 
+                    HOUR(FECHA_HORA) AS hora_num, 
+                    ESTADO_CITA AS estado, 
+                    MOTIVO AS tratamiento, 
+                    NOMBRE_PACIENTE AS paciente, 
+                    NOMBRE_ODONTOLOGO AS odontologo, 
+                    ODONTOLOGO_ID_ODONTOLOGO AS id_odontologo, 
+                    PACIENTE_ID_PACIENTE AS id_paciente, 
+                    IFNULL(NOMBRE_CONSULTORIO, 'Sin asignar') AS consultorio 
+                FROM vista_citas 
+                $where 
+                ORDER BY FECHA_HORA ASC";
         return DB::select($sql, $params);
     }
 
     private function listarCitasHoy() {
-        $sql = "SELECT c.ID_CITA AS id_cita, u_pac.NUMERO_DOCUMENTO AS documento, DATE(c.FECHA_HORA) AS fecha_cita, TIME_FORMAT(c.FECHA_HORA, '%H:%i') AS hora_cita, ec.NOMBRE_ESTADO AS estado, c.MOTIVO AS tratamiento, CONCAT(u_pac.NOMBRES, ' ', u_pac.APELLIDOS) AS paciente, CONCAT(u_odo.NOMBRES, ' ', u_odo.APELLIDOS) AS odontologo, IFNULL(con.NOMBRE, 'Sin asignar') AS consultorio FROM cita c INNER JOIN estado_cita ec ON c.ESTADO_CITA_ID = ec.ID_ESTADO INNER JOIN paciente p ON c.PACIENTE_ID_PACIENTE = p.ID_PACIENTE INNER JOIN usuarios u_pac ON p.USUARIOS_ID_USUARIOS = u_pac.ID_USUARIOS INNER JOIN odontologo o ON c.ODONTOLOGO_ID_ODONTOLOGO = o.ID_ODONTOLOGO INNER JOIN usuarios u_odo ON o.USUARIOS_ID_USUARIOS = u_odo.ID_USUARIOS LEFT JOIN consultorio con ON o.CONSULTORIO_ID_CONSULTORIO = con.ID_CONSULTORIO WHERE DATE(c.FECHA_HORA) = CURDATE() ORDER BY c.FECHA_HORA ASC";
+        $sql = "SELECT 
+                    ID_CITA AS id_cita, 
+                    DOC_PACIENTE AS documento, 
+                    FECHA AS fecha_cita, 
+                    TIME_FORMAT(FECHA_HORA, '%H:%i') AS hora_cita, 
+                    ESTADO_CITA AS estado, 
+                    MOTIVO AS tratamiento, 
+                    NOMBRE_PACIENTE AS paciente, 
+                    NOMBRE_ODONTOLOGO AS odontologo, 
+                    IFNULL(NOMBRE_CONSULTORIO, 'Sin asignar') AS consultorio 
+                FROM vista_citas 
+                WHERE FECHA = CURDATE() 
+                ORDER BY FECHA_HORA ASC";
         return DB::select($sql);
     }
 
     private function listarPacientes() {
-        return DB::select("SELECT p.ID_PACIENTE AS id, CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS nombre FROM paciente p INNER JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS WHERE u.ESTADO = 'Activo' AND u.ROLES_ID_ROLES = 3 ORDER BY u.APELLIDOS, u.NOMBRES");
+        return DB::select("SELECT ID_PACIENTE AS id, CONCAT(PRIMER_NOMBRE, ' ', PRIMER_APELLIDO) AS nombre FROM vista_pacientes WHERE ESTADO_USUARIO = 'Activo' ORDER BY PRIMER_APELLIDO, PRIMER_NOMBRE");
     }
 
     private function listarOdontologos() {
-        return DB::select("SELECT o.ID_ODONTOLOGO AS id, CONCAT(u.NOMBRES, ' ', u.APELLIDOS, ' — ', e.NOMBRE_ESPECIALIDAD) AS nombre FROM odontologo o INNER JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS INNER JOIN especialidad e ON o.ESPECIALIDAD_ID_ESPECIALIDAD = e.ID_ESPECIALIDAD WHERE u.ESTADO = 'Activo' AND u.ROLES_ID_ROLES = 2 ORDER BY u.APELLIDOS, u.NOMBRES, e.NOMBRE_ESPECIALIDAD");
+        return DB::select("SELECT ID_ODONTOLOGO AS id, CONCAT(PRIMER_NOMBRE, ' ', PRIMER_APELLIDO, ' — ', NOMBRE_ESPECIALIDAD) AS nombre FROM vista_odontologos WHERE ESTADO_USUARIO = 'Activo' ORDER BY PRIMER_APELLIDO, PRIMER_NOMBRE, NOMBRE_ESPECIALIDAD");
     }
 
     private function listarTratamientos() {
@@ -86,11 +112,10 @@ class AgendaController extends Controller
     private function obtenerHorasOcupadas($fecha, $id_odontologo = null) {
         if ($id_odontologo) {
             // 1. Horas ya ocupadas por otras citas
-            $horasCitas = DB::table('cita')
-                ->join('estado_cita', 'cita.ESTADO_CITA_ID', '=', 'estado_cita.ID_ESTADO')
-                ->whereDate('FECHA_HORA', $fecha)
+            $horasCitas = DB::table('vista_citas')
+                ->where('FECHA', $fecha)
                 ->where('ODONTOLOGO_ID_ODONTOLOGO', $id_odontologo)
-                ->where('NOMBRE_ESTADO', '!=', 'Cancelada')
+                ->where('ESTADO_CITA', '!=', 'Cancelada')
                 ->pluck('FECHA_HORA')
                 ->map(function($f) { return date('H:i', strtotime($f)); })
                 ->toArray();
@@ -120,8 +145,10 @@ class AgendaController extends Controller
                 $end = (int)date('H', strtotime($s->HORA_FIN));
                 
                 // Calculamos el inicio y fin del descanso (si tiene)
-                $descanso_start = $s->descanso_inicio ? (int)date('H', strtotime($s->descanso_inicio)) : -1;
-                $descanso_end = $s->descanso_fin ? (int)date('H', strtotime($s->descanso_fin)) : -1;
+                $descIni = $s->DESCANSO_INICIO ?? $s->descanso_inicio ?? null;
+                $descFin = $s->DESCANSO_FIN ?? $s->descanso_fin ?? null;
+                $descanso_start = $descIni ? (int)date('H', strtotime($descIni)) : -1;
+                $descanso_end = $descFin ? (int)date('H', strtotime($descFin)) : -1;
 
                 for ($i = $start; $i < $end; $i++) {
                     // Si la hora choca con el descanso, nos la saltamos
@@ -148,10 +175,9 @@ class AgendaController extends Controller
             return array_values(array_unique(array_merge($disabledHours, $horasCitas)));
 
         } else {
-            return DB::table('cita')
-                ->join('estado_cita', 'cita.ESTADO_CITA_ID', '=', 'estado_cita.ID_ESTADO')
-                ->whereDate('FECHA_HORA', $fecha)
-                ->where('NOMBRE_ESTADO', '!=', 'Cancelada')
+            return DB::table('vista_citas')
+                ->where('FECHA', $fecha)
+                ->where('ESTADO_CITA', '!=', 'Cancelada')
                 ->pluck('FECHA_HORA')
                 ->map(function($f) { return date('H:i', strtotime($f)); })
                 ->toArray();

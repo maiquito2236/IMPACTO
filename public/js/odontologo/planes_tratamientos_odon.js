@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!pacienteId || pacienteId === "" || pacienteId === "0") return;
 
-        fetch(`odontologo/planes/listarPiezas?id=${pacienteId}`)
+        fetch(`/odontologo/planes/listarPiezas?id=${pacienteId}`)
             .then(res => res.json())
             .then(tratamientosGuardados => {
                 if (Array.isArray(tratamientosGuardados)) {
@@ -219,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Enviamos múltiples peticiones si hay varios procedimientos distintos
                     const promesasFetch = arrayPeticiones.map(payload => 
-                        fetch('odontologo/procedimientos/guardarMasivo', {
+                        fetch('//odontologo/procedimientos/guardarMasivo', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ==========================================================================
        5. CONSUMIR EL CATÁLOGO DE PROCEDIMIENTOS CLÍNICOS
        ========================================================================== */
-    fetch('odontologo/agenda/obtener_lista_procedimientos')
+    fetch('//odontologo/agenda/obtener_lista_procedimientos')
         .then(res => {
             if (!res.ok) throw new Error("Código de respuesta del servidor: " + res.status);
             return res.json();

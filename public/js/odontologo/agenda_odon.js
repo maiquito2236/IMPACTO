@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function cargarVistaHoy(){
         try {
-            const respuesta = await fetch("index.php?action=odontologo/agenda/obtener_citas_hoy");
+            const respuesta = await fetch("/odontologo/agenda/obtener_citas_hoy");
             const citas = await respuesta.json(); 
             let html = "";
 
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Mes en JS es 0-11, MySQL es 1-12
             const mesReal = selectedMonth + 1;
-            const response = await fetch(`index.php?action=odontologo/agenda/obtener_citas_mes&mes=${mesReal}&anio=${selectedYear}`);
+            const response = await fetch(`/odontologo/agenda/obtener_citas_mes&mes=${mesReal}&anio=${selectedYear}`);
             const citas = await response.json();
             const citasPorDia = {};
 
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let datosBD = null;
 
             try {
-                const respuesta = await fetch(`index.php?action=odontologo/agenda/obtener_detalle_cita&id=${idCita}`);
+                const respuesta = await fetch(`/odontologo/agenda/obtener_detalle_cita&id=${idCita}`);
                 if (respuesta.ok) {
                     const contentType = respuesta.headers.get("content-type");
                     if (contentType && contentType.includes("application/json")) {
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const select = document.getElementById("select-procedimiento");
         if (!select) return;
 
-        fetch("index.php?action=odontologo/agenda/obtener_lista_procedimientos")
+        fetch("/odontologo/agenda/obtener_lista_procedimientos")
             .then(res => res.json())
             .then(data => {
                 select.innerHTML = '<option value="">Seleccionar...</option>';
@@ -495,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function cargarCitas() {
         try {
-            const respuesta = await fetch("index.php?action=odontologo/agenda/obtener_citas");
+            const respuesta = await fetch("/odontologo/agenda/obtener_citas");
             const citas = await respuesta.json();
 
             citas.forEach(cita => {
@@ -558,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function cargarSidebarPacientesHoy(){
         try {
-            const respuesta = await fetch("index.php?action=odontologo/agenda/obtener_citas_hoy");
+            const respuesta = await fetch("/odontologo/agenda/obtener_citas_hoy");
             let citasHoy = await respuesta.json();
             
             const ahora = new Date();
@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = "Cargando horarios..."; 
 
         try {
-            const url = `index.php?action=odontologo/agenda/obtener_horas_ocupadas&fecha=${fechaSeleccionada}`;
+            const url = `/odontologo/agenda/obtener_horas_ocupadas&fecha=${fechaSeleccionada}`;
             const response = await fetch(url);
             const horasOcupadas = await response.json();
             const todasLasHoras = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
@@ -654,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const fechaHoraSQL = `${nuevaFechaFormateada} ${nuevaHoraTexto}:00`;
 
             try {
-                const respuestaGuardado = await fetch("index.php?action=odontologo/agenda/reprogramar_cita", {
+                const respuestaGuardado = await fetch("/odontologo/agenda/reprogramar_cita", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -681,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const docInput = document.getElementById("modal-nuevo-documento") || document.getElementById("docInput");
             if (!docInput) return;
             const doc = docInput.value;
-            const res = await fetch(`index.php?action=odontologo/agenda/buscar_paciente&doc=${doc}`);
+            const res = await fetch(`/odontologo/agenda/buscar_paciente&doc=${doc}`);
             const data = await res.json();
             
             if (data.encontrado) {
@@ -708,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchCancelInfo(id_cita) {
         try {
-            const res = await fetch(`index.php?action=odontologo/agenda/obtener_info_cancelacion&id=${id_cita}`);
+            const res = await fetch(`/odontologo/agenda/obtener_info_cancelacion&id=${id_cita}`);
             const data = await res.json();
             if(data && data.status !== 'error') {
                 Swal.fire({

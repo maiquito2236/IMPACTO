@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const formData = new FormData();
                 formData.append("id", idNotificacion);
 
-                fetch("../../Controllers/eliminar_notificacion.php", {
+                fetch("/odontologo/notificaciones/marcar_leida", {
                     method: "POST",
                     body: formData
                 })

@@ -25,6 +25,6 @@ function togglePassword() {
 
 // Aseguramos que los inputs se vacíen físicamente en la carga
 document.addEventListener("DOMContentLoaded", function() {
-    const inputs = document.querySelectorAll('input:not([type="submit"])');
+    const inputs = document.querySelectorAll('input[type="email"], input[type="password"]');
     inputs.forEach(i => i.value = '');
 });

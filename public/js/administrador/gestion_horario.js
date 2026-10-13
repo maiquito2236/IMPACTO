@@ -270,8 +270,8 @@ function editarHorario(idHorario) {
     const dFin = document.getElementById('descanso_fin');
     if (jornadaDB === 'Jornada Completa') {
         if (grupoDescanso) grupoDescanso.style.display = 'block';
-        if (dInicio) dInicio.value = o.descanso_inicio ? o.descanso_inicio.substring(0, 5) : '';
-        if (dFin) dFin.value = o.descanso_fin ? o.descanso_fin.substring(0, 5) : '';
+        if (dInicio) dInicio.value = (o.DESCANSO_INICIO || o.descanso_inicio) ? (o.DESCANSO_INICIO || o.descanso_inicio).substring(0, 5) : '';
+        if (dFin) dFin.value = (o.DESCANSO_FIN || o.descanso_fin) ? (o.DESCANSO_FIN || o.descanso_fin).substring(0, 5) : '';
     } else {
         if (grupoDescanso) grupoDescanso.style.display = 'none';
         if (dInicio) dInicio.value = '';

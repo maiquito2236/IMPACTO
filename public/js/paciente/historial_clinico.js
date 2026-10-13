@@ -126,7 +126,7 @@ $(document).ready(function () {
         
         // El endpoint viejo cargaba de forma global, usaremos el mismo para alertas y paciente,
         // pero podemos pasarle id_cita si el backend lo soporta, o asumimos que devuelve el estado global
-        let url = `/LOGIN_ORIGINAL/index.php?action=paciente/historial_clinico/datos_odontograma&paciente_id=${pacienteId}`;
+        let url = `/paciente/historial_clinico/datos_odontograma&paciente_id=${pacienteId}`;
         if (fechaIso) {
             url += `&target_date=${fechaIso}`;
         }
@@ -148,7 +148,7 @@ $(document).ready(function () {
                 // Hacemos un fetch a la cita especifica para el resumen-cita-hoy
                 const formData = new FormData();
                 formData.append('id_cita', idCitaEspecifica);
-                fetch('/LOGIN_ORIGINAL/paciente/cita/detalle-historial-ajax', {
+                fetch('/paciente/cita/detalle-historial-ajax', {
                     method: 'POST',
                     body: formData
                 })

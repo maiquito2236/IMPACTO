@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 
 class OtrosController extends Controller
@@ -15,7 +16,7 @@ class OtrosController extends Controller
     public function index(Request $request)
     {
         $tabActiva = $request->query('tab', '');
-        if (!in_array($tabActiva, ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades'])) {
+        if (!in_array($tabActiva, ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades', 'contactos'])) {
             $tabActiva = '';
         }
 
@@ -57,7 +58,7 @@ class OtrosController extends Controller
 
         // EPS
         $epsRaw = DB::select("
-            SELECT ID_EPS AS id, NOMBRE_EPS AS nombre, ESTADO AS estado
+            SELECT ID_EPS AS id, NOMBRE_EPS AS nombre, DIRECCION AS direccion, NUMERO AS telefono, ESTADO AS estado
             FROM eps
             ORDER BY ID_EPS DESC
         ");
@@ -99,7 +100,69 @@ class OtrosController extends Controller
             return $ef;
         }, $enfermedadesRaw);
 
-        return view('admin.otros.index', compact('procedimientos', 'especialidades', 'listaEps', 'alergias', 'enfermedades', 'tabActiva'));
+        // Contactos Web (Landing Page) - Consulta sobre la VISTA SQL vista_contactos_landing
+        $contactosRaw = DB::select("
+            SELECT 
+                ID_CONTACTO AS id,
+                NOMBRE_COMPLETO AS nombre,
+                CORREO AS correo,
+                TELEFONO AS telefono,
+                SERVICIO_INTERES AS servicio,
+                MENSAJE AS mensaje,
+                FECHA_REGISTRO AS fecha_registro,
+                ESTADO AS estado,
+                OBSERVACIONES AS observaciones,
+                ID_ADMIN_GESTION AS id_admin_gestion,
+                NOMBRE_ADMIN_GESTION AS admin_gestion,
+                ID_PROCEDIMIENTO AS id_procedimiento,
+                NOMBRE_PROCEDIMIENTO AS nombre_procedimiento
+            FROM vista_contactos_landing
+            ORDER BY ID_CONTACTO DESC
+        ");
+
+        $statsContactos = [
+            'total' => count($contactosRaw),
+            'pendientes' => 0,
+            'contactados' => 0,
+            'descartados' => 0
+        ];
+
+        $contactos = array_map(function($c) use (&$statsContactos) {
+            $item = (array)$c;
+            $estadoUpper = strtoupper($item['estado'] ?? 'PENDIENTE');
+
+            if ($estadoUpper === 'CONTACTADO') {
+                $item['css_estado'] = 'est-activo';
+                $item['estado'] = 'Contactado';
+                $statsContactos['contactados']++;
+            } elseif ($estadoUpper === 'DESCARTADO') {
+                $item['css_estado'] = 'est-inactivo';
+                $item['estado'] = 'Descartado';
+                $statsContactos['descartados']++;
+            } else {
+                $item['css_estado'] = 'est-pendiente';
+                $item['estado'] = 'Pendiente';
+                $statsContactos['pendientes']++;
+            }
+
+            $item['estado_raw'] = $estadoUpper;
+            $item['fecha'] = !empty($item['fecha_registro']) ? date('d/m/Y H:i', strtotime($item['fecha_registro'])) : '—';
+
+            // Generar enlace directo a WhatsApp si tiene número telefónico
+            $telLimpio = preg_replace('/[^0-9]/', '', $item['telefono'] ?? '');
+            if (strlen($telLimpio) >= 7) {
+                if (strlen($telLimpio) === 10 && str_starts_with($telLimpio, '3')) {
+                    $telLimpio = '57' . $telLimpio;
+                }
+                $item['whatsapp_url'] = "https://wa.me/{$telLimpio}?text=" . urlencode("Hola {$item['nombre']}, te saludamos de Odonto Estética con respecto a tu solicitud web sobre " . ($item['servicio'] ?: 'nuestros servicios') . ".");
+            } else {
+                $item['whatsapp_url'] = null;
+            }
+
+            return $item;
+        }, $contactosRaw);
+
+        return view('admin.otros.index', compact('procedimientos', 'especialidades', 'listaEps', 'alergias', 'enfermedades', 'contactos', 'statsContactos', 'tabActiva'));
     }
 
     /**
@@ -174,6 +237,8 @@ class OtrosController extends Controller
                     if (empty($data['nombre_eps'])) throw new Exception("El nombre de la EPS es obligatorio.");
                     $id = DB::table('eps')->insertGetId([
                         'NOMBRE_EPS' => $data['nombre_eps'],
+                        'DIRECCION' => $data['direccion_eps'] ?? null,
+                        'NUMERO' => $data['telefono_eps'] ?? null,
                         'ESTADO' => strtoupper($data['estado'] ?? 'ACTIVO')
                     ]);
                     return response()->json(['status' => 'success', 'id' => $id]);
@@ -184,6 +249,8 @@ class OtrosController extends Controller
                     }
                     DB::table('eps')->where('ID_EPS', $data['id_eps'])->update([
                         'NOMBRE_EPS' => $data['nombre_eps'],
+                        'DIRECCION' => $data['direccion_eps'] ?? null,
+                        'NUMERO' => $data['telefono_eps'] ?? null,
                         'ESTADO' => strtoupper($data['estado'] ?? 'ACTIVO')
                     ]);
                     return response()->json(['status' => 'success']);
@@ -250,6 +317,26 @@ class OtrosController extends Controller
                     if (empty($data['id_enfermedad'])) throw new Exception("Falta el ID de la enfermedad.");
                     DB::table('condicion_medica')->where('ID_CONDICION_MEDICA', $data['id_enfermedad'])->where('TIPO', 'ENFERMEDAD')->update(['ESTADO' => 'INACTIVA']);
                     return response()->json(['status' => 'success']);
+
+                // CONTACTOS WEB (LANDING)
+                case 'gestionar_contacto':
+                    if (empty($data['id_contacto'])) throw new Exception("Falta el ID del contacto.");
+                    $nuevoEstado = strtoupper($data['estado'] ?? 'PENDIENTE');
+                    if (!in_array($nuevoEstado, ['PENDIENTE', 'CONTACTADO', 'DESCARTADO'])) {
+                        throw new Exception("Estado de contacto no válido.");
+                    }
+                    $adminId = Auth::id() ?: 1;
+                    DB::table('contacto_landing')->where('ID_CONTACTO', $data['id_contacto'])->update([
+                        'ESTADO' => $nuevoEstado,
+                        'OBSERVACIONES' => $data['observaciones'] ?? null,
+                        'USUARIOS_ID_USUARIOS' => $adminId
+                    ]);
+                    return response()->json(['status' => 'success', 'message' => 'Prospecto actualizado correctamente.']);
+
+                case 'eliminar_contacto':
+                    if (empty($data['id_contacto'])) throw new Exception("Falta el ID del contacto.");
+                    DB::table('contacto_landing')->where('ID_CONTACTO', $data['id_contacto'])->delete();
+                    return response()->json(['status' => 'success', 'message' => 'Prospecto eliminado correctamente.']);
 
                 default:
                     throw new Exception("Operación no válida: $op");

@@ -1,4 +1,4 @@
-﻿// =====================================================
+// =====================================================
 // OTROS CATÁLOGOS ODONTO ESTÉTICA — Admin
 // =====================================================
 
@@ -11,7 +11,7 @@ let currentActiveTab = 'procedimientos';
 
 // ── 1. LÓGICA DE PESTAÑAS (TABS) ──────────────────
 function activarTab(target) {
-    const validTabs = ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades'];
+    const validTabs = ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades', 'contactos'];
     if (!validTabs.includes(target)) {
         target = 'procedimientos';
     }
@@ -64,9 +64,9 @@ function bindTabs() {
     const savedTab = localStorage.getItem('activeOtrosTab');
 
     let tabToActivate = 'procedimientos';
-    if (tabParam && ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades'].includes(tabParam.toLowerCase())) {
+    if (tabParam && ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades', 'contactos'].includes(tabParam.toLowerCase())) {
         tabToActivate = tabParam.toLowerCase();
-    } else if (savedTab && ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades'].includes(savedTab)) {
+    } else if (savedTab && ['procedimientos', 'especialidades', 'eps', 'alergias', 'enfermedades', 'contactos'].includes(savedTab)) {
         tabToActivate = savedTab;
     }
 
@@ -95,10 +95,10 @@ function initDataTables() {
         "columnDefs": [ { "orderable": false, "targets": [1, 6] } ]
     });
 
-    // Inicializar tabla EPS (Nombre col 1, Acciones col 3)
+    // Inicializar tabla EPS (Nombre col 1, Acciones col 5)
     const tableEps = $('#epsTable').DataTable({
         ...commonOptions,
-        "columnDefs": [ { "orderable": false, "targets": [1, 3] } ]
+        "columnDefs": [ { "orderable": false, "targets": [1, 5] } ]
     });
 
     // Inicializar tabla Especialidades (Nombre col 1, Acciones col 3)
@@ -119,12 +119,24 @@ function initDataTables() {
         "columnDefs": [ { "orderable": false, "targets": [1, 4] } ]
     });
 
+    // Inicializar tabla Contactos Landing
+    const tableContactos = $('#contactosTable').DataTable({
+        ...commonOptions,
+        "order": [[ 0, "desc" ]],
+        "columnDefs": [ { "orderable": false, "targets": [2, 5, 8] } ]
+    });
+
     // Conectar buscadores personalizados
     $('#searchInput').on('keyup', function() { tableProc.search(this.value).draw(); });
     $('#searchInputEps').on('keyup', function() { tableEps.search(this.value).draw(); });
     $('#searchInputEspecialidad').on('keyup', function() { tableEsp.search(this.value).draw(); });
     $('#searchInputAlergia').on('keyup', function() { tableAlg.search(this.value).draw(); });
     $('#searchInputEnfermedad').on('keyup', function() { tableEnf.search(this.value).draw(); });
+    $('#searchInputContactos').on('keyup', function() { tableContactos.search(this.value).draw(); });
+    $('#filterEstadoContactos').on('change', function() {
+        const val = this.value;
+        tableContactos.column(6).search(val ? '^' + val + '$' : '', true, false).draw();
+    });
 }
 
 // ── 3. MODAL: NUEVO PROCEDIMIENTO ─────────────────
@@ -184,7 +196,7 @@ if (formProc) {
             return;
         }
 
-        const endpoint = id ? '/api_otros/editar_procedimiento' : '/api_otros/guardar_procedimiento';
+        const endpoint = id ? '/admin/otros/editar_procedimiento' : '/admin/otros/guardar_procedimiento';
         const swalTitle = id ? '¡Actualizado!' : '¡Añadido!';
         const swalText = id ? 'Procedimiento actualizado exitosamente' : 'Procedimiento añadido exitosamente';
         
@@ -235,7 +247,7 @@ window.eliminarProcedimiento = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api_otros/eliminar_procedimiento', {
+            fetch('/admin/otros/eliminar_procedimiento', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_procedimiento: id })
@@ -303,7 +315,7 @@ if (formEsp) {
         };
 
         const isEdit = data.id_especialidad !== "";
-        const url = isEdit ? '/api_otros/editar_especialidad' : '/api_otros/guardar_especialidad';
+        const url = isEdit ? '/admin/otros/editar_especialidad' : '/admin/otros/guardar_especialidad';
 
         fetch(url, {
             method: 'POST',
@@ -346,7 +358,7 @@ window.eliminarEspecialidad = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api_otros/eliminar_especialidad', {
+            fetch('/admin/otros/eliminar_especialidad', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_especialidad: id })
@@ -399,11 +411,13 @@ if (formEps) {
         const data = {
             id_eps: document.getElementById("formEpsId").value,
             nombre_eps: document.getElementById("formEpsNombre").value.trim(),
+            direccion_eps: document.getElementById("formEpsDireccion").value.trim(),
+            telefono_eps: document.getElementById("formEpsTelefono").value.trim(),
             estado: document.getElementById("formEpsEstado").value
         };
 
         const isEdit = data.id_eps !== "";
-        const url = isEdit ? '/api_otros/editar_eps' : '/api_otros/guardar_eps';
+        const url = isEdit ? '/admin/otros/editar_eps' : '/admin/otros/guardar_eps';
 
         fetch(url, {
             method: 'POST',
@@ -434,9 +448,11 @@ if (formEps) {
     });
 }
 
-window.abrirModalEditarEps = function(id, nombre, estado) {
+window.abrirModalEditarEps = function(id, nombre, direccion, telefono, estado) {
     document.getElementById("formEpsId").value = id;
     document.getElementById("formEpsNombre").value = nombre;
+    document.getElementById("formEpsDireccion").value = direccion || "";
+    document.getElementById("formEpsTelefono").value = telefono || "";
     document.getElementById("formEpsEstado").value = estado;
 
     document.getElementById("modalEpsTitle").innerHTML = '<i class="fa-solid fa-pen" style="color:#0d6efd;margin-right:8px;"></i><span>Editar EPS</span>';
@@ -457,7 +473,7 @@ window.eliminarEps = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api_otros/eliminar_eps', {
+            fetch('/admin/otros/eliminar_eps', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_eps: id })
@@ -515,7 +531,7 @@ if (formAlg) {
         };
 
         const isEdit = data.id_alergia !== "";
-        const url = isEdit ? '/api_otros/editar_alergia' : '/api_otros/guardar_alergia';
+        const url = isEdit ? '/admin/otros/editar_alergia' : '/admin/otros/guardar_alergia';
 
         fetch(url, {
             method: 'POST',
@@ -570,7 +586,7 @@ window.eliminarAlergia = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api_otros/eliminar_alergia', {
+            fetch('/admin/otros/eliminar_alergia', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_alergia: id })
@@ -628,7 +644,7 @@ if (formEnf) {
         };
 
         const isEdit = data.id_enfermedad !== "";
-        const url = isEdit ? '/api_otros/editar_enfermedad' : '/api_otros/guardar_enfermedad';
+        const url = isEdit ? '/admin/otros/editar_enfermedad' : '/admin/otros/guardar_enfermedad';
 
         fetch(url, {
             method: 'POST',
@@ -683,7 +699,7 @@ window.eliminarEnfermedad = function(id) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/api_otros/eliminar_enfermedad', {
+            fetch('/admin/otros/eliminar_enfermedad', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_enfermedad: id })
@@ -724,3 +740,136 @@ function mostrarToast(mensaje, tipo) {
     cont.appendChild(t);
     setTimeout(() => { t.style.opacity="0"; t.style.transition="opacity .3s"; setTimeout(()=>t.remove(),300); }, 3500);
 }
+
+// ── 7. GESTIÓN DE CONTACTOS WEB (LANDING) ────────
+const modalContacto = document.getElementById("modalGestionarContacto");
+const closeModalContacto = document.getElementById("closeModalGestionarContacto");
+const btnCerrarContacto = document.getElementById("btnCerrarModalContacto");
+const formContacto = document.getElementById("formGestionarContacto");
+
+if (closeModalContacto) closeModalContacto.addEventListener("click", () => modalContacto.style.display = "none");
+if (btnCerrarContacto) btnCerrarContacto.addEventListener("click", () => modalContacto.style.display = "none");
+
+window.addEventListener("click", e => {
+    if (e.target === modalContacto) modalContacto.style.display = "none";
+});
+
+window.abrirModalGestionContacto = function(c) {
+    if (!c) return;
+    document.getElementById("formContactoId").value = c.id;
+    document.getElementById("modalDetalleNombre").textContent = c.nombre;
+    document.getElementById("modalDetalleFecha").textContent = "Recibido el: " + (c.fecha || '—');
+    
+    const badge = document.getElementById("modalDetalleBadgeEstado");
+    badge.className = "badge-otros " + (c.css_estado || 'est-pendiente');
+    badge.textContent = c.estado || 'Pendiente';
+
+    const emailLink = document.getElementById("modalDetalleEmailLink");
+    emailLink.href = "mailto:" + c.correo;
+    emailLink.textContent = c.correo;
+
+    document.getElementById("modalDetalleTelefono").textContent = c.telefono || 'Sin teléfono';
+    
+    const waBtn = document.getElementById("modalDetalleWaBtn");
+    if (c.whatsapp_url) {
+        waBtn.href = c.whatsapp_url;
+        waBtn.style.display = "inline-flex";
+    } else {
+        waBtn.style.display = "none";
+    }
+
+    document.getElementById("modalDetalleServicio").textContent = c.servicio || 'Consulta General';
+    document.getElementById("modalDetalleMensaje").textContent = c.mensaje || '';
+
+    document.getElementById("formContactoEstado").value = c.estado_raw || 'PENDIENTE';
+    document.getElementById("formContactoObservaciones").value = c.observaciones || '';
+
+    modalContacto.style.display = "flex";
+};
+
+if (formContacto) {
+    formContacto.addEventListener("submit", e => {
+        e.preventDefault();
+        const id = document.getElementById("formContactoId").value;
+        const estado = document.getElementById("formContactoEstado").value;
+        const observaciones = document.getElementById("formContactoObservaciones").value;
+
+        if (!id) return;
+
+        const submitBtn = document.getElementById("modalContactoSubmitBtn");
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+        fetch('/admin/otros/gestionar_contacto', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id_contacto: id,
+                estado: estado,
+                observaciones: observaciones
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Gestión';
+            if (res.status === "success") {
+                modalContacto.style.display = "none";
+                Swal.fire({
+                    title: '¡Gestión Guardada!',
+                    text: 'El estado del prospecto se actualizó correctamente.',
+                    icon: 'success',
+                    confirmButtonColor: '#3b82f6',
+                    timer: 2000
+                }).then(() => {
+                    window.location.href = '/admin/otros?tab=contactos';
+                });
+            } else {
+                Swal.fire('Error', res.message || 'No se pudo actualizar.', 'error');
+            }
+        })
+        .catch(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Gestión';
+            Swal.fire('Error', 'Problema de conexión con el servidor.', 'error');
+        });
+    });
+}
+
+window.eliminarContacto = function(id) {
+    Swal.fire({
+        title: '¿Eliminar Prospecto?',
+        text: "Esta acción no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: '<i class="fa-solid fa-trash"></i> Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/admin/otros/eliminar_contacto', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_contacto: id })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.status === "success") {
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: 'El registro de contacto fue eliminado.',
+                        icon: 'success',
+                        confirmButtonColor: '#3b82f6',
+                        timer: 2000
+                    }).then(() => {
+                        window.location.href = '/admin/otros?tab=contactos';
+                    });
+                } else {
+                    mostrarToast("Error al eliminar", "error");
+                }
+            })
+            .catch(() => mostrarToast("Error de conexión", "error"));
+        }
+    });
+};

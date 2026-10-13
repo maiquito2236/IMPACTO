@@ -2,48 +2,77 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    protected $table = 'usuarios';
+    protected $primaryKey = 'ID_USUARIOS';
+    public $timestamps = false;
+
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'ROLES_ID_ROLES',
+        'NOMBRES',
+        'APELLIDOS',
+        'TIPO_DOCUMENTO',
+        'NUMERO_DOCUMENTO',
+        'TELEFONO',
+        'CORREO',
+        'GENERO',
+        'FECHA_NACIMIENTO',
+        'DIRECCION',
+        'RH',
+        'CONTRASEÑA',
+        'TOKEN_RECUPERACION',
+        'TOKEN_EXPIRACION',
+        'ESTADO',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'CONTRASEÑA',
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Nombre de la columna de contraseña para autenticación en Laravel
      */
-    protected function casts(): array
+    public function getAuthPasswordName()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return 'CONTRASEÑA';
+    }
+
+    /**
+     * Anula remember_token ya que la tabla usuarios no tiene dicha columna
+     */
+    public function getRememberTokenName()
+    {
+        return null;
+    }
+
+    /**
+     * Nombre completo
+     */
+    public function getNombreCompletoAttribute()
+    {
+        return trim(($this->NOMBRES ?? '') . ' ' . ($this->APELLIDOS ?? ''));
+    }
+
+    /**
+     * Relación con Paciente
+     */
+    public function paciente()
+    {
+        return $this->hasOne(Paciente::class, 'USUARIOS_ID_USUARIOS', 'ID_USUARIOS');
+    }
+
+    /**
+     * Relación con Odontólogo
+     */
+    public function odontologo()
+    {
+        return $this->hasOne(Odontologo::class, 'USUARIOS_ID_USUARIOS', 'ID_USUARIOS');
     }
 }

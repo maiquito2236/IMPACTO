@@ -45,32 +45,22 @@ class GestionUsuarioController extends Controller
 
     private function listar()
     {
-        // Consulta exacta adaptada a Laravel Query Builder
+        // Consulta sobre la VISTA SQL vista_usuarios
         $datos = DB::select("
             SELECT 
-                u.ID_USUARIOS AS id,
-                CONCAT(u.NOMBRES, ' ', u.APELLIDOS) AS nombre,
-                u.CORREO AS email,
-                u.ROLES_ID_ROLES AS rol_id,
-                r.ROL_NOMBRE AS rol_nombre,
-                u.ESTADO AS estado,
-                GROUP_CONCAT(e.ID_ESPECIALIDAD SEPARATOR ',') AS especialidad_id,
-                GROUP_CONCAT(e.NOMBRE_ESPECIALIDAD SEPARATOR ', ') AS especialidad_nombre,
-                o.CONSULTORIO_ID_CONSULTORIO AS consultorio,
-                c.NOMBRE AS consultorio_nombre
-            FROM usuarios u
-            INNER JOIN roles r ON r.ID_ROLES = u.ROLES_ID_ROLES
-            LEFT JOIN (
-                SELECT od1.* FROM odontologo od1
-                WHERE od1.ID_ODONTOLOGO = (
-                    SELECT MAX(od2.ID_ODONTOLOGO) FROM odontologo od2 WHERE od2.USUARIOS_ID_USUARIOS = od1.USUARIOS_ID_USUARIOS
-                )
-            ) o ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
-            LEFT JOIN odontologo_especialidad oe ON oe.ID_ODONTOLOGO = o.ID_ODONTOLOGO
-            LEFT JOIN especialidad e ON e.ID_ESPECIALIDAD = oe.ID_ESPECIALIDAD
-            LEFT JOIN consultorio c ON c.ID_CONSULTORIO = o.CONSULTORIO_ID_CONSULTORIO
-            GROUP BY u.ID_USUARIOS
-            ORDER BY u.ID_USUARIOS DESC
+                ID_USUARIOS AS id,
+                NOMBRE_COMPLETO AS nombre,
+                CORREO AS email,
+                ROLES_ID_ROLES AS rol_id,
+                ROL_NOMBRE AS rol_nombre,
+                ESTADO AS estado,
+                GROUP_CONCAT(ID_ESPECIALIDAD SEPARATOR ',') AS especialidad_id,
+                GROUP_CONCAT(NOMBRE_ESPECIALIDAD SEPARATOR ', ') AS especialidad_nombre,
+                ID_CONSULTORIO AS consultorio,
+                NOMBRE_CONSULTORIO AS consultorio_nombre
+            FROM vista_usuarios
+            GROUP BY ID_USUARIOS, NOMBRE_COMPLETO, CORREO, ROLES_ID_ROLES, ROL_NOMBRE, ESTADO, ID_CONSULTORIO, NOMBRE_CONSULTORIO
+            ORDER BY ID_USUARIOS DESC
         ");
 
         // Convertimos los objetos stdClass a arrays para poder agregarles la imagen
@@ -150,7 +140,10 @@ class GestionUsuarioController extends Controller
                 if ($especialidadId) {
                     $especialidades = is_array($especialidadId) ? $especialidadId : [$especialidadId];
                     foreach ($especialidades as $eId) {
-                        DB::table('odontologo_especialidad')->insert(['ID_ODONTOLOGO' => $odoId, 'ID_ESPECIALIDAD' => $eId]);
+                        DB::table('odontologo_has_especialidad')->insert([
+                            'ODONTOLOGO_ID_ODONTOLOGO' => $odoId, 
+                            'ESPECIALIDAD_ID_ESPECIALIDAD' => $eId
+                        ]);
                     }
                 }
                 if ($consultorioId) {

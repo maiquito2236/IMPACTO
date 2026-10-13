@@ -105,7 +105,7 @@ $(document).ready(function () {
             const formData = new FormData();
             formData.append('id_cita', idCita);
 
-            fetch('/LOGIN_ORIGINAL/paciente/cita/detalle-historial-ajax', {
+            fetch('/paciente/cita/detalle-historial-ajax', {
                 method: 'POST',
                 body: formData
             })
@@ -149,7 +149,7 @@ $(document).ready(function () {
         e.preventDefault();
         const idCita = $(this).data('id'); 
         if (idCita) {
-            window.open(`/LOGIN_ORIGINAL/imprimir_historial?id_cita=${idCita}&mode=print`, '_blank');
+            window.open(`/imprimir_historial?id_cita=${idCita}&mode=print`, '_blank');
         }
     });
 
@@ -157,7 +157,7 @@ $(document).ready(function () {
         e.preventDefault();
         const idCita = $(this).data('id'); 
         if (idCita) {
-            window.open(`/LOGIN_ORIGINAL/imprimir_historial?id_cita=${idCita}&mode=pdf`, '_blank');
+            window.open(`/imprimir_historial?id_cita=${idCita}&mode=pdf`, '_blank');
         }
     });
 });
