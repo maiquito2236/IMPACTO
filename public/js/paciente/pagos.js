@@ -95,7 +95,7 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
 
     if (estado.includes('Pagada')) {
         $('#det-estado').addClass('bg-success');
-    } else if (estado.includes('Abonando')) {
+    } else if (estado.includes('Abonando') || estado.includes('Abonada')) {
         $('#det-estado').addClass('bg-warning text-dark');
     } else {
         $('#det-estado').addClass('bg-danger');

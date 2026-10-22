@@ -8379,7 +8379,7 @@ CREATE TABLE `usuarios` (
   `FECHA_NACIMIENTO` date DEFAULT NULL,
   `DIRECCION` varchar(60) DEFAULT NULL,
   `RH` enum('A+','B+','AB+','O+','A-','B-','AB-','O-') DEFAULT NULL,
-  `CONTRASE├æA` varchar(250) DEFAULT NULL,
+  `CONTRASEÑA` varchar(250) DEFAULT NULL,
   `TOKEN_RECUPERACION` varchar(100) DEFAULT NULL,
   `TOKEN_EXPIRACION` datetime DEFAULT NULL,
   `ESTADO` enum('Activo','Inactivo') DEFAULT 'Activo',
