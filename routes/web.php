@@ -159,6 +159,7 @@ Route::middleware(['ruta_segura:3'])->group(function () {
     Route::post('/paciente/perfil/cambiar-password', [PacPerfil::class, 'cambiarPassword'])->name('paciente.perfil.cambiarPassword');
     Route::get('/paciente/perfil/exportar', [PacPerfil::class, 'exportar']);
     Route::post('/paciente/hijos/registrar', [PacPerfil::class, 'registrarHijo'])->name('paciente.hijos.registrar');
+    Route::post('/paciente/hijos/actualizar', [PacPerfil::class, 'actualizarHijo'])->name('paciente.hijos.actualizar');
     Route::post('/paciente/hijos/{id}/desvincular', [PacPerfil::class, 'desvincularHijo'])->name('paciente.hijos.desvincular');
 
     // 7. Notificaciones
@@ -194,6 +195,7 @@ Route::middleware(['ruta_segura:1,4'])->group(function () {
     Route::any('/api_agenda/{op}', [AdminAgenda::class, 'api']);
 
     Route::get('/admin/usuarios', [AdminGestionUsuario::class, 'index']);
+    Route::redirect('/admin/gestion_usuario', '/admin/usuarios');
     Route::any('/api_gestion_usuario', [AdminGestionUsuario::class, 'api']);
 
     Route::get('/admin/consultorios', [AdminConsultorio::class, 'index']);

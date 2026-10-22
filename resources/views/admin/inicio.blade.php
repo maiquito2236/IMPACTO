@@ -27,7 +27,7 @@
             <div class="kpi-info">
                 <p>Pacientes atendidos</p>
                 <h3>{{ $pacientesAtendidos ?? 0 }} <span class="sub-label">hoy</span></h3>
-                <a href="/admin/gestion_usuario">Ver pacientes →</a>
+                <a href="/admin/usuarios">Ver pacientes →</a>
             </div>
         </div>
 

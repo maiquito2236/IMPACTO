@@ -91,7 +91,12 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
-        $recordatorios = Notificacion::where('ESTADO', 'NO_LEIDA')->orderBy('FECHA_ENVIO', 'DESC')->take(4)->get();
+        $idAdmin = \Illuminate\Support\Facades\Auth::id() ?? session('usuario_id');
+        $recordatorios = Notificacion::where('USUARIOS_ID_USUARIOS', $idAdmin)
+            ->where('ESTADO', 'NO_LEIDA')
+            ->orderBy('FECHA_ENVIO', 'DESC')
+            ->take(4)
+            ->get();
 
         return view('admin.inicio', compact(
             'citasHoy', 'pacientesAtendidos', 'ingresosHoy',

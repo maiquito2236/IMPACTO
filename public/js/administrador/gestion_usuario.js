@@ -189,8 +189,9 @@ function actualizarDashboard() {
         else if (filtroActual === "Odontólogo") cumpleFiltro = (parseInt(u.rol_id) === 2);
         else if (filtroActual === "Personal")   cumpleFiltro = (parseInt(u.rol_id) === 1 || parseInt(u.rol_id) === 4);
 
-        const cumpleBusqueda = u.nombre.toLowerCase().includes(busqueda)
-                            || u.email.toLowerCase().includes(busqueda);
+        const nombreStr = (u.nombre || '').toLowerCase();
+        const emailStr  = (u.email || '').toLowerCase();
+        const cumpleBusqueda = nombreStr.includes(busqueda) || emailStr.includes(busqueda);
         return cumpleFiltro && cumpleBusqueda;
     });
 
@@ -220,7 +221,7 @@ function actualizarDashboard() {
                         <img src="${u.img}" alt="${u.nombre}">
                         <div>
                             <strong>${u.nombre}</strong>
-                            <span>${u.email}</span>
+                            <span>${u.email ? u.email : '<em style="color:#94a3b8">Sin correo (Menor)</em>'}</span>
                         </div>
                     </div>
                 </td>

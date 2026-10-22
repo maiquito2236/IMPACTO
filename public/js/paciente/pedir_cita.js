@@ -176,13 +176,15 @@ document.addEventListener("DOMContentLoaded", function () {
         fechasDisponibles = new Set(
             horariosDisponibles
                 .filter(h => {
-                    if (h.ESTADO !== "Disponible") return false;
+                    const estado = h.ESTADO_HORARIO || h.ESTADO;
+                    if (estado !== "Disponible") return false;
                     
                     if (especialidadSeleccionada) {
-                        const espDocArr = (h.ESPECIALIDADES || "").toString().split(",");
+                        const espDocArr = (h.ESPECIALIDADES || h.ID_ESPECIALIDAD || "").toString().split(",");
                         if (!espDocArr.includes(especialidadSeleccionada.toString())) return false;
                     }
 
+                    if (!h.FECHA) return false;
                     const [yearSel, monthSel, daySel] = h.FECHA.split('-');
                     const esHoy = (parseInt(yearSel) === realBogotaDate.getFullYear() && (parseInt(monthSel) - 1) === realBogotaDate.getMonth() && parseInt(daySel) === realBogotaDate.getDate());
                     if (esHoy && h.HORA_INICIO <= horaActualStr) return false;
@@ -211,9 +213,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (contenedorOdontologosWrapper) contenedorOdontologosWrapper.style.display = "none";
         
         let horariosDia = horariosDisponibles.filter(h => {
-            if (h.FECHA !== fechaSeleccionada || h.ESTADO !== "Disponible") return false;
+            const estado = h.ESTADO_HORARIO || h.ESTADO;
+            if (h.FECHA !== fechaSeleccionada || estado !== "Disponible") return false;
             if (especialidadSeleccionada) {
-                const espDocArr = (h.ESPECIALIDADES || "").toString().split(",");
+                const espDocArr = (h.ESPECIALIDADES || h.ID_ESPECIALIDAD || "").toString().split(",");
                 if (!espDocArr.includes(especialidadSeleccionada.toString())) return false;
             }
             return true;
@@ -295,6 +298,7 @@ document.addEventListener("DOMContentLoaded", function () {
             label.className = "border rounded-3 p-3 d-flex align-items-center doc-card position-relative w-100 mb-2 shadow-sm transition-all";
             label.style.cursor = "pointer";
             
+            const doctorNombre = docHorario.NOMBRE_ODONTOLOGO || docHorario.NOMBRE_DOCTOR || 'Odontólogo';
             label.innerHTML = `
                 <input type="radio" name="doctor_radio" class="d-none" value="${docHorario.ID_HORARIO}">
                 <span class="custom-radio-circle me-3"></span>
@@ -302,7 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <i class="fa-solid fa-user-doctor"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <h4 class="fs-6 fw-bold m-0 text-dark-blue">${docHorario.NOMBRE_DOCTOR}</h4>
+                    <h4 class="fs-6 fw-bold m-0 text-dark-blue">${doctorNombre}</h4>
                 </div>
             `;
 
@@ -314,7 +318,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (radio) radio.checked = true;
 
                 inputHorarioId.value = docHorario.ID_HORARIO;
-                if (resumenDoctor) resumenDoctor.textContent = docHorario.NOMBRE_DOCTOR;
+                if (resumenDoctor) resumenDoctor.textContent = doctorNombre;
             });
 
             contenedorOdontologos.appendChild(label);

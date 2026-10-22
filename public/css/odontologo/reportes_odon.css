@@ -248,9 +248,12 @@ body {
     margin-right: 10px; 
 }
 
-/* Dona Dinámica */
-.dynamic-donut { border-radius: 50%; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; position: relative; }
-.inner-hole { background: white; border-radius: 50%; width: 75%; height: 75%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+/* Dona Dinámica / Pure CSS Donut */
+.donut-chart-wrapper { display: flex; justify-content: center; align-items: center; padding: 20px 0; }
+.pure-css-donut, .dynamic-donut { border-radius: 50%; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06); }
+.donut-hole, .inner-hole { background: white; border-radius: 50%; width: 95px; height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05); }
+.donut-total-number { font-size: 22px; font-weight: 700; color: #1e293b; line-height: 1; }
+.donut-total-label { font-size: 11px; color: #64748b; font-weight: 600; margin-top: 2px; }
 
 /* =========================================
    MEDIA QUERIES (UNIFICADOS)

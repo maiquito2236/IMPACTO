@@ -135,7 +135,7 @@ function initDataTables() {
     $('#searchInputContactos').on('keyup', function() { tableContactos.search(this.value).draw(); });
     $('#filterEstadoContactos').on('change', function() {
         const val = this.value;
-        tableContactos.column(6).search(val ? '^' + val + '$' : '', true, false).draw();
+        tableContactos.column(6).search(val || '', false, false).draw();
     });
 }
 

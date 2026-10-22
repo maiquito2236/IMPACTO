@@ -30,6 +30,27 @@ class PerfilController extends Controller
 
         $perfil = $perfil ? (array)$perfil : [];
 
+        $odontologo = DB::table('odontologo')->where('USUARIOS_ID_USUARIOS', $idUsuario)->first();
+        if ($odontologo) {
+            $espIds = DB::table('odontologo_has_especialidad')
+                ->where('ODONTOLOGO_ID_ODONTOLOGO', $odontologo->ID_ODONTOLOGO)
+                ->pluck('ESPECIALIDAD_ID_ESPECIALIDAD')
+                ->toArray();
+            if (empty($espIds) && !empty($odontologo->ESPECIALIDAD_ID_ESPECIALIDAD)) {
+                $espIds = [$odontologo->ESPECIALIDAD_ID_ESPECIALIDAD];
+            }
+            $perfil['especialidad_id'] = implode(',', $espIds);
+
+            // Nombres de especialidades para vista
+            $espNombres = DB::table('especialidad')
+                ->whereIn('ID_ESPECIALIDAD', $espIds)
+                ->pluck('NOMBRE_ESPECIALIDAD')
+                ->toArray();
+            if (!empty($espNombres)) {
+                $perfil['especialidad_nombre'] = implode(', ', $espNombres);
+            }
+        }
+
         $especialidades = DB::table('especialidad')
             ->select('ID_ESPECIALIDAD', 'NOMBRE_ESPECIALIDAD')
             ->orderBy('NOMBRE_ESPECIALIDAD', 'ASC')
@@ -84,19 +105,24 @@ class PerfilController extends Controller
                     'CORREO' => $correo,
                 ]);
 
+            if (!is_array($especialidades) && !empty($especialidades)) {
+                $especialidades = [$especialidades];
+            }
+            $primeraEsp = !empty($especialidades) ? (int)$especialidades[0] : 1;
+
             // 2. Odontologo y especialidades
             $odontologo = DB::table('odontologo')->where('USUARIOS_ID_USUARIOS', $idUsuario)->first();
             if ($odontologo) {
                 $idOdontologo = $odontologo->ID_ODONTOLOGO;
+                DB::table('odontologo')
+                    ->where('ID_ODONTOLOGO', $idOdontologo)
+                    ->update(['ESPECIALIDAD_ID_ESPECIALIDAD' => $primeraEsp]);
             } else {
                 $idOdontologo = DB::table('odontologo')->insertGetId([
-                    'USUARIOS_ID_USUARIOS' => $idUsuario,
-                    'CONSULTORIO_ID_CONSULTORIO' => 1
+                    'USUARIOS_ID_USUARIOS'         => $idUsuario,
+                    'ESPECIALIDAD_ID_ESPECIALIDAD' => $primeraEsp,
+                    'CONSULTORIO_ID_CONSULTORIO'   => 1
                 ]);
-            }
-
-            if (!is_array($especialidades) && !empty($especialidades)) {
-                $especialidades = [$especialidades];
             }
 
             DB::table('odontologo_has_especialidad')->where('ODONTOLOGO_ID_ODONTOLOGO', $idOdontologo)->delete();

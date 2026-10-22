@@ -441,11 +441,7 @@
                                 <td style="max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; color: #475569;" title="{{ $c['mensaje'] }}">
                                     {{ $c['mensaje'] }}
                                 </td>
-                                <td>
-                                    <span class="badge-otros {{ $c['css_estado'] }}">
-                                        {{ $c['estado'] }}
-                                    </span>
-                                </td>
+                                <td><span class="badge-otros {{ $c['css_estado'] }}">{{ $c['estado'] }}</span></td>
                                 <td style="font-size: 12px; color: #64748b;">
                                     {{ $c['admin_gestion'] ?? 'Sin asignar' }}
                                 </td>

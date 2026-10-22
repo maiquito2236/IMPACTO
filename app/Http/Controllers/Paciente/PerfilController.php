@@ -72,7 +72,8 @@ class PerfilController extends Controller
                 'u.GENERO',
                 'u.FECHA_NACIMIENTO',
                 'u.RH',
-                'e.NOMBRE_EPS'
+                'e.NOMBRE_EPS',
+                'p.EPS_ID_EPS'
             )
             ->orderBy('pha.ID_PACIENTE_HAS_ACUDIENTE', 'desc')
             ->get();
@@ -261,7 +262,7 @@ class PerfilController extends Controller
 
             $logoPath = public_path('img/logo_odontologia.png');
             $logoSrc = '';
-            if (file_exists($logoPath)) {
+            if (extension_loaded('gd') && file_exists($logoPath)) {
                 $logoSrc = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
             }
 
@@ -380,8 +381,8 @@ class PerfilController extends Controller
             ]);
 
             // Notificaciones
-            Notificador::enviarAUsuario($idUsuario, 7, "Has vinculado exitosamente a tu hijo/a $nombres $apellidos ($parentesco). Ya puedes agendar citas a su nombre.");
-            Notificador::enviarAAdmin(13, "El acudiente " . (session('usuario_nome') ?? 'Paciente') . " registró a su familiar menor $nombres $apellidos.");
+            Notificador::enviarAUsuario($idUsuario, 16, "Has vinculado exitosamente a tu hijo/a $nombres $apellidos ($parentesco). Ya puedes agendar citas a su nombre.");
+            Notificador::enviarAAdmin(18, "El acudiente " . (session('usuario_nome') ?? 'Paciente') . " registró a su familiar menor $nombres $apellidos.");
 
             return redirect('/paciente/perfil')->with('EXITO_PERFIL', "¡Menor $nombres $apellidos registrado y vinculado con éxito!");
 
@@ -412,6 +413,84 @@ class PerfilController extends Controller
             ->delete();
 
         return redirect('/paciente/perfil')->with('EXITO_PERFIL', 'Menor desvinculado de tu cuenta de acudiente.');
+    }
+
+    /**
+     * Actualiza los datos personales de un menor a cargo
+     */
+    public function actualizarHijo(Request $request)
+    {
+        $idUsuario = Auth::id() ?? session('usuario_id');
+        $idRelacion = (int) $request->input('id_relacion');
+
+        $relacion = DB::table('paciente_has_acudiente')
+            ->where('ID_PACIENTE_HAS_ACUDIENTE', $idRelacion)
+            ->where('USUARIOS_ID_ACUDIENTE', $idUsuario)
+            ->first();
+
+        if (!$relacion) {
+            return redirect('/paciente/perfil')->with('ERROR_PERFIL', 'No tienes permisos para modificar este paciente o el registro no existe.');
+        }
+
+        $nombres              = trim($request->input('nombres', ''));
+        $apellidos            = trim($request->input('apellidos', ''));
+        $genero               = $request->input('genero', 'MASCULINO');
+        $fechaNac             = $request->input('fecha_nacimiento');
+        $rh                   = $request->input('rh');
+        $epsId                = (int) $request->input('eps_id', 1);
+        $parentesco           = $request->input('parentesco', 'Madre');
+        $contactoPrincipal    = $request->input('contacto_principal', 'Si');
+        $autorizaTratamientos = $request->input('autoriza_tratamientos', 'Si');
+
+        if (empty($nombres) || empty($apellidos) || empty($fechaNac)) {
+            return redirect('/paciente/perfil')->with('ERROR_PERFIL', 'Los campos de nombres, apellidos y fecha de nacimiento son obligatorios.');
+        }
+
+        $edad = \Carbon\Carbon::parse($fechaNac)->age;
+        if ($edad >= 18) {
+            return redirect('/paciente/perfil')->with('ERROR_PERFIL', 'El paciente a editar debe ser menor de 18 años (' . $edad . ' años detectados).');
+        }
+
+        $paciente = DB::table('paciente')->where('ID_PACIENTE', $relacion->PACIENTE_ID_PACIENTE)->first();
+        if (!$paciente) {
+            return redirect('/paciente/perfil')->with('ERROR_PERFIL', 'Paciente no encontrado.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $updateUsuario = [
+                'NOMBRES' => $nombres,
+                'APELLIDOS' => $apellidos,
+                'GENERO' => $genero,
+                'FECHA_NACIMIENTO' => $fechaNac,
+            ];
+            if (!empty($rh)) {
+                $updateUsuario['RH'] = $rh;
+            }
+
+            DB::table('usuarios')->where('ID_USUARIOS', $paciente->USUARIOS_ID_USUARIOS)->update($updateUsuario);
+
+            DB::table('paciente')->where('ID_PACIENTE', $paciente->ID_PACIENTE)->update([
+                'EPS_ID_EPS' => $epsId
+            ]);
+
+            DB::table('paciente_has_acudiente')->where('ID_PACIENTE_HAS_ACUDIENTE', $idRelacion)->update([
+                'PARENTESCO' => $parentesco,
+                'CONTACTO_PRINCIPAL' => $contactoPrincipal,
+                'AUTORIZA_TRATAMIENTOS' => $autorizaTratamientos
+            ]);
+
+            DB::commit();
+
+            Notificador::enviarAUsuario($idUsuario, 16, "Has actualizado exitosamente los datos de tu familiar menor $nombres $apellidos.");
+
+            return redirect('/paciente/perfil')->with('EXITO_PERFIL', "Datos del menor $nombres $apellidos actualizados con éxito.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Illuminate\Support\Facades\Log::error("Error en actualizarHijo: " . $e->getMessage());
+            return redirect('/paciente/perfil')->with('ERROR_PERFIL', 'Error al actualizar los datos del menor: ' . $e->getMessage());
+        }
     }
 
     /**

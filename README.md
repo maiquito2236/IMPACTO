@@ -1,59 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIGCO - Sistema Integrado de Gestión Clínica Odontológica (Odonto Estética)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema integral de gestión de historias clínicas, citas, tratamientos, facturación y reportes odontológicos desarrollado en Laravel 11, Vite, JavaScript y MySQL / MariaDB.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📋 Requisitos Previos del Sistema
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Para el correcto funcionamiento del software y todas sus dependencias (incluyendo exportación gráfica de reportes en PDF y compilación de assets), asegúrese de contar con:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Servidor Web / PHP**: PHP 8.2 o superior (vía XAMPP u otro entorno).
+- **Base de Datos**: MySQL 8.0+ o MariaDB 10.4+ configurado en cotejamiento `utf8mb4_unicode_ci`.
+- **Manejador de Paquetes PHP**: Composer 2.x instalado globalmente.
+- **Entorno Frontend**: Node.js v18+ y npm v9+.
+- **Extensiones PHP Requeridas en `php.ini`**:
+  - `extension=gd` *(Esencial para la renderización de imágenes y logos corporativos en la exportación de PDFs con DomPDF)*.
+  - `extension=pdo_mysql`
+  - `extension=mbstring`
+  - `extension=fileinfo`
+  - `extension=openssl`
+  - `extension=curl`
 
-## Learning Laravel
+> **Nota para usuarios de XAMPP**: Para activar la extensión GD, abra el panel de control de XAMPP, haga clic en **Config** > **PHP (php.ini)** junto a Apache, busque `;extension=gd`, elimine el punto y coma inicial para que quede `extension=gd`, guarde el archivo y reinicie Apache.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Proceso de Instalación Paso a Paso
 
-## Laravel Sponsors
+### 1. Clonación del Repositorio
+Ubique la terminal en el directorio raíz de aplicaciones web (en XAMPP: `C:\xampp\htdocs\`):
+```bash
+cd C:\xampp\htdocs
+git clone -b Esteban https://github.com/maiquito2236/IMPACTO.git proyectlaravel
+cd proyectlaravel
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 2. Instalación de Dependencias Backend (PHP / Laravel)
+Descargue e instale las librerías del framework ejecutando Composer:
+```bash
+composer install
+```
 
-### Premium Partners
+### 3. Instalación y Compilación de Dependencias Frontend
+Instale los paquetes de Node.js y compile los recursos gráficos corporativos con Vite:
+```bash
+npm install
+npm run build
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 4. Configuración del Entorno de Aplicación (.env)
+Copie la plantilla de entorno y genere la clave criptográfica de seguridad:
+```bash
+copy .env.example .env
+php artisan key:generate
+```
 
-## Contributing
+Abra el archivo `.env` en la raíz del proyecto y configure los parámetros de base de datos, zona horaria y sesión:
+```ini
+APP_NAME=SIGCO
+APP_ENV=local
+APP_KEY=base64:...
+APP_DEBUG=true
+APP_URL=http://localhost/proyectlaravel/public
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sigco_esteban_alone
+DB_USERNAME=root
+DB_PASSWORD=
 
-## Code of Conduct
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 5. Creación y Carga de la Base de Datos
+Asegúrese de que el servicio MySQL de XAMPP esté iniciado.
 
-## Security Vulnerabilities
+#### Opción A (Consola Shell de XAMPP - Recomendada):
+```bash
+mysql -u root -e "CREATE DATABASE sigco_esteban_alone CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root --default-character-set=utf8mb4 sigco_esteban_alone < SIGCO.sql
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### Opción B (Vía phpMyAdmin):
+1. Ingrese a `http://localhost/phpmyadmin/`.
+2. Cree una nueva base de datos llamada `sigco_esteban_alone` con cotejamiento `utf8mb4_unicode_ci`.
+3. Seleccione la base de datos, diríjase a la pestaña **Importar**, seleccione el archivo `SIGCO.sql` ubicado en la raíz del proyecto y haga clic en **Importar**.
 
-## License
+### 6. Enlace de Almacenamiento y Limpieza de Caché
+Cree el enlace simbólico para archivos públicos y limpie cualquier caché residual:
+```bash
+php artisan storage:link
+php artisan optimize:clear
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 7. Puesta en Marcha del Sistema
+Verifique que los módulos Apache y MySQL estén iniciados en el panel de control de XAMPP y acceda desde su navegador web:
+- **Vía Apache XAMPP**: [http://localhost/proyectlaravel/public](http://localhost/proyectlaravel/public)
+- **Vía servidor integrado de Laravel**:
+  ```bash
+  php artisan serve
+  ```
+  Acceda a: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+---
+
+## ⚙️ Parámetros de Configuración del Sistema
+
+| Parámetro / Variable | Valor Recomendado | Descripción |
+| :--- | :--- | :--- |
+| **`APP_NAME`** | `SIGCO` | Nombre oficial de la aplicación. |
+| **`APP_ENV`** | `local` / `production` | Entorno de ejecución de Laravel. |
+| **`APP_DEBUG`** | `true` (dev) / `false` (prod) | Muestra trazas de depuración detalladas. |
+| **`DB_CONNECTION`** | `mysql` | Controlador de base de datos MySQL / MariaDB. |
+| **`DB_DATABASE`** | `sigco_esteban_alone` | Base de datos principal de la clínica odontológica. |
+| **`DB_COLLATION`** | `utf8mb4_unicode_ci` | Codificación internacional UTF-8 (tildes, diéresis, ñ). |
+| **`SESSION_DRIVER`** | `file` | Mecanismo de persistencia de sesiones. |
+| **`TIMEZONE`** | `America/Bogota` | Zona horaria oficial de Colombia (`config/app.php`). |
+| **`LOCALE`** | `es` | Idioma español para validaciones y textos del sistema. |
+
+### Ajustes recomendados en `php.ini`:
+- `upload_max_filesize = 10M` *(Permite subir adjuntos clínicos y radiografías)*
+- `post_max_size = 12M`
+- `memory_limit = 256M`
+- `max_execution_time = 120`
+- `extension=gd` *(Habilitada sin punto y coma)*
+
+---
+
+## 👥 Cuentas de Acceso y Roles de Prueba
+
+| Rol | Correo Electrónico | Contraseña | Descripción |
+| :--- | :--- | :--- | :--- |
+| **Administrador** | `admin@gmail.com` | `admin123` | Control general, gestión de usuarios, horarios, consultorios, reportes y finanzas. |
+| **Odontólogo** | `martharomeroodon@gmail.com` | `martha123` | Agenda médica, citas, evolución clínica, odontograma y planes de tratamiento. |
+| **Paciente** | `esteban.alone@gmail.com` | `paciente123` | Agendamiento de citas, núcleo familiar (menores a cargo), historial clínico y pagos. |
+
+---
+
+## 🛡️ Estándares Técnicos del Proyecto
+- **Arquitectura de Base de Datos**: Nombres nativos de tablas y columnas estándar (`NOMBRE_ODONTOLOGO`, `ESTADO_CITA`, `NOMBRE_ESPECIALIDAD`, `NOMBRE_PROCEDIMIENTO`, `NOMBRE_CONSULTORIO`, `ESTADO_HORARIO`, `FECHA_CREACION`) sin alias artificiales (`AS ...`) para garantizar integridad y consistencia relacional.
+- **Codificación Universal**: 100% UTF-8 (`utf8mb4_unicode_ci`) tanto a nivel de aplicación como en el dump de datos de `SIGCO.sql`.

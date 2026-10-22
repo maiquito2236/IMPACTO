@@ -236,9 +236,9 @@ class OtrosController extends Controller
                 case 'guardar_eps':
                     if (empty($data['nombre_eps'])) throw new Exception("El nombre de la EPS es obligatorio.");
                     $id = DB::table('eps')->insertGetId([
-                        'NOMBRE_EPS' => $data['nombre_eps'],
-                        'DIRECCION' => $data['direccion_eps'] ?? null,
-                        'NUMERO' => $data['telefono_eps'] ?? null,
+                        'NOMBRE_EPS' => trim($data['nombre_eps']),
+                        'DIRECCION' => trim($data['direccion_eps'] ?? ''),
+                        'NUMERO' => trim($data['telefono_eps'] ?? ''),
                         'ESTADO' => strtoupper($data['estado'] ?? 'ACTIVO')
                     ]);
                     return response()->json(['status' => 'success', 'id' => $id]);
@@ -248,9 +248,9 @@ class OtrosController extends Controller
                         throw new Exception("Faltan datos obligatorios para editar la EPS.");
                     }
                     DB::table('eps')->where('ID_EPS', $data['id_eps'])->update([
-                        'NOMBRE_EPS' => $data['nombre_eps'],
-                        'DIRECCION' => $data['direccion_eps'] ?? null,
-                        'NUMERO' => $data['telefono_eps'] ?? null,
+                        'NOMBRE_EPS' => trim($data['nombre_eps']),
+                        'DIRECCION' => trim($data['direccion_eps'] ?? ''),
+                        'NUMERO' => trim($data['telefono_eps'] ?? ''),
                         'ESTADO' => strtoupper($data['estado'] ?? 'ACTIVO')
                     ]);
                     return response()->json(['status' => 'success']);

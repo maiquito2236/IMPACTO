@@ -137,19 +137,35 @@ class CitaController extends Controller
         $horarios = DB::select("
             SELECT 
                 ID_HORARIO,
-                DIA,
+                FECHA,
                 HORA_INICIO,
                 HORA_FIN,
-                ESTADO_HORARIO AS ESTADO,
+                ESTADO_HORARIO,
                 ODONTOLOGO_ID_ODONTOLOGO,
-                NOMBRE_ODONTOLOGO AS NOMBRE_DOCTOR,
+                NOMBRE_ODONTOLOGO,
                 ID_ESPECIALIDAD,
                 NOMBRE_ESPECIALIDAD
             FROM vista_horarios_disponibilidad
             WHERE ESTADO_HORARIO = 'Disponible'
-              AND DIA >= CURDATE()
-            ORDER BY DIA ASC, HORA_INICIO ASC
+              AND FECHA >= CURDATE()
+            ORDER BY FECHA ASC, HORA_INICIO ASC
         ");
+
+        $doctorEspecialidades = DB::table('odontologo_has_especialidad')
+            ->select('ODONTOLOGO_ID_ODONTOLOGO', 'ESPECIALIDAD_ID_ESPECIALIDAD')
+            ->get()
+            ->groupBy('ODONTOLOGO_ID_ODONTOLOGO');
+
+        foreach ($horarios as $h) {
+            $docId = $h->ODONTOLOGO_ID_ODONTOLOGO;
+            $specs = isset($doctorEspecialidades[$docId])
+                ? $doctorEspecialidades[$docId]->pluck('ESPECIALIDAD_ID_ESPECIALIDAD')->toArray()
+                : [];
+            if ($h->ID_ESPECIALIDAD && !in_array($h->ID_ESPECIALIDAD, $specs)) {
+                $specs[] = $h->ID_ESPECIALIDAD;
+            }
+            $h->ESPECIALIDADES = implode(',', array_unique($specs));
+        }
 
         $horarios = json_decode(json_encode($horarios), true);
 
@@ -267,15 +283,16 @@ class CitaController extends Controller
         $horarios = DB::select("
             SELECT 
                 ID_HORARIO,
-                DIA,
+                FECHA,
                 HORA_INICIO,
                 HORA_FIN,
+                ESTADO_HORARIO,
                 ODONTOLOGO_ID_ODONTOLOGO,
-                NOMBRE_ODONTOLOGO as NOMBRE_DOCTOR
+                NOMBRE_ODONTOLOGO
             FROM vista_horarios_disponibilidad
-            WHERE (DIA = ? OR FECHA = ?) AND ESTADO_HORARIO = 'Disponible'
+            WHERE FECHA = ? AND ESTADO_HORARIO = 'Disponible'
             ORDER BY HORA_INICIO ASC
-        ", [$fechaMysql, $fechaMysql]);
+        ", [$fechaMysql]);
 
         return response()->json([
             'success' => true,

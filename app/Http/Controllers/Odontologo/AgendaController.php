@@ -69,7 +69,7 @@ class AgendaController extends Controller
         $params = [];
 
         if ($inicio && $fin) {
-            $whereClause .= " AND DATE(c.FECHA_HORA) BETWEEN ? AND ?";
+            $whereClause .= " AND DATE(FECHA_HORA) BETWEEN ? AND ?";
             $params[] = $inicio;
             $params[] = $fin;
         }

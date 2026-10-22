@@ -1,4 +1,4 @@
-﻿/* =========================================================
+/* =========================================================
    REPORTES — reportes.js  (conectado a BD real)
    Odonto Estética — Administrador
    ========================================================= */
@@ -128,6 +128,11 @@ function renderLineChart() {
     return;
   }
 
+  wrapper.innerHTML = `
+    <svg class="line-chart-svg" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+    <div class="chart-xaxis"></div>
+  `;
+
   const W = 600, H = 200, PAD = 15;
 
   const allVals = datos.flatMap(d => [d.ing, d.egr, Math.abs(d.gan)]);
@@ -154,14 +159,7 @@ function renderLineChart() {
     wrapper.appendChild(tooltip);
   }
 
-  let svg = wrapper.querySelector(".line-chart-svg");
-  if (!svg) {
-    svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
-    svg.classList.add("line-chart-svg");
-    wrapper.insertBefore(svg, wrapper.querySelector(".chart-xaxis"));
-  }
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.setAttribute("preserveAspectRatio", "none");
+  const svg = wrapper.querySelector(".line-chart-svg");
 
   // grid
   let gridLines = "";

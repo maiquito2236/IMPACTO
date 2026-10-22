@@ -67,6 +67,7 @@ class GestionUsuarioController extends Controller
         $datosArray = json_decode(json_encode($datos), true);
 
         foreach ($datosArray as &$u) {
+            $u['email'] = $u['email'] ?? '';
             $u['img'] = 'https://ui-avatars.com/api/?name=' . urlencode($u['nombre']) . '&background=0D8ABC&color=fff';
         }
 
@@ -133,16 +134,20 @@ class GestionUsuarioController extends Controller
             if ($rolId == 3) { // Paciente
                 DB::table('paciente')->insert(['USUARIOS_ID_USUARIOS' => $userId, 'EPS_ID_EPS' => 1]);
             } elseif ($rolId == 2) { // Odontologo
+                $especialidades = is_array($especialidadId) ? $especialidadId : ($especialidadId ? [$especialidadId] : [1]);
+                $especialidadPrincipal = (int)($especialidades[0] ?? 1);
+
                 $odoId = DB::table('odontologo')->insertGetId([
-                    'USUARIOS_ID_USUARIOS' => $userId,
-                    'CONSULTORIO_ID_CONSULTORIO' => $consultorioId
+                    'USUARIOS_ID_USUARIOS'         => $userId,
+                    'ESPECIALIDAD_ID_ESPECIALIDAD' => $especialidadPrincipal,
+                    'CONSULTORIO_ID_CONSULTORIO'   => $consultorioId ?: null
                 ]);
-                if ($especialidadId) {
-                    $especialidades = is_array($especialidadId) ? $especialidadId : [$especialidadId];
-                    foreach ($especialidades as $eId) {
+
+                foreach ($especialidades as $eId) {
+                    if (!empty($eId)) {
                         DB::table('odontologo_has_especialidad')->insert([
-                            'ODONTOLOGO_ID_ODONTOLOGO' => $odoId, 
-                            'ESPECIALIDAD_ID_ESPECIALIDAD' => $eId
+                            'ODONTOLOGO_ID_ODONTOLOGO'    => $odoId, 
+                            'ESPECIALIDAD_ID_ESPECIALIDAD' => (int)$eId
                         ]);
                     }
                 }
@@ -174,6 +179,8 @@ class GestionUsuarioController extends Controller
         $id = $request->input('id');
         $rolId = $request->input('rol_id');
         $estado = $request->input('estado');
+        $especialidadId = $request->input('especialidad_id');
+        $consultorioId = $request->input('consultorio');
 
         if (!$id || !$rolId || !$estado) {
             throw new Exception("Faltan datos: id, rol_id y estado son requeridos.");
@@ -183,6 +190,39 @@ class GestionUsuarioController extends Controller
             'ROLES_ID_ROLES' => $rolId,
             'ESTADO' => $estado
         ]);
+
+        if ($rolId == 2) {
+            $especialidades = is_array($especialidadId) ? $especialidadId : ($especialidadId ? [$especialidadId] : [1]);
+            $especialidadPrincipal = (int)($especialidades[0] ?? 1);
+
+            $odo = DB::table('odontologo')->where('USUARIOS_ID_USUARIOS', $id)->first();
+            if ($odo) {
+                DB::table('odontologo')->where('ID_ODONTOLOGO', $odo->ID_ODONTOLOGO)->update([
+                    'ESPECIALIDAD_ID_ESPECIALIDAD' => $especialidadPrincipal,
+                    'CONSULTORIO_ID_CONSULTORIO'   => $consultorioId ?: null
+                ]);
+                $odoId = $odo->ID_ODONTOLOGO;
+            } else {
+                $odoId = DB::table('odontologo')->insertGetId([
+                    'USUARIOS_ID_USUARIOS'         => $id,
+                    'ESPECIALIDAD_ID_ESPECIALIDAD' => $especialidadPrincipal,
+                    'CONSULTORIO_ID_CONSULTORIO'   => $consultorioId ?: null
+                ]);
+            }
+
+            DB::table('odontologo_has_especialidad')->where('ODONTOLOGO_ID_ODONTOLOGO', $odoId)->delete();
+            foreach ($especialidades as $eId) {
+                if (!empty($eId)) {
+                    DB::table('odontologo_has_especialidad')->insert([
+                        'ODONTOLOGO_ID_ODONTOLOGO'    => $odoId,
+                        'ESPECIALIDAD_ID_ESPECIALIDAD' => (int)$eId
+                    ]);
+                }
+            }
+            if ($consultorioId) {
+                DB::table('consultorio')->where('ID_CONSULTORIO', $consultorioId)->update(['ESTADO' => 'ASIGNADO']);
+            }
+        }
 
         return response()->json(['ok' => true, 'mensaje' => 'Usuario actualizado correctamente.']);
     }

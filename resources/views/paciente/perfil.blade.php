@@ -238,12 +238,33 @@
                                         </div>
                                     </div>
 
-                                    <form action="{{ route('paciente.hijos.desvincular', $hijo->ID_PACIENTE_HAS_ACUDIENTE) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas desvincular a este menor de tu cuenta de acudiente?');">
-                                        @csrf
-                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center" title="Desvincular menor" style="width: 32px; height: 32px;">
-                                            <i class="fa-solid fa-trash-can font-xs"></i>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center btn-editar-hijo"
+                                            title="Editar datos del menor"
+                                            style="width: 32px; height: 32px;"
+                                            data-id="{{ $hijo->ID_PACIENTE_HAS_ACUDIENTE }}"
+                                            data-nombres="{{ $hijo->NOMBRES }}"
+                                            data-apellidos="{{ $hijo->APELLIDOS }}"
+                                            data-tipo-doc="{{ $hijo->TIPO_DOCUMENTO }}"
+                                            data-num-doc="{{ $hijo->NUMERO_DOCUMENTO }}"
+                                            data-genero="{{ $hijo->GENERO }}"
+                                            data-fecha-nac="{{ $hijo->FECHA_NACIMIENTO }}"
+                                            data-rh="{{ $hijo->RH ?? '' }}"
+                                            data-eps-id="{{ $hijo->EPS_ID_EPS ?? '' }}"
+                                            data-parentesco="{{ $hijo->PARENTESCO }}"
+                                            data-contacto="{{ $hijo->CONTACTO_PRINCIPAL }}"
+                                            data-autoriza="{{ $hijo->AUTORIZA_TRATAMIENTOS }}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalEditarHijo">
+                                            <i class="fa-solid fa-pen font-xs"></i>
                                         </button>
-                                    </form>
+                                        <form action="{{ route('paciente.hijos.desvincular', $hijo->ID_PACIENTE_HAS_ACUDIENTE) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas desvincular a este menor de tu cuenta de acudiente?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center" title="Desvincular menor" style="width: 32px; height: 32px;">
+                                                <i class="fa-solid fa-trash-can font-xs"></i>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
 
                                 <div class="row g-2 pt-2 border-top font-xs text-muted mb-3">
@@ -626,6 +647,119 @@
     </div>
 </div>
 
+{{-- MODAL: EDITAR DATOS DEL MENOR DE EDAD --}}
+<div class="modal fade" id="modalEditarHijo" tabindex="-1" aria-labelledby="modalEditarHijoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
+            <div class="modal-header bg-primary text-white p-4 border-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                        <i class="fa-solid fa-pen-to-square fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold m-0" id="modalEditarHijoLabel">Editar Datos del Menor</h5>
+                        <p class="m-0 text-white-50 font-xs">Actualiza la información personal y médica del paciente menor a tu cargo</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <form action="{{ route('paciente.hijos.actualizar') }}" method="POST" id="formEditarHijo">
+                @csrf
+                <input type="hidden" name="id_relacion" id="editHijoIdRelacion">
+
+                <div class="modal-body p-4 bg-light-subtle">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label font-xs fw-bold text-dark">Nombres del Menor *</label>
+                            <input type="text" name="nombres" id="editHijoNombres" class="form-control font-sm" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label font-xs fw-bold text-dark">Apellidos del Menor *</label>
+                            <input type="text" name="apellidos" id="editHijoApellidos" class="form-control font-sm" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label font-xs fw-bold text-dark">Documento de Identidad (No modificable)</label>
+                            <input type="text" id="editHijoDocCompleto" class="form-control font-sm bg-light" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label font-xs fw-bold text-dark">EPS del Menor *</label>
+                            <select name="eps_id" id="editHijoEps" class="form-select font-sm" required>
+                                @foreach ($epsLista as $eps)
+                                    <option value="{{ $eps->ID_EPS }}">{{ $eps->NOMBRE_EPS }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label font-xs fw-bold text-dark">Fecha de Nacimiento *</label>
+                            <input type="date" name="fecha_nacimiento" id="editHijoFechaNac" class="form-control font-sm" required max="{{ date('Y-m-d') }}">
+                            <div id="editHijoEdadFeedback" class="font-xs mt-1 text-muted"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label font-xs fw-bold text-dark">Género *</label>
+                            <select name="genero" id="editHijoGenero" class="form-select font-sm" required>
+                                <option value="MASCULINO">Masculino</option>
+                                <option value="FEMENINO">Femenino</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label font-xs fw-bold text-dark">Grupo Sanguíneo (RH)</label>
+                            <select name="rh" id="editHijoRh" class="form-select font-sm">
+                                <option value="">Selecciona RH</option>
+                                @foreach (['O+', 'A+', 'B+', 'AB+', 'O-', 'A-', 'B-', 'AB-'] as $rh)
+                                    <option value="{{ $rh }}">{{ $rh }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label font-xs fw-bold text-dark">Parentesco contigo *</label>
+                            <select name="parentesco" id="editHijoParentesco" class="form-select font-sm" required>
+                                <option value="Madre">Madre</option>
+                                <option value="Padre">Padre</option>
+                                <option value="Abuelo/a">Abuelo / Abuela</option>
+                                <option value="Tío/a">Tío / Tía</option>
+                                <option value="Tutor Legal">Tutor Legal</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label font-xs fw-bold text-dark">¿Contacto principal?</label>
+                            <select name="contacto_principal" id="editHijoContacto" class="form-select font-sm">
+                                <option value="Si">Sí</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label font-xs fw-bold text-dark">¿Autoriza tratamientos?</label>
+                            <select name="autoriza_tratamientos" id="editHijoAutoriza" class="form-select font-sm">
+                                <option value="Si">Sí</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-white p-3 border-top">
+                    <button type="button" class="btn btn-light font-sm fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" id="btnActualizarMenor" class="btn btn-primary font-sm fw-bold px-4 rounded-pill">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Actualizar Datos del Menor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {{-- MODAL: CAMBIAR CONTRASEÑA --}}
 <div class="modal fade" id="modalCambiarPassword" tabindex="-1" aria-labelledby="modalCambiarPasswordLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -737,6 +871,73 @@
                     } else if (edad < 7 && tipoDocSelect.value === 'T.I') {
                         tipoDocSelect.value = 'R.C';
                     }
+                }
+            });
+        }
+
+        // Manejo del Modal de Edición de Menores
+        const btnsEditarHijo = document.querySelectorAll('.btn-editar-hijo');
+        const editIdRelacion = document.getElementById('editHijoIdRelacion');
+        const editNombres = document.getElementById('editHijoNombres');
+        const editApellidos = document.getElementById('editHijoApellidos');
+        const editDocCompleto = document.getElementById('editHijoDocCompleto');
+        const editEps = document.getElementById('editHijoEps');
+        const editFechaNac = document.getElementById('editHijoFechaNac');
+        const editGenero = document.getElementById('editHijoGenero');
+        const editRh = document.getElementById('editHijoRh');
+        const editParentesco = document.getElementById('editHijoParentesco');
+        const editContacto = document.getElementById('editHijoContacto');
+        const editAutoriza = document.getElementById('editHijoAutoriza');
+        const editEdadFeedback = document.getElementById('editHijoEdadFeedback');
+        const btnActualizarMenor = document.getElementById('btnActualizarMenor');
+
+        btnsEditarHijo.forEach(btn => {
+            btn.addEventListener('click', function () {
+                if (editIdRelacion) editIdRelacion.value = this.dataset.id || '';
+                if (editNombres) editNombres.value = this.dataset.nombres || '';
+                if (editApellidos) editApellidos.value = this.dataset.apellidos || '';
+                if (editDocCompleto) editDocCompleto.value = (this.dataset.tipoDoc || '') + ' ' + (this.dataset.numDoc || '');
+                if (editEps && this.dataset.epsId) editEps.value = this.dataset.epsId;
+                if (editFechaNac) {
+                    editFechaNac.value = this.dataset.fechaNac || '';
+                    if (this.dataset.fechaNac) {
+                        const evt = new Event('change');
+                        editFechaNac.dispatchEvent(evt);
+                    }
+                }
+                if (editGenero && this.dataset.genero) editGenero.value = this.dataset.genero.toUpperCase();
+                if (editRh && this.dataset.rh) editRh.value = this.dataset.rh;
+                if (editParentesco && this.dataset.parentesco) editParentesco.value = this.dataset.parentesco;
+                if (editContacto && this.dataset.contacto) editContacto.value = this.dataset.contacto;
+                if (editAutoriza && this.dataset.autoriza) editAutoriza.value = this.dataset.autoriza;
+            });
+        });
+
+        if (editFechaNac) {
+            editFechaNac.addEventListener('change', function () {
+                if (!this.value) {
+                    if (editEdadFeedback) editEdadFeedback.innerHTML = '';
+                    if (btnActualizarMenor) btnActualizarMenor.disabled = false;
+                    return;
+                }
+
+                const fechaNac = new Date(this.value);
+                const hoy = new Date();
+                let edad = hoy.getFullYear() - fechaNac.getFullYear();
+                const m = hoy.getMonth() - fechaNac.getMonth();
+                if (m < 0 || (m === 0 && hoy.getDate() < fechaNac.getDate())) {
+                    edad--;
+                }
+
+                if (edad < 0) {
+                    if (editEdadFeedback) editEdadFeedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i> La fecha no puede ser futura.</span>';
+                    if (btnActualizarMenor) btnActualizarMenor.disabled = true;
+                } else if (edad >= 18) {
+                    if (editEdadFeedback) editEdadFeedback.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark me-1"></i> Debe ser menor de 18 años (' + edad + ' años detectados).</span>';
+                    if (btnActualizarMenor) btnActualizarMenor.disabled = true;
+                } else {
+                    if (editEdadFeedback) editEdadFeedback.innerHTML = '<span class="text-success"><i class="fa-solid fa-circle-check me-1"></i> Edad calculada: <strong>' + edad + ' años</strong>.</span>';
+                    if (btnActualizarMenor) btnActualizarMenor.disabled = false;
                 }
             });
         }
