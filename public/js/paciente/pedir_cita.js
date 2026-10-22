@@ -42,8 +42,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const resumenDuration = document.getElementById("summary-duration");
     const resumenPrecio = document.getElementById("summary-price");
     const resumenDoctor = document.getElementById("summary-doctor");
+    const resumenPatient = document.getElementById("summary-patient");
+    const selectPacienteId = document.getElementById("select-paciente-id");
     const contenedorOdontologosWrapper = document.getElementById("contenedor-odontologos-wrapper");
     const contenedorOdontologos = document.getElementById("contenedor-odontologos");
+
+    if (selectPacienteId && resumenPatient) {
+        selectPacienteId.addEventListener('change', function () {
+            const selectedOpt = this.options[this.selectedIndex];
+            if (selectedOpt) {
+                resumenPatient.textContent = selectedOpt.getAttribute('data-nombre') || selectedOpt.text;
+            }
+        });
+    }
 
     /**
      * Sincroniza visualmente los steppers superiores según el paso activo
@@ -335,18 +346,27 @@ document.addEventListener("DOMContentLoaded", function () {
             const fechaCelda = new Date(year, month, i);
             const hoySoloFecha = new Date(realBogotaDate.getFullYear(), realBogotaDate.getMonth(), realBogotaDate.getDate());
             const tieneHorario = fechasDisponibles.has(fechaMysql);
+            const esHoy = (i === realBogotaDate.getDate() && month === realBogotaDate.getMonth() && year === realBogotaDate.getFullYear());
+
+            // Marcar siempre el día actual con su borde azul característico
+            if (esHoy) {
+                dayDiv.classList.add("today", "fw-bold");
+            }
+
+            // Si coincide con la fecha seleccionada previamente
+            if (inputFechaSeleccionada.value === fechaMysql) {
+                dayDiv.classList.add("bg-primary", "text-white", "selected-day");
+            }
 
             // Requisito: Si no hay disponibilidad, bloquear la selección del día
             if (fechaCelda < hoySoloFecha || !tieneHorario) { 
-                dayDiv.classList.add("text-light-gray");
+                dayDiv.classList.add("text-light-gray", "disabled-day");
                 dayDiv.style.cursor = "not-allowed";
-                dayDiv.style.opacity = "0.5";
+                if (!esHoy) {
+                    dayDiv.style.opacity = "0.5";
+                }
             } else {
                 dayDiv.style.cursor = "pointer";
-
-                if (i === realBogotaDate.getDate() && month === realBogotaDate.getMonth() && year === realBogotaDate.getFullYear()) {
-                    dayDiv.classList.add("fw-bold", "text-primary", "border", "border-primary", "square");
-                }
 
                 dayDiv.addEventListener("click", function() {
                     const clickedDate = new Date(year, month, i);
@@ -363,9 +383,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                     
                     document.querySelectorAll("#calendar-days-container div").forEach(d => {
-                        d.classList.remove("bg-primary", "text-white", "square");
+                        d.classList.remove("bg-primary", "text-white", "selected-day", "square");
                     });
-                    dayDiv.classList.add("bg-primary", "text-white", "square");
+                    dayDiv.classList.add("bg-primary", "text-white", "selected-day");
                 });
             }
             daysContainer.appendChild(dayDiv);

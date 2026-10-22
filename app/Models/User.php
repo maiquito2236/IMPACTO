@@ -75,4 +75,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(Odontologo::class, 'USUARIOS_ID_USUARIOS', 'ID_USUARIOS');
     }
+
+    /**
+     * Pacientes a cargo (hijos o dependientes menores de edad)
+     */
+    public function pacientesACargo()
+    {
+        return $this->belongsToMany(Paciente::class, 'paciente_has_acudiente', 'USUARIOS_ID_ACUDIENTE', 'PACIENTE_ID_PACIENTE')
+                    ->withPivot('PARENTESCO', 'CONTACTO_PRINCIPAL', 'AUTORIZA_TRATAMIENTOS');
+    }
 }

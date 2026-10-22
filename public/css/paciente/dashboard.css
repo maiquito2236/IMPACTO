@@ -138,3 +138,19 @@
 .bg-warning-light.btn-action-outline:hover {
     background-color: #fde68a !important;
 }
+
+/* Botón outline morado para tratamientos en dashboard */
+.btn-outline-purple {
+    color: #7e22ce;
+    border: 1px solid #a855f7;
+    background-color: transparent;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-purple:hover,
+.btn-outline-purple:focus,
+.btn-outline-purple:active {
+    color: #ffffff !important;
+    background-color: #7e22ce !important;
+    border-color: #7e22ce !important;
+}

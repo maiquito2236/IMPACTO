@@ -114,15 +114,15 @@ body {
 /* ICON BOX Y BADGES */
 .icon-box { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 .badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-.badge-agenda { background: var(--badge-blue-bg); color: var(--badge-blue-text); }
-.badge-facturacion { background: var(--badge-green-bg); color: var(--badge-green-text); }
-.badge-teal { background: var(--badge-teal-bg); color: var(--badge-teal-text); }
-.badge-yellow { background: var(--badge-yellow-bg); color: var(--badge-yellow-text); }
-.badge-alerta { background: #fef2f2; color: #ef4444; }
-.badge-purple { background: var(--badge-purple-bg); color: var(--badge-purple-text); }
-.badge-gray { background: var(--badge-gray-bg); color: var(--badge-gray-text); }
-.badge-status-unread { background: var(--primary-light); color: var(--primary-color); }
-.badge-status-read { background: transparent; color: var(--text-gray); font-weight: 500; }
+.badge-agenda { background: var(--badge-blue-bg) !important; color: var(--badge-blue-text) !important; }
+.badge-facturacion { background: var(--badge-green-bg) !important; color: var(--badge-green-text) !important; }
+.badge-teal { background: var(--badge-teal-bg) !important; color: var(--badge-teal-text) !important; }
+.badge-yellow { background: var(--badge-yellow-bg) !important; color: var(--badge-yellow-text) !important; }
+.badge-alerta { background: #fef2f2 !important; color: #ef4444 !important; }
+.badge-purple { background: var(--badge-purple-bg) !important; color: var(--badge-purple-text) !important; }
+.badge-gray, .badge-general { background: #e2e8f0 !important; color: #1e293b !important; border: 1px solid #cbd5e1 !important; }
+.badge-status-unread { background: var(--primary-light) !important; color: var(--primary-color) !important; font-weight: 700 !important; }
+.badge-status-read { background: transparent !important; color: var(--text-gray) !important; font-weight: 600 !important; }
 .msg-text { max-width: 320px; line-height: 1.5; color: var(--text-gray); }
 .row-unread .msg-text { color: var(--text-dark); }
 

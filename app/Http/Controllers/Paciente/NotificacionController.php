@@ -9,12 +9,20 @@ use Illuminate\Support\Facades\DB;
 
 class NotificacionController extends Controller
 {
+    /**
+     * Muestra la bandeja de notificaciones del paciente
+     */
     public function index()
     {
         $idUsuario = Auth::id() ?? session('usuario_id');
 
         $notificaciones = DB::select("
-            SELECT ID_NOTIFICACIONES, MENSAJE, FECHA_ENVIO, ESTADO, TIPO_NOMBRE
+            SELECT 
+                ID_NOTIFICACIONES, 
+                FECHA_ENVIO, 
+                MENSAJE, 
+                ESTADO, 
+                TIPO_NOMBRE
             FROM vista_notificaciones
             WHERE ID_USUARIOS = ? OR (USUARIOS_ID_USUARIOS IS NULL AND ROL_DESTINO = 3)
             ORDER BY FECHA_ENVIO DESC
@@ -44,6 +52,9 @@ class NotificacionController extends Controller
         return view('paciente.notificaciones', compact('notificaciones', 'totalAlertas', 'sinLeer', 'leidas', 'tiposNotificacion'));
     }
 
+    /**
+     * AJAX: Marca una notificación individual como LEIDA
+     */
     public function marcarLeida(Request $request)
     {
         $id = intval($request->input('id'));
@@ -55,19 +66,25 @@ class NotificacionController extends Controller
                 $q->where('USUARIOS_ID_USUARIOS', $idUsuario)
                   ->orWhereNull('USUARIOS_ID_USUARIOS');
             })
-            ->update(['ESTADO' => 'LEIDA']);
+            ->update([
+                'ESTADO'        => 'LEIDA',
+                'FECHA_LECTURA' => now()
+            ]);
 
         return response()->json(['success' => (bool) $updated]);
     }
 
+    /**
+     * AJAX: Marca todas las notificaciones como LEIDA
+     */
     public function marcarTodas(Request $request)
     {
         $idUsuario = Auth::id() ?? session('usuario_id');
 
-        $updated = DB::update("
+        DB::update("
             UPDATE notificaciones n
             INNER JOIN tipo_notificacion tn ON n.TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION = tn.ID_TIPO_NOTIFICACION
-            SET n.ESTADO = 'LEIDA'
+            SET n.ESTADO = 'LEIDA', n.FECHA_LECTURA = NOW()
             WHERE n.ESTADO = 'NO_LEIDA'
               AND (n.USUARIOS_ID_USUARIOS = ? OR (n.USUARIOS_ID_USUARIOS IS NULL AND tn.ROL_DESTINO = 3))
         ", [$idUsuario]);

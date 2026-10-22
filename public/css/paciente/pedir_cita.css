@@ -61,19 +61,64 @@
 }
 
 /* --- CALENDARIO DINÁMICO --- */
-.calendar-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
+.calendar-weekdays,
+.calendar-days-names {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    text-align: center;
 }
 
-.calendar-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    row-gap: 12px;
+.calendar-days,
+.calendar-dates-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    row-gap: 8px;
+    column-gap: 4px;
+    text-align: center;
 }
 
-.calendar-days div {
+.calendar-days div,
+.calendar-dates-grid div {
     padding: 4px 0;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    user-select: none;
+    transition: all 0.15s ease-in-out;
+}
+
+/* --- DÍA ACTUAL (HOY): BORDE AZUL CARACTERÍSTICO --- */
+.calendar-dates-grid div.today {
+    border: 1.5px solid var(--brand-blue) !important;
+    color: var(--brand-blue) !important;
+    font-weight: 700 !important;
+}
+
+.calendar-dates-grid div.today.disabled-day {
+    border: 1.5px solid var(--brand-blue) !important;
+    color: var(--brand-blue) !important;
+    opacity: 0.85;
+}
+
+.calendar-dates-grid div.today.bg-primary,
+.calendar-dates-grid div.today.selected-day {
+    background-color: var(--brand-blue) !important;
+    color: #ffffff !important;
+    border: 1.5px solid var(--brand-blue) !important;
+}
+
+.calendar-dates-grid div.selected-day {
+    background-color: var(--brand-blue) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+.calendar-dates-grid div:not(.text-light-gray):not(.disabled-day):hover {
+    background-color: var(--brand-light-blue);
+    color: var(--brand-blue);
+    cursor: pointer;
 }
 
 .day-active {

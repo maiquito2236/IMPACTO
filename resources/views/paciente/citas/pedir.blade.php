@@ -3,7 +3,7 @@
 @section('titulo', 'Agendar Cita - Odonto Estética')
 
 @push('css')
-<link rel="stylesheet" href="{{ asset('css/paciente/pedir_cita.css') }}">
+<link rel="stylesheet" href="{{ asset('css/paciente/pedir_cita.css') }}?v={{ filemtime(public_path('css/paciente/pedir_cita.css')) }}">
 @endpush
 
 @section('contenido')
@@ -22,6 +22,38 @@
         <div class="d-flex align-items-center gap-2" id="step-indicator-3">
             <span class="badge bg-secondary-subtle text-muted rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">3</span>
             <span class="text-muted small">Confirmar cita</span>
+        </div>
+    </div>
+</div>
+
+{{-- SELECTOR DE PACIENTE: ¿Para quién es la cita? --}}
+<div class="card border-0 p-3 mb-4 shadow-sm rounded-4 bg-white">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 px-md-2">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                <i class="fa-solid fa-hospital-user fs-5"></i>
+            </div>
+            <div>
+                <span class="font-xs text-muted d-block">¿Para quién es la cita?</span>
+                <label for="select-paciente-id" class="fw-bold text-dark-blue fs-6 m-0">Seleccionar Paciente</label>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-grow-1 flex-md-grow-0" style="min-width: 320px;">
+            <select name="paciente_id" id="select-paciente-id" form="form-agendar-cita" class="form-select font-sm fw-semibold rounded-pill border-primary-subtle shadow-sm py-2 px-3">
+                @if(isset($pacientesDisponibles))
+                    @foreach ($pacientesDisponibles as $p)
+                        <option value="{{ $p['id'] }}" 
+                                data-nombre="{{ $p['nombre'] }}"
+                                data-tipo="{{ $p['tipo'] }}"
+                                {{ $p['id'] == ($pacienteSeleccionadoId ?? 0) ? 'selected' : '' }}>
+                            {{ $p['label'] }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+            <a href="/paciente/perfil" class="btn btn-outline-primary btn-sm rounded-pill font-xs text-nowrap px-3 py-2" title="Gestionar familiares en el perfil">
+                <i class="fa-solid fa-plus me-1"></i> Familiar
+            </a>
         </div>
     </div>
 </div>
@@ -77,10 +109,10 @@
                         <span id="current-month" class="fw-bold text-dark-blue small"></span>
                         <button type="button" id="next-month" class="btn btn-link btn-sm p-0 text-muted"><i class="fa-solid fa-chevron-right"></i></button>
                     </div>
-                    <div class="calendar-days-names d-grid text-center mb-2 font-xs text-muted fw-semibold">
+                    <div class="calendar-days-names d-grid text-center mb-2 font-xs text-muted fw-semibold" style="grid-template-columns: repeat(7, 1fr);">
                         <span>Do</span><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sa</span>
                     </div>
-                    <div class="calendar-dates-grid d-grid text-center gap-1 font-xs" id="calendar-days-container"></div>
+                    <div class="calendar-dates-grid d-grid text-center gap-1 font-xs" id="calendar-days-container" style="grid-template-columns: repeat(7, 1fr);"></div>
                 </div>
 
                 <div class="mb-4">
@@ -111,6 +143,12 @@
                 <div>
                     <h3 class="fs-6 fw-bold text-dark-blue mb-4">Resumen de la cita</h3>
                     <div class="d-flex flex-column gap-3 mb-4">
+                        <div class="summary-item p-3 rounded-3 bg-light">
+                            <span class="text-muted font-xs d-block">Paciente</span>
+                            <strong class="text-dark-blue font-sm" id="summary-patient">
+                                {{ collect($pacientesDisponibles ?? [])->firstWhere('id', $pacienteSeleccionadoId ?? 0)['nombre'] ?? 'Titular' }}
+                            </strong>
+                        </div>
                         <div class="summary-item p-3 rounded-3 bg-light">
                             <span class="text-muted font-xs d-block">Tratamiento</span>
                             <strong class="text-dark-blue font-sm" id="summary-service">--</strong>
@@ -145,5 +183,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/paciente/pedir_cita.js') }}"></script>
+<script src="{{ asset('js/paciente/pedir_cita.js') }}?v={{ filemtime(public_path('js/paciente/pedir_cita.js')) }}"></script>
 @endpush

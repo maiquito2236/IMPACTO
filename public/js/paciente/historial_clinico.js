@@ -126,7 +126,7 @@ $(document).ready(function () {
         
         // El endpoint viejo cargaba de forma global, usaremos el mismo para alertas y paciente,
         // pero podemos pasarle id_cita si el backend lo soporta, o asumimos que devuelve el estado global
-        let url = `/paciente/historial_clinico/datos_odontograma&paciente_id=${pacienteId}`;
+        let url = `/paciente/historial_clinico/datos_odontograma?paciente_id=${pacienteId}`;
         if (fechaIso) {
             url += `&target_date=${fechaIso}`;
         }

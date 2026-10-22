@@ -57,29 +57,32 @@
 /* --- BADGES DE ESTADOS --- */
 .badge-pendiente{
     background-color: var(--status-pendiente) !important;
-    color:#fff;
-    font-size:11px;
-    font-weight:600;
-    padding:5px 12px;
-    border-radius:20px;
+    color:#fff !important;
+    font-size:11px !important;
+    font-weight:600 !important;
+    padding:5px 12px !important;
+    border-radius:20px !important;
+    display: inline-block !important;
 }
 
 .badge-abonando{
     background-color: var(--status-abonando) !important;
-    color:#fff;
-    font-size:11px;
-    font-weight:600;
-    padding:5px 12px;
-    border-radius:20px;
+    color:#fff !important;
+    font-size:11px !important;
+    font-weight:600 !important;
+    padding:5px 12px !important;
+    border-radius:20px !important;
+    display: inline-block !important;
 }
 
 .badge-pagada{
     background-color: var(--status-pagada) !important;
-    color:#fff;
-    font-size:11px;
-    font-weight:600;
-    padding:5px 12px;
-    border-radius:20px;
+    color:#fff !important;
+    font-size:11px !important;
+    font-weight:600 !important;
+    padding:5px 12px !important;
+    border-radius:20px !important;
+    display: inline-block !important;
 }
 
 /* --- ACCIONES E ICONOS DE FILA --- */
@@ -89,9 +92,11 @@
     display: flex; align-items: center; justify-content: center;
     border-radius: 50%; background: #f1f5f9; color: #64748b;
     text-decoration: none; transition: .25s; flex-shrink: 0;
+    border: 1px solid #e2e8f0;
 }
 .action-icons a:hover {
-    background: #0b57d0; color: #fff !important; transform: translateY(-2px);
+    background: #0b57d0 !important; color: #fff !important; transform: translateY(-2px);
+    border-color: #0b57d0 !important;
 }
 
 /* =========================================================================

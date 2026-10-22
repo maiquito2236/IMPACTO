@@ -141,6 +141,7 @@ Route::middleware(['ruta_segura:3'])->group(function () {
     // 3. Historial Clínico
     Route::get('/paciente/historial', [PacHistorial::class, 'index'])->name('paciente.historial');
     Route::get('/paciente/historial_clinico', [PacHistorial::class, 'index']);
+    Route::get('/paciente/historial/exportar', [PacHistorial::class, 'exportar'])->name('paciente.historial.exportar');
     Route::any('/paciente/historial_clinico/datos_odontograma', [PacHistorial::class, 'datosOdontograma']);
 
     // 4. Tratamientos
@@ -152,10 +153,13 @@ Route::middleware(['ruta_segura:3'])->group(function () {
     Route::get('/paciente/pagos/exportar-excel', [PacPago::class, 'exportarExcel']);
     Route::get('/paciente/pagos/imprimir', [PacPago::class, 'imprimir']);
 
-    // 6. Perfil
+    // 6. Perfil y Familiares / Menores a Cargo
     Route::get('/paciente/perfil', [PacPerfil::class, 'index'])->name('paciente.perfil');
     Route::post('/paciente/perfil/actualizar', [PacPerfil::class, 'actualizar'])->name('paciente.perfil.actualizar');
+    Route::post('/paciente/perfil/cambiar-password', [PacPerfil::class, 'cambiarPassword'])->name('paciente.perfil.cambiarPassword');
     Route::get('/paciente/perfil/exportar', [PacPerfil::class, 'exportar']);
+    Route::post('/paciente/hijos/registrar', [PacPerfil::class, 'registrarHijo'])->name('paciente.hijos.registrar');
+    Route::post('/paciente/hijos/{id}/desvincular', [PacPerfil::class, 'desvincularHijo'])->name('paciente.hijos.desvincular');
 
     // 7. Notificaciones
     Route::get('/paciente/notificaciones', [PacNotificacion::class, 'index'])->name('paciente.notificaciones');
@@ -169,6 +173,7 @@ Route::middleware(['ruta_segura:3'])->group(function () {
     Route::post('/cancelar_cita', [PacCita::class, 'cancelarCita']);
     Route::post('/reprogramar_cita', [PacCita::class, 'reprogramarCita']);
     Route::get('/historial_clinico', [PacHistorial::class, 'index']);
+    Route::get('/imprimir_historial', [PacHistorial::class, 'exportar']);
     Route::get('/tratamientos', [PacTratamiento::class, 'index']);
     Route::get('/pagos', [PacPago::class, 'index']);
     Route::get('/exportarExcel', [PacPago::class, 'exportarExcel']);
@@ -296,6 +301,8 @@ Route::prefix('LOGIN_ORIGINAL')->group(function () {
         Route::get('/exportarExcel', [PacPago::class, 'exportarExcel']);
         Route::get('/perfil', [PacPerfil::class, 'index']);
         Route::post('/procesarActualizarPerfil', [PacPerfil::class, 'actualizar']);
+        Route::post('/cambiarPassword', [PacPerfil::class, 'cambiarPassword']);
+        Route::post('/paciente/perfil/cambiar-password', [PacPerfil::class, 'cambiarPassword']);
         Route::get('/exportarPerfil', [PacPerfil::class, 'exportar']);
         Route::get('/notificaciones', [PacNotificacion::class, 'index']);
         Route::post('/paciente/notificaciones/marcar_leida', [PacNotificacion::class, 'marcarLeida']);

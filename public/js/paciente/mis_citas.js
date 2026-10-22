@@ -228,14 +228,21 @@ $(document).ready(function () {
     });
 
     function dateToMonthNumber(mesCorto) {
-        const meses = { 'Jun': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12' };
-        return meses[mesCorto] || '01';
+        if (!mesCorto) return '01';
+        const m = mesCorto.trim().toUpperCase();
+        const meses = {
+            'ENE': '01', 'FEB': '02', 'MAR': '03', 'ABR': '04', 'MAY': '05', 'JUN': '06',
+            'JUL': '07', 'AGO': '08', 'SEP': '09', 'OCT': '10', 'NOV': '11', 'DIC': '12',
+            'JAN': '01', 'APR': '04', 'AUG': '08', 'DEC': '12'
+        };
+        return meses[m] || '01';
     }
+
 
     // =========================================================================
     // 4. FLUJO DINÁMICO: DETALLES DE CITA (VER DETALLE VIA AJAX)
     // =========================================================================
-    $(document).on('click', '.btn-view', function (e) {
+    $(document).on('click', '.btn-view, .btn-ver-detalle', function (e) {
         e.preventDefault();
         const idCita = $(this).data('id'); 
         
@@ -274,7 +281,8 @@ $(document).ready(function () {
         document.getElementById('txtDetalleDoctor').textContent = cita.NOMBRE_DOCTOR ? `Dr(a). ${cita.NOMBRE_DOCTOR}` : 'Por asignar';
         document.getElementById('txtDetalleEspecialidad').textContent = cita.ESPECIALIDAD || 'General'; 
         document.getElementById('txtDetalleTratamiento').textContent = cita.LISTA_TRATAMIENTOS || 'No se registraron procedimientos';
-        document.getElementById('txtDetalleConsultorio').textContent = cita.CONSULTORIO ? `Consultorio ${cita.CONSULTORIO}` : '--';
+        const consultorioTexto = cita.CONSULTORIO ? (cita.CONSULTORIO.toString().toLowerCase().includes('consultorio') ? cita.CONSULTORIO : `Consultorio ${cita.CONSULTORIO}`) : '--';
+        document.getElementById('txtDetalleConsultorio').textContent = consultorioTexto;
         document.getElementById('txtDetalleDientes').textContent = cita.DIENTES_TRATADOS || 'General / No especificado';
         
         const filasDinamicas = ['rowFechaAtencion', 'rowObservacionesDoc', 'rowRecomendaciones', 'rowFechaCancelacion', 'rowMotivoCancelacion', 'rowCreadaEl'];

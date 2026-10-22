@@ -1,6 +1,6 @@
-﻿-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
+-- MariaDB dump 10.19  Distrib 10.4.32-MariaDB, for Win64 (AMD64)
 --
--- Host: 127.0.0.1    Database: sigco_esteban_alone
+-- Host: localhost    Database: sigco_esteban_alone
 -- ------------------------------------------------------
 -- Server version	10.4.32-MariaDB
 
@@ -93,7 +93,7 @@ DELIMITER ;;
 AFTER INSERT ON `cita`
 FOR EACH ROW
 BEGIN
-    -- Si la cita se inserta con horario y estado Activo (1), ocupar el horario
+    
     IF NEW.HORARIO_DISPONIBILIDAD_ID_HORARIO IS NOT NULL AND (NEW.ESTADO_CITA_ID = 1 OR NEW.ESTADO_CITA_ID IS NULL) THEN
         UPDATE `horario_disponibilidad`
         SET `ESTADO` = 'Ocupado'
@@ -491,7 +491,7 @@ DELIMITER ;;
 
 
 
-    -- 1. Si la cita pasa a Cancelada (3), el horario vuelve a quedar Disponible
+    
 
 
 
@@ -2753,7 +2753,7 @@ DELIMITER ;;
 
 
 
-    -- 2. Si la cita se reprograma (Cambia el ID del horario manteniendo estado activo)
+    
 
 
 
@@ -3507,7 +3507,7 @@ DELIMITER ;;
 
 
 
-        -- Liberamos el espacio que ten├¡a antes
+        
 
 
 
@@ -5392,7 +5392,7 @@ DELIMITER ;;
 
 
 
-        -- Ocupamos el nuevo espacio que seleccion├│ el paciente
+        
 
 
 
@@ -7661,6 +7661,8 @@ CREATE TABLE `historia_clinica` (
   PRIMARY KEY (`ID_HISTORIA_CLINICA`),
   KEY `PACIENTE_ID_PACIENTE` (`PACIENTE_ID_PACIENTE`),
   KEY `ODONTOLOGO_ID_ODONTOLOGO` (`ODONTOLOGO_ID_ODONTOLOGO`),
+  KEY `fk_hc_cita` (`CITA_ID_CITA`),
+  CONSTRAINT `fk_hc_cita` FOREIGN KEY (`CITA_ID_CITA`) REFERENCES `cita` (`ID_CITA`) ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_hc_odontologo` FOREIGN KEY (`ODONTOLOGO_ID_ODONTOLOGO`) REFERENCES `odontologo` (`ID_ODONTOLOGO`) ON UPDATE CASCADE,
   CONSTRAINT `fk_hc_paciente` FOREIGN KEY (`PACIENTE_ID_PACIENTE`) REFERENCES `paciente` (`ID_PACIENTE`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1037 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
@@ -7721,7 +7723,7 @@ BEFORE INSERT ON `historia_clinica_has_procedimientos`
 FOR EACH ROW
 BEGIN
     DECLARE precio_catalogo DECIMAL(10,2);
-    -- Si no se proporcion├│ precio o es 0, buscarlo del cat├ílogo oficial
+    
     IF NEW.PRECIO_APLICADO IS NULL OR NEW.PRECIO_APLICADO = 0 THEN
         SELECT COSTO INTO precio_catalogo
         FROM procedimientos
@@ -7767,14 +7769,16 @@ DROP TABLE IF EXISTS `historial_asignacion_consultorio`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `historial_asignacion_consultorio` (
   `ID_HISTORIAL` int(11) NOT NULL AUTO_INCREMENT,
-  `CONSULTORIO_ID` int(11) NOT NULL,
-  `ODONTOLOGO_ID` int(11) NOT NULL,
+  `CONSULTORIO_ID_CONSULTORIO` int(11) NOT NULL,
+  `ODONTOLOGO_ID_ODONTOLOGO` int(11) NOT NULL,
   `FECHA_ASIGNACION` datetime DEFAULT current_timestamp(),
   `FECHA_DESASIGNACION` datetime DEFAULT NULL,
   `MOTIVO_CAMBIO` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`ID_HISTORIAL`),
-  KEY `fk_historial_consultorio` (`CONSULTORIO_ID`),
-  KEY `fk_historial_odontologo` (`ODONTOLOGO_ID`)
+  KEY `fk_historial_consultorio` (`CONSULTORIO_ID_CONSULTORIO`),
+  KEY `fk_historial_odontologo` (`ODONTOLOGO_ID_ODONTOLOGO`),
+  CONSTRAINT `fk_hac_consultorio` FOREIGN KEY (`CONSULTORIO_ID_CONSULTORIO`) REFERENCES `consultorio` (`ID_CONSULTORIO`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_hac_odontologo` FOREIGN KEY (`ODONTOLOGO_ID_ODONTOLOGO`) REFERENCES `odontologo` (`ID_ODONTOLOGO`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -7784,7 +7788,7 @@ CREATE TABLE `historial_asignacion_consultorio` (
 
 LOCK TABLES `historial_asignacion_consultorio` WRITE;
 /*!40000 ALTER TABLE `historial_asignacion_consultorio` DISABLE KEYS */;
-INSERT INTO `historial_asignacion_consultorio` VALUES (6,4,1,'2026-06-30 18:41:25','2026-06-30 18:41:46',''),(7,4,6,'2026-06-30 20:37:20','2026-07-05 19:29:37',''),(9,6,10,'2026-06-30 20:46:26','2026-07-05 19:27:14',''),(10,8,8,'2026-07-02 12:15:28',NULL,NULL),(12,6,2,'2026-07-05 19:28:07',NULL,NULL),(13,4,6,'2026-07-05 19:29:48','2026-07-05 19:48:05',''),(14,5,7,'2026-07-05 19:31:25',NULL,NULL),(15,4,6,'2026-07-05 19:50:19',NULL,NULL),(16,9,12,'2026-07-07 12:57:29',NULL,NULL),(17,10,14,'2026-07-16 10:22:30',NULL,NULL),(18,11,15,'2026-07-16 10:27:32',NULL,NULL);
+INSERT INTO `historial_asignacion_consultorio` VALUES (6,4,2,'2026-06-30 18:41:25','2026-06-30 18:41:46',''),(7,4,6,'2026-06-30 20:37:20','2026-07-05 19:29:37',''),(9,6,10,'2026-06-30 20:46:26','2026-07-05 19:27:14',''),(10,8,8,'2026-07-02 12:15:28',NULL,NULL),(12,6,2,'2026-07-05 19:28:07',NULL,NULL),(13,4,6,'2026-07-05 19:29:48','2026-07-05 19:48:05',''),(14,5,7,'2026-07-05 19:31:25',NULL,NULL),(15,4,6,'2026-07-05 19:50:19',NULL,NULL),(16,9,12,'2026-07-07 12:57:29',NULL,NULL),(17,10,14,'2026-07-16 10:22:30',NULL,NULL),(18,11,15,'2026-07-16 10:27:32',NULL,NULL);
 /*!40000 ALTER TABLE `historial_asignacion_consultorio` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -7806,7 +7810,9 @@ CREATE TABLE `historial_cita` (
   `CREADO_EL` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`ID_HISTORIAL`),
   KEY `CITA_ID_CITA` (`CITA_ID_CITA`),
-  KEY `ESTADO_CITA_ID` (`ESTADO_CITA_ID`)
+  KEY `ESTADO_CITA_ID` (`ESTADO_CITA_ID`),
+  CONSTRAINT `fk_historial_cita_cita` FOREIGN KEY (`CITA_ID_CITA`) REFERENCES `cita` (`ID_CITA`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_historial_cita_estado` FOREIGN KEY (`ESTADO_CITA_ID`) REFERENCES `estado_cita` (`ID_ESTADO`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -7818,6 +7824,35 @@ LOCK TABLES `historial_cita` WRITE;
 /*!40000 ALTER TABLE `historial_cita` DISABLE KEYS */;
 INSERT INTO `historial_cita` VALUES (1,17,1,'2026-06-21 11:00:00','2026-06-25 09:00:00','REPROGRAMACION','Viaje imprevisto','2026-06-21 20:35:21'),(2,17,1,'2026-06-25 09:00:00','2026-06-25 11:00:00','REPROGRAMACION','Prueba 2','2026-06-21 20:44:12'),(3,16,3,'2026-06-25 08:00:00',NULL,'CANCELACION','Otra raz├│n - Obs: Anime 1','2026-06-21 20:46:41'),(4,17,3,'2026-06-25 11:00:00',NULL,'CANCELACION','Problemas de horario','2026-06-21 20:47:12'),(5,26,3,'2026-06-19 09:00:00',NULL,'CANCELACION','No puedo asistir','2026-06-21 20:47:33'),(6,35,1,'2026-06-25 11:00:00','2026-06-25 14:00:00','REPROGRAMACION','PERSONALES','2026-06-22 13:49:59'),(7,38,1,'2026-06-25 14:00:00','2026-06-25 08:00:00','REPROGRAMACION','ghfghfgh','2026-06-22 17:18:03'),(8,1013,1,'2026-07-02 17:30:00','2026-07-02 17:30:00','REPROGRAMACION','Reprogramaci├│n solicitada por el usuario.','2026-07-02 22:21:43'),(9,1013,1,'2026-07-02 17:30:00','2026-07-02 18:10:00','REPROGRAMACION','Reprogramaci├│n solicitada por el usuario.','2026-07-02 22:22:13'),(10,1013,1,'2026-07-02 18:10:00','2026-07-02 17:30:00','REPROGRAMACION','Reprogramaci├│n solicitada por el usuario.','2026-07-02 22:28:09'),(11,1018,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-03 16:28:42'),(12,1019,1,'2026-07-06 14:30:00','2026-07-06 07:30:00','REPROGRAMACION','Reprogramaci├│n solicitada por el usuario.','2026-07-03 18:21:38'),(13,1020,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 00:35:58'),(14,1021,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 01:16:58'),(15,1022,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 01:33:30'),(16,1023,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 03:45:06'),(17,1025,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 14:07:06'),(18,1026,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 14:26:12'),(19,1024,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 14:38:39'),(20,1027,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 15:03:23'),(21,1028,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 15:14:23'),(22,1029,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-06 16:13:14'),(23,1036,2,NULL,NULL,'Completada','Cita completada desde m├│dulo de Historial Cl├¡nico y Factura Generada','2026-07-22 12:46:29');
 /*!40000 ALTER TABLE `historial_cita` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `historial_reprogramacion_citas`
+--
+
+DROP TABLE IF EXISTS `historial_reprogramacion_citas`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `historial_reprogramacion_citas` (
+  `ID_HISTORIAL` int(11) NOT NULL AUTO_INCREMENT,
+  `CITA_ID_CITA` int(11) NOT NULL,
+  `FECHA_HORA_ANTERIOR` datetime DEFAULT NULL,
+  `FECHA_HORA_NUEVA` datetime DEFAULT NULL,
+  `MOTIVO_CAMBIO` varchar(255) DEFAULT NULL,
+  `CREADO_EL` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`ID_HISTORIAL`),
+  KEY `fk_hist_reprog_cita` (`CITA_ID_CITA`),
+  CONSTRAINT `fk_hist_reprog_cita` FOREIGN KEY (`CITA_ID_CITA`) REFERENCES `cita` (`ID_CITA`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `historial_reprogramacion_citas`
+--
+
+LOCK TABLES `historial_reprogramacion_citas` WRITE;
+/*!40000 ALTER TABLE `historial_reprogramacion_citas` DISABLE KEYS */;
+/*!40000 ALTER TABLE `historial_reprogramacion_citas` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -7940,6 +7975,7 @@ CREATE TABLE `odontologo` (
   KEY `USUARIOS_ID_USUARIOS` (`USUARIOS_ID_USUARIOS`),
   KEY `fk_odontologo_consultorio` (`CONSULTORIO_ID_CONSULTORIO`),
   CONSTRAINT `fk_odontologo_consultorio` FOREIGN KEY (`CONSULTORIO_ID_CONSULTORIO`) REFERENCES `consultorio` (`ID_CONSULTORIO`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `fk_odontologo_especialidad` FOREIGN KEY (`ESPECIALIDAD_ID_ESPECIALIDAD`) REFERENCES `especialidad` (`ID_ESPECIALIDAD`) ON UPDATE CASCADE,
   CONSTRAINT `fk_odontologo_usuarios` FOREIGN KEY (`USUARIOS_ID_USUARIOS`) REFERENCES `usuarios` (`ID_USUARIOS`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -8013,6 +8049,39 @@ LOCK TABLES `paciente` WRITE;
 /*!40000 ALTER TABLE `paciente` DISABLE KEYS */;
 INSERT INTO `paciente` VALUES (1,3,1,'MARIA HOYOS','3148309234'),(2,4,2,'JULIANA BELTRAN','3184928491'),(8,13,2,'Carlos Martinez','3849402121'),(9,2,3,'',''),(10,14,3,'',''),(12,18,1,'',''),(17,23,1,'',''),(18,24,1,'',''),(19,27,1,NULL,NULL),(20,29,1,NULL,NULL),(21,32,1,NULL,NULL),(22,33,5,'','');
 /*!40000 ALTER TABLE `paciente` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `paciente_has_acudiente`
+--
+
+DROP TABLE IF EXISTS `paciente_has_acudiente`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `paciente_has_acudiente` (
+  `ID_PACIENTE_HAS_ACUDIENTE` int(11) NOT NULL AUTO_INCREMENT,
+  `PACIENTE_ID_PACIENTE` int(11) NOT NULL,
+  `USUARIOS_ID_ACUDIENTE` int(11) NOT NULL,
+  `PARENTESCO` enum('Madre','Padre','Abuelo/a','Tío/a','Tutor Legal','Otro') NOT NULL DEFAULT 'Madre',
+  `CONTACTO_PRINCIPAL` enum('Si','No') NOT NULL DEFAULT 'Si',
+  `AUTORIZA_TRATAMIENTOS` enum('Si','No') NOT NULL DEFAULT 'Si',
+  `FECHA_VINCULACION` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`ID_PACIENTE_HAS_ACUDIENTE`),
+  UNIQUE KEY `uk_paciente_acudiente` (`PACIENTE_ID_PACIENTE`,`USUARIOS_ID_ACUDIENTE`),
+  KEY `idx_pha_paciente` (`PACIENTE_ID_PACIENTE`),
+  KEY `idx_pha_acudiente` (`USUARIOS_ID_ACUDIENTE`),
+  CONSTRAINT `fk_pha_acudiente` FOREIGN KEY (`USUARIOS_ID_ACUDIENTE`) REFERENCES `usuarios` (`ID_USUARIOS`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_pha_paciente` FOREIGN KEY (`PACIENTE_ID_PACIENTE`) REFERENCES `paciente` (`ID_PACIENTE`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `paciente_has_acudiente`
+--
+
+LOCK TABLES `paciente_has_acudiente` WRITE;
+/*!40000 ALTER TABLE `paciente_has_acudiente` DISABLE KEYS */;
+/*!40000 ALTER TABLE `paciente_has_acudiente` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -8302,15 +8371,15 @@ CREATE TABLE `usuarios` (
   `ROLES_ID_ROLES` int(11) NOT NULL DEFAULT 3,
   `NOMBRES` varchar(45) NOT NULL,
   `APELLIDOS` varchar(45) NOT NULL,
-  `TIPO_DOCUMENTO` enum('T.I','C.C','C.E','PPT') NOT NULL,
+  `TIPO_DOCUMENTO` enum('R.C','T.I','C.C','C.E','PPT') NOT NULL,
   `NUMERO_DOCUMENTO` int(11) NOT NULL,
-  `TELEFONO` varchar(45) NOT NULL,
-  `CORREO` varchar(200) NOT NULL,
+  `TELEFONO` varchar(45) DEFAULT NULL,
+  `CORREO` varchar(200) DEFAULT NULL,
   `GENERO` enum('MASCULINO','FEMENINO','OTRO') NOT NULL,
   `FECHA_NACIMIENTO` date DEFAULT NULL,
   `DIRECCION` varchar(60) DEFAULT NULL,
   `RH` enum('A+','B+','AB+','O+','A-','B-','AB-','O-') DEFAULT NULL,
-  `CONTRASE├æA` varchar(250) NOT NULL,
+  `CONTRASE├æA` varchar(250) DEFAULT NULL,
   `TOKEN_RECUPERACION` varchar(100) DEFAULT NULL,
   `TOKEN_EXPIRACION` datetime DEFAULT NULL,
   `ESTADO` enum('Activo','Inactivo') DEFAULT 'Activo',
@@ -8342,17 +8411,17 @@ DELIMITER ;;
 BEFORE INSERT ON `usuarios`
 FOR EACH ROW
 BEGIN
-    -- Asignar rol de paciente (3) si no se envi├│ o es 0
+    
     IF NEW.ROLES_ID_ROLES IS NULL OR NEW.ROLES_ID_ROLES = 0 THEN
         SET NEW.ROLES_ID_ROLES = 3;
     END IF;
 
-    -- Normalizar correo en min├║sculas y sin espacios
+    
     IF NEW.CORREO IS NOT NULL THEN
         SET NEW.CORREO = LOWER(TRIM(NEW.CORREO));
     END IF;
 
-    -- Normalizar nombres y apellidos
+    
     IF NEW.NOMBRES IS NOT NULL THEN
         SET NEW.NOMBRES = TRIM(NEW.NOMBRES);
     END IF;
@@ -8360,10 +8429,10 @@ BEGIN
         SET NEW.APELLIDOS = TRIM(NEW.APELLIDOS);
     END IF;
 
-    -- Validar formato b├ísico de correo
-    IF NEW.CORREO NOT LIKE '%@%.%' THEN
+    
+    IF NEW.CORREO IS NOT NULL AND NEW.CORREO != '' AND NEW.CORREO NOT LIKE '%@%.%' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El correo electr├│nico no tiene un formato v├ílido.';
+        SET MESSAGE_TEXT = 'El correo electrónico no tiene un formato válido.';
     END IF;
 END */;;
 DELIMITER ;
@@ -8394,9 +8463,9 @@ BEGIN
         SET NEW.APELLIDOS = TRIM(NEW.APELLIDOS);
     END IF;
 
-    IF NEW.CORREO NOT LIKE '%@%.%' THEN
+    IF NEW.CORREO IS NOT NULL AND NEW.CORREO != '' AND NEW.CORREO NOT LIKE '%@%.%' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'El correo electr├│nico no tiene un formato v├ílido.';
+        SET MESSAGE_TEXT = 'El correo electrónico no tiene un formato válido.';
     END IF;
 END */;;
 DELIMITER ;
@@ -8643,9 +8712,9 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 /*!50001 CREATE VIEW `vista_historial_consultorio` AS SELECT
  1 AS `ID_HISTORIAL`,
-  1 AS `CONSULTORIO_ID`,
+  1 AS `CONSULTORIO_ID_CONSULTORIO`,
   1 AS `consultorio_nombre`,
-  1 AS `ODONTOLOGO_ID`,
+  1 AS `ODONTOLOGO_ID_ODONTOLOGO`,
   1 AS `doctor_nombre`,
   1 AS `FECHA_ASIGNACION`,
   1 AS `FECHA_DESASIGNACION`,
@@ -8946,6 +9015,28 @@ SET character_set_client = @saved_cs_client;
 -- Dumping routines for database 'sigco_esteban_alone'
 --
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_AUTO_VALUE_ON_ZERO' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_actualizar_citas_vencidas` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_actualizar_citas_vencidas`()
+BEGIN
+    UPDATE `cita`
+    SET `ESTADO_CITA_ID` = 4
+    WHERE `ESTADO_CITA_ID` = 1
+      AND `FECHA_HORA` < DATE_SUB(NOW(), INTERVAL 6 HOUR);
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_agendar_cita` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -9127,6 +9218,111 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `sp_registrar_menor_con_acudiente` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_registrar_menor_con_acudiente`(
+    IN p_nombres VARCHAR(45),
+    IN p_apellidos VARCHAR(45),
+    IN p_tipo_documento ENUM('R.C','T.I','C.C','C.E','PPT'),
+    IN p_numero_documento INT,
+    IN p_genero ENUM('MASCULINO','FEMENINO','OTRO'),
+    IN p_fecha_nacimiento DATE,
+    IN p_rh ENUM('A+','B+','AB+','O+','A-','B-','AB-','O-'),
+    IN p_eps_id INT,
+    IN p_usuario_acudiente_id INT,
+    IN p_parentesco ENUM('Madre','Padre','Abuelo/a','Tío/a','Tutor Legal','Otro'),
+    IN p_contacto_principal ENUM('Si','No'),
+    IN p_autoriza_tratamientos ENUM('Si','No'),
+    OUT p_nuevo_usuario_id INT,
+    OUT p_nuevo_paciente_id INT
+)
+BEGIN
+    DECLARE v_existe_doc INT;
+    DECLARE v_existe_acudiente INT;
+
+    SELECT COUNT(*) INTO v_existe_acudiente FROM usuarios WHERE ID_USUARIOS = p_usuario_acudiente_id;
+    IF v_existe_acudiente = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El usuario acudiente especificado no existe en el sistema.';
+    END IF;
+
+    SELECT COUNT(*) INTO v_existe_doc FROM usuarios WHERE NUMERO_DOCUMENTO = p_numero_documento;
+    IF v_existe_doc > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El número de documento del menor ya se encuentra registrado.';
+    END IF;
+
+    START TRANSACTION;
+        INSERT INTO usuarios (
+            ROLES_ID_ROLES,
+            NOMBRES,
+            APELLIDOS,
+            TIPO_DOCUMENTO,
+            NUMERO_DOCUMENTO,
+            TELEFONO,
+            CORREO,
+            GENERO,
+            FECHA_NACIMIENTO,
+            RH,
+            `CONTRASEÑA`,
+            ESTADO
+        ) VALUES (
+            3,
+            TRIM(p_nombres),
+            TRIM(p_apellidos),
+            p_tipo_documento,
+            p_numero_documento,
+            NULL,
+            NULL,
+            p_genero,
+            p_fecha_nacimiento,
+            p_rh,
+            NULL,
+            'Activo'
+        );
+
+        SET p_nuevo_usuario_id = LAST_INSERT_ID();
+
+        INSERT INTO paciente (
+            USUARIOS_ID_USUARIOS,
+            EPS_ID_EPS,
+            NOMBRE_CONTACTO_EMERGENCIA,
+            NUMERO_CONTACTO_EMERGENCIA
+        ) VALUES (
+            p_nuevo_usuario_id,
+            COALESCE(p_eps_id, 1),
+            '',
+            ''
+        );
+
+        SET p_nuevo_paciente_id = LAST_INSERT_ID();
+
+        INSERT INTO paciente_has_acudiente (
+            PACIENTE_ID_PACIENTE,
+            USUARIOS_ID_ACUDIENTE,
+            PARENTESCO,
+            CONTACTO_PRINCIPAL,
+            AUTORIZA_TRATAMIENTOS
+        ) VALUES (
+            p_nuevo_paciente_id,
+            p_usuario_acudiente_id,
+            COALESCE(p_parentesco, 'Madre'),
+            COALESCE(p_contacto_principal, 'Si'),
+            COALESCE(p_autoriza_tratamientos, 'Si')
+        );
+    COMMIT;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'NO_ENGINE_SUBSTITUTION' */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `sp_registrar_paciente_completo` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -9138,7 +9334,7 @@ DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_registrar_paciente_completo`(
         IN p_nombres VARCHAR(45),
         IN p_apellidos VARCHAR(45),
-        IN p_tipo_documento ENUM('T.I','C.C','C.E','PPT'),
+        IN p_tipo_documento ENUM('R.C','T.I','C.C','C.E','PPT'),
         IN p_numero_documento INT,
         IN p_telefono VARCHAR(45),
         IN p_correo VARCHAR(200),
@@ -9156,12 +9352,12 @@ BEGIN
 
         SELECT COUNT(*) INTO v_existe_correo FROM usuarios WHERE CORREO = LOWER(TRIM(p_correo));
         IF v_existe_correo > 0 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El correo electr├│nico ya se encuentra registrado.';
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El correo electrónico ya se encuentra registrado.';
         END IF;
 
         SELECT COUNT(*) INTO v_existe_doc FROM usuarios WHERE NUMERO_DOCUMENTO = p_numero_documento;
         IF v_existe_doc > 0 THEN
-            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El n├║mero de documento ya se encuentra registrado.';
+            SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El número de documento ya se encuentra registrado.';
         END IF;
 
         START TRANSACTION;
@@ -9174,7 +9370,7 @@ BEGIN
                 TELEFONO,
                 CORREO,
                 GENERO,
-                CONTRASE├æA,
+                `CONTRASEÑA`,
                 ESTADO
             ) VALUES (
                 3,
@@ -9484,12 +9680,12 @@ DELIMITER ;
 /*!50001 SET @saved_cs_client          = @@character_set_client */;
 /*!50001 SET @saved_cs_results         = @@character_set_results */;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
-/*!50001 SET character_set_client      = utf8mb4 */;
-/*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_general_ci */;
+/*!50001 SET character_set_client      = cp850 */;
+/*!50001 SET character_set_results     = cp850 */;
+/*!50001 SET collation_connection      = cp850_general_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `vista_historial_consultorio` AS select `h`.`ID_HISTORIAL` AS `ID_HISTORIAL`,`h`.`CONSULTORIO_ID` AS `CONSULTORIO_ID`,`c`.`NOMBRE` AS `consultorio_nombre`,`h`.`ODONTOLOGO_ID` AS `ODONTOLOGO_ID`,concat(`u`.`NOMBRES`,' ',`u`.`APELLIDOS`) AS `doctor_nombre`,`h`.`FECHA_ASIGNACION` AS `FECHA_ASIGNACION`,`h`.`FECHA_DESASIGNACION` AS `FECHA_DESASIGNACION`,`h`.`MOTIVO_CAMBIO` AS `MOTIVO_CAMBIO` from (((`historial_asignacion_consultorio` `h` join `consultorio` `c` on(`h`.`CONSULTORIO_ID` = `c`.`ID_CONSULTORIO`)) join `odontologo` `o` on(`h`.`ODONTOLOGO_ID` = `o`.`ID_ODONTOLOGO`)) join `usuarios` `u` on(`o`.`USUARIOS_ID_USUARIOS` = `u`.`ID_USUARIOS`)) */;
+/*!50001 VIEW `vista_historial_consultorio` AS select `h`.`ID_HISTORIAL` AS `ID_HISTORIAL`,`h`.`CONSULTORIO_ID_CONSULTORIO` AS `CONSULTORIO_ID_CONSULTORIO`,`c`.`NOMBRE` AS `consultorio_nombre`,`h`.`ODONTOLOGO_ID_ODONTOLOGO` AS `ODONTOLOGO_ID_ODONTOLOGO`,concat(`u`.`NOMBRES`,' ',`u`.`APELLIDOS`) AS `doctor_nombre`,`h`.`FECHA_ASIGNACION` AS `FECHA_ASIGNACION`,`h`.`FECHA_DESASIGNACION` AS `FECHA_DESASIGNACION`,`h`.`MOTIVO_CAMBIO` AS `MOTIVO_CAMBIO` from (((`historial_asignacion_consultorio` `h` join `consultorio` `c` on(`h`.`CONSULTORIO_ID_CONSULTORIO` = `c`.`ID_CONSULTORIO`)) join `odontologo` `o` on(`h`.`ODONTOLOGO_ID_ODONTOLOGO` = `o`.`ID_ODONTOLOGO`)) join `usuarios` `u` on(`o`.`USUARIOS_ID_USUARIOS` = `u`.`ID_USUARIOS`)) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -9683,4 +9879,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-12 17:58:39
+-- Dump completed on 2026-10-21 20:47:45

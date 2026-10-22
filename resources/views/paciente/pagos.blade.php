@@ -1,147 +1,273 @@
 @extends('layouts.paciente')
 
-@section('titulo', 'Facturación y Pagos - Odonto Estética')
+@section('titulo', 'Pagos - Odonto Estética')
 
 @push('css')
-<link rel="stylesheet" href="{{ asset('css/paciente/pagos.css') }}">
+<link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.css">
+<link rel="stylesheet" href="{{ asset('css/paciente/global.css') }}?v={{ time() }}">
+<link rel="stylesheet" href="{{ asset('css/paciente/pagos.css') }}?v={{ time() }}">
 @endpush
 
 @section('contenido')
 <div class="container-fluid p-0">
-    <div class="mb-4">
-        <h2 class="h5 fw-bold text-dark-blue m-0">Facturación y Pagos</h2>
-        <p class="text-muted small m-0">Consulta tus comprobantes, saldos y registra abonos en línea.</p>
-    </div>
-
-    <!-- Tarjetas de Resumen -->
-    <div class="row g-3 mb-4">
+    <!-- Header Card Resumen -->
+    <div class="row g-3 mt-1">
         <div class="col-md-4">
-            <div class="card text-center border-0 shadow-sm p-3 h-100 rounded-4">
+            <div class="card text-center border-0 shadow-sm p-3 h-100 card-summary" style="border-radius: 16px; background-color: #ffffff;">
                 <span class="text-muted fw-semibold font-sm">Precio Total</span>
-                <h3 class="fw-bold text-primary mt-2">${{ number_format($resumen['total_tratamientos'], 0, ',', '.') }}</h3>
+                <h3 class="fw-bold text-primary mt-2">
+                    ${{ number_format($resumen['precio_total'] ?? 0, 0, ',', '.') }}
+                </h3>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-center border-0 shadow-sm p-3 h-100 rounded-4">
+            <div class="card text-center border-0 shadow-sm p-3 h-100 card-summary" style="border-radius: 16px; background-color: #ffffff;">
                 <span class="text-muted fw-semibold font-sm">Abono Total</span>
-                <h3 class="fw-bold text-success mt-2">${{ number_format($resumen['total_pagado'], 0, ',', '.') }}</h3>
+                <h3 class="fw-bold text-success mt-2">
+                    ${{ number_format($resumen['abono_total'] ?? 0, 0, ',', '.') }}
+                </h3>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-center border-0 shadow-sm p-3 h-100 rounded-4">
+            <div class="card text-center border-0 shadow-sm p-3 h-100 card-summary" style="border-radius: 16px; background-color: #ffffff;">
                 <span class="text-muted fw-semibold font-sm">Deuda Total</span>
-                <h3 class="fw-bold text-danger mt-2">${{ number_format($resumen['saldo_pendiente'], 0, ',', '.') }}</h3>
+                <h3 class="fw-bold text-warning-dark mt-2" style="color: #ea580c !important;">
+                    ${{ number_format($resumen['deuda_total'] ?? 0, 0, ',', '.') }}
+                </h3>
             </div>
         </div>
     </div>
 
-    <!-- Tabla de Facturas -->
-    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
-        <h3 class="fs-6 fw-bold text-dark-blue mb-4">Historial de Facturación</h3>
+    <!-- Tabla Principal de Pagos -->
+    <div class="card border-0 shadow-sm p-4 mt-4 main-data-card" style="border-radius: 16px; background-color: #ffffff;">
+        <div class="mb-4">
+            <h2 class="h5 m-0 fw-bold text-dark-blue">
+                Historial de Actividad Financiera
+            </h2>
+        </div>
+    
         <div class="table-responsive">
-            <table class="table table-hover align-middle m-0" id="tablaPagos">
-                <thead class="table-light">
+            <table id="tablaPagos" class="table table-bordered dataTable w-100">
+                <thead>
                     <tr>
-                        <th class="font-xs text-muted border-0">Factura</th>
-                        <th class="font-xs text-muted border-0">Fecha</th>
-                        <th class="font-xs text-muted border-0">Tratamiento</th>
-                        <th class="font-xs text-muted border-0">Total</th>
-                        <th class="font-xs text-muted border-0">Abonado</th>
-                        <th class="font-xs text-muted border-0">Pendiente</th>
-                        <th class="font-xs text-muted border-0">Estado</th>
-                        <th class="font-xs text-muted border-0 text-center">Acciones</th>
+                        <th>Factura</th>
+                        <th>Fecha Emisión</th>
+                        <th>Tratamiento</th>
+                        <th>Valor Total</th>
+                        <th>Abonado</th>
+                        <th>Pendiente</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($facturas as $f)
-                        @php
-                            $total = floatval($f['TOTAL']);
-                            $abonado = floatval($f['MONTO_PAGADO']);
-                            $deuda = max(0, $total - $abonado);
-                            $estado = $f['ESTADO_CALCULADO'];
-                            $badge = match($estado) {
-                                'PAGADA'  => 'bg-success-subtle text-success',
-                                'ABONADA' => 'bg-primary-subtle text-primary',
-                                default   => 'bg-danger-subtle text-danger'
-                            };
-                        @endphp
-                        <tr>
-                            <td class="font-sm fw-bold">FAC-{{ str_pad($f['ID_FACTURA'], 4, '0', STR_PAD_LEFT) }}</td>
-                            <td class="font-xs text-muted">{{ date('d/m/Y', strtotime($f['FECHA_EMISION'])) }}</td>
-                            <td class="font-sm">{{ $f['PROCEDIMIENTO'] }}</td>
-                            <td class="font-sm fw-bold">${{ number_format($total, 0, ',', '.') }}</td>
-                            <td class="font-sm text-success">${{ number_format($abonado, 0, ',', '.') }}</td>
-                            <td class="font-sm text-danger">${{ number_format($deuda, 0, ',', '.') }}</td>
-                            <td><span class="badge font-xs px-2 py-1 {{ $badge }}">{{ $estado }}</span></td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <button type="button" class="btn btn-sm btn-outline-primary btn-ver-factura" 
-                                            data-id="{{ $f['ID_FACTURA'] }}"
-                                            data-total="{{ $total }}"
-                                            data-abonado="{{ $abonado }}"
-                                            data-deuda="{{ $deuda }}"
-                                            data-procedimiento="{{ $f['PROCEDIMIENTO'] }}"
-                                            data-doctor="{{ $f['DOCTOR'] }}"
-                                            data-fecha="{{ date('d/m/Y', strtotime($f['FECHA_EMISION'])) }}">
-                                        <i class="fa-solid fa-receipt me-1"></i> Ver
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-4 text-muted font-sm">No tienes facturas generadas.</td>
-                        </tr>
-                    @endforelse
+                @foreach($facturas as $factura)
+                    @php
+                        $total   = floatval($factura['TOTAL'] ?? 0);
+                        $abonado = floatval($factura['TOTAL_PAGADO'] ?? ($factura['MONTO_PAGADO'] ?? 0));
+                        $deuda   = max(0, $total - $abonado);
+
+                        $estadoDB = strtoupper(trim($factura['ESTADO_FACTURA'] ?? ''));
+                        if ($estadoDB === 'PAGADA' || ($total > 0 && $abonado >= $total)) {
+                            $estadoTexto = 'Pagada';
+                            $badge = 'badge-pagada';
+                        } elseif ($estadoDB === 'ABONADA' || $estadoDB === 'ABONANDO' || $abonado > 0) {
+                            $estadoTexto = 'Abonada';
+                            $badge = 'badge-abonando';
+                        } else {
+                            $estadoTexto = 'Pendiente';
+                            $badge = 'badge-pendiente';
+                        }
+
+                        $esMenor = !empty($factura['NOMBRE_PACIENTE']) && $factura['NOMBRE_PACIENTE'] !== (Auth::check() ? (Auth::user()->NOMBRES . ' ' . Auth::user()->APELLIDOS) : '');
+                    @endphp
+                    <tr>
+                        <td>
+                            FAC-{{ str_pad($factura['ID_FACTURA'], 4, '0', STR_PAD_LEFT) }}
+                        </td>
+
+                        <td>
+                            {{ date('d/m/Y', strtotime($factura['FECHA_EMISION'])) }}
+                        </td>
+
+                        <td>
+                            <div class="fw-semibold text-dark-blue">{{ $factura['PROCEDIMIENTO'] ?? 'Procedimiento Odontológico' }}</div>
+                            @if($esMenor)
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-xs fw-semibold mt-1">
+                                    <i class="fa-solid fa-child me-1"></i> Paciente: {{ $factura['NOMBRE_PACIENTE'] }}
+                                </span>
+                            @endif
+                        </td>
+
+                        <td class="fw-bold">
+                            ${{ number_format($total, 0, ',', '.') }}
+                        </td>
+
+                        <td class="text-success fw-bold">
+                            ${{ number_format($abonado, 0, ',', '.') }}
+                        </td>
+
+                        <td class="text-danger fw-bold">
+                            ${{ number_format($deuda, 0, ',', '.') }}
+                        </td>
+
+                        <td data-estado="{{ $estadoTexto }}" class="estado-col">
+                            <span class="badge {{ $badge }}">
+                                {{ $estadoTexto }}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="action-icons">
+                                @if($deuda > 0)
+                                    <a href="#" class="btn-pagar-paciente" 
+                                       data-id="{{ $factura['ID_FACTURA'] }}" 
+                                       data-pendiente="{{ $deuda }}" 
+                                       title="Pagar ahora">
+                                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                                    </a>
+                                @endif
+
+                                <a href="#" class="btn-ver-detalle" 
+                                   data-especialista="{{ $factura['NOMBRE_ODONTOLOGO'] ?? 'No asignado' }}" 
+                                   title="Ver detalles">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+
+                                <a href="#" class="btn-opciones-exportar" 
+                                   data-id="{{ $factura['ID_FACTURA'] }}" 
+                                   title="Descargar PDF">
+                                    <i class="fa-solid fa-print"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<!-- Modal Detalle Factura y Pago -->
-<div class="modal fade" id="modalVerFactura" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content rounded-4 border-0 shadow">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-dark-blue">Comprobante de Factura</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <span class="text-muted font-xs d-block">Número de Factura</span>
-                        <strong class="font-sm text-dark-blue" id="modal-fac-numero">--</strong>
-                    </div>
-                    <div class="col-md-6">
-                        <span class="text-muted font-xs d-block">Procedimiento</span>
-                        <strong class="font-sm text-dark-blue" id="modal-fac-procedimiento">--</strong>
-                    </div>
-                    <div class="col-md-4">
-                        <span class="text-muted font-xs d-block">Total Facturado</span>
-                        <strong class="font-sm text-primary" id="modal-fac-total">$0</strong>
-                    </div>
-                    <div class="col-md-4">
-                        <span class="text-muted font-xs d-block">Total Abonado</span>
-                        <strong class="font-sm text-success" id="modal-fac-abonado">$0</strong>
-                    </div>
-                    <div class="col-md-4">
-                        <span class="text-muted font-xs d-block">Saldo Pendiente</span>
-                        <strong class="font-sm text-danger" id="modal-fac-deuda">$0</strong>
-                    </div>
-                </div>
+<!-- Overlay para panel y modales -->
+<div id="overlay"></div>
 
-                <!-- Opciones de descarga -->
-                <div class="d-flex gap-2 pt-3 border-top">
-                    <a href="#" id="btn-modal-excel" class="btn btn-outline-success btn-sm font-sm"><i class="fa-solid fa-file-excel me-1"></i> Exportar Excel</a>
-                    <a href="#" id="btn-modal-print" target="_blank" class="btn btn-outline-secondary btn-sm font-sm"><i class="fa-solid fa-print me-1"></i> Imprimir Recibo</a>
-                </div>
+<!-- Panel Lateral de Detalle -->
+<div id="panel-detalle">
+    <div class="card border-0 p-4 sidebar-detail-card">
+        <h2 class="h5 fw-bold text-dark-blue mb-4 text-center">Actividad Financiera</h2>
+        
+        <div class="d-flex flex-column gap-3">
+            <div class="detail-item-box p-2 border rounded">
+                <span class="d-block text-muted font-xs fw-bold text-uppercase">Concepto y Descripción</span>
+                <span id="det-concepto" class="text-dark-blue font-sm fw-medium d-block mt-1">Selecciona un registro...</span>
+            </div>
+
+            <div class="detail-item-box p-2 border rounded">
+                <span class="d-block text-muted font-xs fw-bold text-uppercase">Fecha de cita Asociada</span>
+                <span id="det-fecha" class="text-dark-blue font-sm fw-medium d-block mt-1">--</span>
+            </div>
+
+            <div class="detail-item-box p-2 border rounded">
+                <span class="d-block text-muted font-xs fw-bold text-uppercase">Especialista Responsable</span>
+                <span id="det-especialista" class="text-dark-blue font-sm fw-medium d-block mt-1">--</span>
+            </div>
+
+            <div class="detail-item-box p-2 border rounded">
+                <span class="d-block text-muted font-xs fw-bold text-uppercase">Monto abonado</span>
+                <span id="det-abonado" class="text-dark-blue font-sm fw-semibold d-block mt-1">--</span>
+            </div>
+
+            <div class="detail-item-box p-2 border rounded">
+                <span class="d-block text-muted font-xs fw-bold text-uppercase">Costo Total del Procedimiento</span>
+                <span id="det-total" class="text-dark-blue font-sm fw-semibold d-block mt-1">--</span>
+            </div>
+
+            <div class="detail-item-box p-2 border rounded d-flex justify-content-between align-items-center">
+                <span class="text-muted font-xs fw-bold text-uppercase">Estado Actual</span>
+                <span id="det-estado" class="badge bg-secondary px-3 py-1 fs-7">--</span>
+            </div>
+
+            <div class="detail-item-box p-2 border rounded d-flex justify-content-between align-items-center mt-2 bg-light-gray">
+                <span class="text-muted font-xs fw-bold text-uppercase">Deuda Total</span>
+                <span id="det-deuda" class="text-dark-blue fw-bold font-sm">--</span>
+            </div>
+
+            <div class="mt-4 pt-3 border-top">
+                <button id="cerrar-detalle" class="btn btn-secondary w-100">Volver</button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Opciones de Exportación -->
+<div id="modal-exportar" class="p-4">
+    <div class="text-center mb-3">
+        <div class="bg-light d-inline-block p-3 rounded-circle mb-2">
+            <i class="fa-solid fa-print fs-3 text-primary"></i>
+        </div>
+        <h5 class="fw-bold text-dark-blue mb-1">Opciones de Exportación</h5>
+        <p class="text-muted small">¿Cómo deseas procesar este documento financiero?</p>
+    </div>
+    
+    <div class="d-grid gap-2">
+        <a id="btn-modal-pdf" href="#" class="btn btn-outline-danger d-flex align-items-center justify-content-center gap-2 py-2 fw-semibold">
+            <i class="fa-solid fa-file-pdf fs-5"></i> Descargar PDF
+        </a>
+        <a id="btn-modal-print" href="#" target="_blank" class="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 py-2 fw-semibold">
+            <i class="fa-solid fa-print fs-5"></i> Imprimir Recibo
+        </a>
+        <a id="btn-modal-excel" href="#" class="btn btn-outline-success d-flex align-items-center justify-content-center gap-2 py-2 fw-semibold">
+            <i class="fa-solid fa-file-excel fs-5"></i> Descargar Excel
+        </a>
+        <button id="cerrar-modal-exportar" class="btn btn-cerrar-panel mt-2">Cancelar</button>
+    </div>
+</div>
+
+<!-- Modal Pago / Abono -->
+<div id="modal-pago" class="p-4" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.25); width: 90%; max-width: 420px;">
+    <div class="text-center mb-3">
+        <div class="bg-light d-inline-block p-3 rounded-circle mb-2">
+            <i class="fa-solid fa-hand-holding-dollar fs-3 text-success"></i>
+        </div>
+        <h5 class="fw-bold text-dark-blue mb-1">Registrar Pago / Abono</h5>
+        <p class="text-muted small">Ingresa los detalles del pago de tu factura.</p>
+    </div>
+    
+    <form id="formPagoPaciente">
+        <input type="hidden" id="pagoFacturaId">
+        <input type="hidden" id="pagoPendienteMonto">
+        
+        <div class="mb-3">
+            <label class="form-label font-xs fw-bold text-muted">Deuda Pendiente</label>
+            <input type="text" id="pagoPendienteDisplay" class="form-control bg-light text-danger fw-bold" readonly>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label font-xs fw-bold text-muted">Método de Pago</label>
+            <select id="pagoMetodo" class="form-select" required>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Tarjeta">Tarjeta</option>
+            </select>
+        </div>
+        
+        <div class="mb-4">
+            <label class="form-label font-xs fw-bold text-muted">Monto a Pagar ($)</label>
+            <input type="number" id="pagoMonto" class="form-control fw-bold" required min="1">
+        </div>
+        
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success fw-bold py-2">Confirmar Pago</button>
+            <button type="button" id="cerrar-modal-pago" class="btn btn-outline-secondary py-2 mt-1">Cancelar</button>
+        </div>
+    </form>
+</div>
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/paciente/pagos.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
+<script src="{{ asset('js/paciente/pagos.js') }}?v={{ time() }}"></script>
 @endpush

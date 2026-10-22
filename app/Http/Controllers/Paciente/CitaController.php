@@ -11,34 +11,71 @@ use Illuminate\Support\Facades\DB;
 class CitaController extends Controller
 {
     /**
+     * Actualiza automáticamente las citas en estado Pendiente (1)
+     * cuya fecha_hora tenga más de 6 horas en el pasado al estado 'No asistió' (4).
+     */
+    public static function actualizarCitasVencidas()
+    {
+        try {
+            DB::table('cita')
+                ->where('ESTADO_CITA_ID', 1)
+                ->whereRaw('FECHA_HORA < DATE_SUB(NOW(), INTERVAL 6 HOUR)')
+                ->update([
+                    'ESTADO_CITA_ID' => 4 // No asistió
+                ]);
+        } catch (\Exception $e) {
+            // Silencioso en caso de bloqueo momentáneo
+        }
+    }
+
+    /**
      * Muestra la lista de citas del paciente
      */
     public function index()
     {
+        self::actualizarCitasVencidas();
+
         $idUsuario = Auth::id() ?? session('usuario_id');
         $paciente = DB::table('paciente')->where('USUARIOS_ID_USUARIOS', $idUsuario)->first();
-        $idPaciente = $paciente ? $paciente->ID_PACIENTE : null;
+        $idPacienteTitular = $paciente ? $paciente->ID_PACIENTE : null;
+
+        // Pacientes autorizados: el titular + menores a su cargo
+        $pacientesIds = [];
+        if ($idPacienteTitular) {
+            $pacientesIds[] = $idPacienteTitular;
+        }
+        $hijosIds = DB::table('paciente_has_acudiente')
+            ->where('USUARIOS_ID_ACUDIENTE', $idUsuario)
+            ->pluck('PACIENTE_ID_PACIENTE')
+            ->toArray();
+        $pacientesIds = array_unique(array_merge($pacientesIds, $hijosIds));
 
         $citas = [];
-        if ($idPaciente) {
+        if (!empty($pacientesIds)) {
+            $placeholders = implode(',', array_fill(0, count($pacientesIds), '?'));
             $citas = DB::select("
                 SELECT 
                     ID_CITA,
+                    PACIENTE_ID_PACIENTE,
+                    NOMBRE_PACIENTE,
+                    ODONTOLOGO_ID_ODONTOLOGO,
                     FECHA_HORA,
                     MOTIVO,
                     ESTADO_CITA_ID,
-                    ESTADO_CITA AS NOMBRE_ESTADO,
-                    NOMBRE_ODONTOLOGO AS DOCTOR_NOMBRE,
+                    ESTADO_CITA,
+                    NOMBRE_ODONTOLOGO,
                     NOMBRE_ESPECIALIDAD,
+                    NOMBRE_PROCEDIMIENTO,
+                    NOMBRE_CONSULTORIO,
                     FECHA_CANCELACION,
                     MOTIVO_CANCELACION,
                     OBSERVACIONES_DOCTOR,
                     RECOMENDACIONES,
                     FECHA_ATENCION
                 FROM vista_citas
-                WHERE PACIENTE_ID_PACIENTE = ?
+                WHERE PACIENTE_ID_PACIENTE IN ($placeholders)
                 ORDER BY FECHA_HORA DESC
-            ", [$idPaciente]);
+            ", $pacientesIds);
 
             $citas = json_decode(json_encode($citas), true);
         }
@@ -49,8 +86,44 @@ class CitaController extends Controller
     /**
      * Muestra la vista del formulario para pedir/agendar cita
      */
-    public function pedirCita()
+    public function pedirCita(Request $request)
     {
+        $idUsuario = Auth::id() ?? session('usuario_id');
+        $usuario = DB::table('usuarios')->where('ID_USUARIOS', $idUsuario)->first();
+        $pacienteTitular = DB::table('paciente')->where('USUARIOS_ID_USUARIOS', $idUsuario)->first();
+        $idPacienteTitular = $pacienteTitular ? $pacienteTitular->ID_PACIENTE : null;
+
+        // Lista de pacientes para los cuales puede agendar cita
+        $pacientesDisponibles = [];
+        if ($idPacienteTitular) {
+            $pacientesDisponibles[] = [
+                'id'     => $idPacienteTitular,
+                'nombre' => $usuario ? ($usuario->NOMBRES . ' ' . $usuario->APELLIDOS) : 'Titular',
+                'label'  => 'Para mí (' . ($usuario ? $usuario->NOMBRES : 'Titular') . ')',
+                'tipo'   => 'Titular'
+            ];
+        }
+
+        // Hijos / Menores vinculados en paciente_has_acudiente
+        $hijos = DB::table('paciente_has_acudiente as pha')
+            ->join('paciente as p', 'pha.PACIENTE_ID_PACIENTE', '=', 'p.ID_PACIENTE')
+            ->join('usuarios as u', 'p.USUARIOS_ID_USUARIOS', '=', 'u.ID_USUARIOS')
+            ->where('pha.USUARIOS_ID_ACUDIENTE', $idUsuario)
+            ->select('p.ID_PACIENTE', 'u.NOMBRES', 'u.APELLIDOS', 'pha.PARENTESCO', 'u.FECHA_NACIMIENTO')
+            ->get();
+
+        foreach ($hijos as $hijo) {
+            $edad = $hijo->FECHA_NACIMIENTO ? (\Carbon\Carbon::parse($hijo->FECHA_NACIMIENTO)->age . ' años') : 'Menor';
+            $pacientesDisponibles[] = [
+                'id'     => $hijo->ID_PACIENTE,
+                'nombre' => $hijo->NOMBRES . ' ' . $hijo->APELLIDOS,
+                'label'  => "{$hijo->PARENTESCO}: {$hijo->NOMBRES} {$hijo->APELLIDOS} ($edad)",
+                'tipo'   => $hijo->PARENTESCO
+            ];
+        }
+
+        $pacienteSeleccionadoId = (int) $request->query('paciente_id', $idPacienteTitular);
+
         // 1. Procedimientos activos
         $procedimientos = DB::table('procedimientos')
             ->where('ESTADO', 'Activo')
@@ -80,7 +153,7 @@ class CitaController extends Controller
 
         $horarios = json_decode(json_encode($horarios), true);
 
-        return view('paciente.citas.pedir', compact('procedimientos', 'horarios'));
+        return view('paciente.citas.pedir', compact('procedimientos', 'horarios', 'pacientesDisponibles', 'pacienteSeleccionadoId'));
     }
 
     /**
@@ -95,10 +168,24 @@ class CitaController extends Controller
 
         $idUsuario = Auth::id() ?? session('usuario_id');
         $paciente = DB::table('paciente')->where('USUARIOS_ID_USUARIOS', $idUsuario)->first();
-        $idPaciente = $paciente ? $paciente->ID_PACIENTE : session('paciente_id');
+        $idPacienteDefault = $paciente ? $paciente->ID_PACIENTE : session('paciente_id');
 
-        if (!$idProcedimiento || !$idHorario || !$idPaciente) {
-            return redirect()->route('paciente.citas.pedir')->with('mensaje_error', 'Por favor completa todos los datos.');
+        // Paciente destino: puede ser el titular o un menor vinculado
+        $idPaciente = (int) $request->input('paciente_id', $idPacienteDefault);
+
+        // Validar permisos de asignación
+        $esValido = false;
+        if ($idPaciente === $idPacienteDefault) {
+            $esValido = true;
+        } else {
+            $esValido = DB::table('paciente_has_acudiente')
+                ->where('PACIENTE_ID_PACIENTE', $idPaciente)
+                ->where('USUARIOS_ID_ACUDIENTE', $idUsuario)
+                ->exists();
+        }
+
+        if (!$idProcedimiento || !$idHorario || !$idPaciente || !$esValido) {
+            return redirect()->route('paciente.citas.pedir')->with('mensaje_error', 'Por favor selecciona un paciente válido y completa todos los datos.');
         }
 
         $horarioInfo = DB::table('horario_disponibilidad')->where('ID_HORARIO', $idHorario)->first();
@@ -142,10 +229,20 @@ class CitaController extends Controller
 
             DB::commit();
 
-            // Notificaciones
+            // Mensaje de notificación según si es para el titular o para su hijo
             $fecha_fmt = date('d/m/Y \a \l\a\s h:i A', strtotime($fechaHoraFormato));
-            $msgPaciente = "Tu cita médica ha sido agendada para el $fecha_fmt.";
-            $msgPersonal = "El paciente ha agendado una nueva cita médica para el $fecha_fmt. Procedimiento: $nombreProcedimiento";
+            if ($idPaciente === $idPacienteDefault) {
+                $msgPaciente = "Tu cita médica ha sido agendada para el $fecha_fmt.";
+                $msgPersonal = "El paciente " . (session('usuario_nome') ?? 'Titular') . " ha agendado una cita médica para el $fecha_fmt. Procedimiento: $nombreProcedimiento";
+            } else {
+                $menor = DB::table('paciente as p')
+                    ->join('usuarios as u', 'p.USUARIOS_ID_USUARIOS', '=', 'u.ID_USUARIOS')
+                    ->where('p.ID_PACIENTE', $idPaciente)
+                    ->first();
+                $nombreMenor = $menor ? ($menor->NOMBRES . ' ' . $menor->APELLIDOS) : 'menor a cargo';
+                $msgPaciente = "Has agendado la cita de $nombreMenor para el $fecha_fmt.";
+                $msgPersonal = "El acudiente " . (session('usuario_nome') ?? 'Paciente') . " agendó cita para el menor $nombreMenor para el $fecha_fmt. Procedimiento: $nombreProcedimiento";
+            }
 
             Notificador::enviarAUsuario($idUsuario, 1, $msgPaciente);
             Notificador::enviarAOdontologo($idOdontologo, 21, $msgPersonal);
@@ -191,6 +288,8 @@ class CitaController extends Controller
      */
     public function detalleAjax(Request $request)
     {
+        self::actualizarCitasVencidas();
+
         $idCita = intval($request->input('id_cita'));
 
         $detalle = DB::selectOne("
@@ -200,17 +299,17 @@ class CitaController extends Controller
                 FECHA_HORA,
                 MOTIVO,
                 ESTADO_CITA_ID,
-                ESTADO_CITA AS NOMBRE_ESTADO,
-                FECHA_CREACION AS CREADA_EL,
+                ESTADO_CITA,
+                FECHA_CREACION,
                 FECHA_CANCELACION,
                 MOTIVO_CANCELACION,
                 OBSERVACIONES_DOCTOR,
                 RECOMENDACIONES,
                 FECHA_ATENCION,
-                ODONTOLOGO_ID_ODONTOLOGO AS ID_ODONTOLOGO,
-                NOMBRE_ODONTOLOGO AS DOCTOR_NOMBRE,
+                ODONTOLOGO_ID_ODONTOLOGO,
+                NOMBRE_ODONTOLOGO,
                 NOMBRE_ESPECIALIDAD,
-                NOMBRE_CONSULTORIO AS CONSULTORIO_NOMBRE,
+                NOMBRE_CONSULTORIO,
                 NOMBRE_PROCEDIMIENTO
             FROM vista_citas
             WHERE ID_CITA = ?
@@ -221,6 +320,17 @@ class CitaController extends Controller
         }
 
         $res = (array) $detalle;
+        $res['CREADA_EL']          = $res['FECHA_CREACION'] ?? null;
+        $res['NOMBRE_DOCTOR']      = $res['NOMBRE_ODONTOLOGO'] ?? '';
+        $res['DOCTOR_NOMBRE']      = $res['NOMBRE_ODONTOLOGO'] ?? '';
+        $res['ID_ODONTOLOGO']      = $res['ODONTOLOGO_ID_ODONTOLOGO'] ?? null;
+        $res['ESPECIALIDAD']       = !empty($res['NOMBRE_ESPECIALIDAD']) ? $res['NOMBRE_ESPECIALIDAD'] : 'General';
+        $res['CONSULTORIO']        = $res['NOMBRE_CONSULTORIO'] ?? '';
+        $res['CONSULTORIO_NOMBRE'] = $res['NOMBRE_CONSULTORIO'] ?? '';
+        $res['ESTADO']             = $res['ESTADO_CITA'] ?? 'Pendiente';
+        $res['NOMBRE_ESTADO']      = $res['ESTADO_CITA'] ?? 'Pendiente';
+        $res['LISTA_TRATAMIENTOS'] = !empty($res['NOMBRE_PROCEDIMIENTO']) ? $res['NOMBRE_PROCEDIMIENTO'] : (!empty($res['MOTIVO']) ? $res['MOTIVO'] : 'No se registraron procedimientos');
+
         if (!empty($res['FECHA_HORA'])) {
             $ts = strtotime($res['FECHA_HORA']);
             $res['SOLO_FECHA'] = date('d/m/Y', $ts);
@@ -236,20 +346,42 @@ class CitaController extends Controller
             $res['FECHA_ATENCION_FORMATO'] = date('d/m/Y - h:i A', strtotime($res['FECHA_ATENCION']));
         }
 
-        // Historial / Bitácora
-        $historialRaw = DB::select("
-            SELECT * FROM historial_reprogramacion_citas
-            WHERE CITA_ID_CITA = ?
-            ORDER BY CREADO_EL DESC
-        ", [$idCita]);
+        $res['DIENTES_TRATADOS'] = 'General / No especificado';
+        try {
+            $dientes = DB::table('historia_clinica as hc')
+                ->join('historia_clinica_has_procedimientos as hcp', 'hc.ID_HISTORIA_CLINICA', '=', 'hcp.HISTORIA_CLINICA_ID_HISTORIA_CLINICA')
+                ->where('hc.CITA_ID_CITA', $idCita)
+                ->whereNotNull('hcp.DIENTE')
+                ->pluck('hcp.DIENTE')
+                ->toArray();
+            if (!empty($dientes)) {
+                $res['DIENTES_TRATADOS'] = 'Pieza(s): ' . implode(', ', array_unique($dientes));
+            }
+        } catch (\Exception $e) {
+            // Silencioso
+        }
+
+        // Historial / Bitácora de reprogramaciones
+        $historialRaw = [];
+        try {
+            $historialRaw = DB::select("
+                SELECT * FROM historial_reprogramacion_citas
+                WHERE CITA_ID_CITA = ?
+                ORDER BY CREADO_EL DESC
+            ", [$idCita]);
+        } catch (\Exception $e) {
+            $historialRaw = [];
+        }
 
         $historialFormateado = [];
         foreach ($historialRaw as $hist) {
             $h = (array) $hist;
+            $h['ACCION']             = $h['ACCION'] ?? 'REPROGRAMACION';
             $h['FECHA_ANTERIOR_FMT'] = !empty($h['FECHA_HORA_ANTERIOR']) ? date('d/m/Y - h:i A', strtotime($h['FECHA_HORA_ANTERIOR'])) : '--';
             $h['FECHA_NUEVA_FMT']    = !empty($h['FECHA_HORA_NUEVA']) ? date('d/m/Y - h:i A', strtotime($h['FECHA_HORA_NUEVA'])) : '--';
             $h['REGISTRO_FMT']       = !empty($h['CREADO_EL']) ? date('d/m/Y - h:i A', strtotime($h['CREADO_EL'])) : '--';
-            $historialFormateado[] = $h;
+            $h['MOTIVO']             = $h['MOTIVO_CAMBIO'] ?? ($h['MOTIVO'] ?? 'Reprogramación solicitada');
+            $historialFormateado[]   = $h;
         }
         $res['HISTORIAL'] = $historialFormateado;
 

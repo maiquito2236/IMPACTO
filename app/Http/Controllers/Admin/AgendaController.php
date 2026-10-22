@@ -60,6 +60,7 @@ class AgendaController extends Controller
     // --- MÉTODOS DE BASE DE DATOS ---
 
     private function listarCitas($inicio, $fin) {
+        \App\Http\Controllers\Paciente\CitaController::actualizarCitasVencidas();
         $where = ''; $params = [];
         if ($inicio && $fin) { $where = "WHERE FECHA BETWEEN ? AND ?"; $params = [$inicio, $fin]; }
         $sql = "SELECT 

@@ -148,8 +148,8 @@ class ConsultorioController extends Controller
             DB::table('odontologo')->where('ID_ODONTOLOGO', $odontologoId)->update(['CONSULTORIO_ID_CONSULTORIO' => $consultorioId]);
             DB::table('consultorio')->where('ID_CONSULTORIO', $consultorioId)->update(['ESTADO' => 'ASIGNADO']);
             DB::table('historial_asignacion_consultorio')->insert([
-                'CONSULTORIO_ID' => $consultorioId,
-                'ODONTOLOGO_ID' => $odontologoId,
+                'CONSULTORIO_ID_CONSULTORIO' => $consultorioId,
+                'ODONTOLOGO_ID_ODONTOLOGO' => $odontologoId,
                 'FECHA_ASIGNACION' => now()
             ]);
 
@@ -175,8 +175,8 @@ class ConsultorioController extends Controller
             DB::table('odontologo')->where('ID_ODONTOLOGO', $odontologoId)->update(['CONSULTORIO_ID_CONSULTORIO' => null]);
             DB::table('consultorio')->where('ID_CONSULTORIO', $consultorioId)->update(['ESTADO' => 'DISPONIBLE']);
             DB::table('historial_asignacion_consultorio')
-                ->where('CONSULTORIO_ID', $consultorioId)
-                ->where('ODONTOLOGO_ID', $odontologoId)
+                ->where('CONSULTORIO_ID_CONSULTORIO', $consultorioId)
+                ->where('ODONTOLOGO_ID_ODONTOLOGO', $odontologoId)
                 ->whereNull('FECHA_DESASIGNACION')
                 ->update(['FECHA_DESASIGNACION' => now(), 'MOTIVO_CAMBIO' => $motivo]);
 

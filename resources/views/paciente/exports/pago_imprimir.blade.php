@@ -4,11 +4,18 @@
     <meta charset="UTF-8">
     <title>Comprobante de Factura</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 14px; margin: 30px; color: #1e293b; }
+        @page {
+            size: auto;
+            margin: 0mm;
+        }
+        body { font-family: Arial, sans-serif; font-size: 14px; padding: 35px 30px; margin: 0; color: #1e293b; background: #fff; }
         .header { text-align: center; border-bottom: 2px solid #0F62FE; padding-bottom: 15px; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         td, th { padding: 8px 12px; border: 1px solid #cbd5e1; }
         th { background: #f8fafc; text-align: left; }
+        @media print {
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body onload="window.print()">

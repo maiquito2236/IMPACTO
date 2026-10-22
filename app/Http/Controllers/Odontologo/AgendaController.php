@@ -60,6 +60,7 @@ class AgendaController extends Controller
 
     public function obtenerCitas(Request $request)
     {
+        \App\Http\Controllers\Paciente\CitaController::actualizarCitasVencidas();
         $inicio = $request->query('inicio');
         $fin = $request->query('fin');
         $idOdontologo = $this->getOdontologoId();
