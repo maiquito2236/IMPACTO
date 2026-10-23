@@ -20,12 +20,12 @@
         Planes de Tratamiento
     </h2>
 
-    <div class="patient-banner-container">
-        <div class="patient-banner-left">
+    <div class="patient-banner-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div class="patient-banner-left" style="display: flex; align-items: center; gap: 16px;">
             <div class="patient-avatar-wrapper">
-                <div class="patient-avatar-initials" id="avatarInitials">
+                <div class="patient-avatar-initials" id="avatarInitials" style="background-color: {{ !empty($id_paciente) ? '#1a56db' : '#94a3b8' }};">
                     @php 
-                        if (!empty($paciente_nombre) && $paciente_nombre !== 'Seleccione Paciente') {
+                        if (!empty($paciente_nombre) && $paciente_nombre !== 'Ningún paciente seleccionado' && $paciente_nombre !== 'Seleccione Paciente') {
                             $partes = explode(' ', trim($paciente_nombre));
                             echo strtoupper(isset($partes[1]) ? $partes[0][0].$partes[1][0] : substr($partes[0], 0, 2));
                         } else {
@@ -36,22 +36,43 @@
             </div>
             
             <div class="patient-info-text">
-                <h3 class="patient-name-title" id="bannerPatientName">
+                <h3 class="patient-name-title" id="bannerPatientName" style="color: {{ !empty($id_paciente) ? '#0f172a' : '#64748b' }};">
                     {{ $paciente_nombre }}
                 </h3>
                 <p class="patient-meta-sub" id="bannerPatientMeta">
                     @if (!empty($id_paciente))
                         <strong>Doc:</strong> {{ $documento ?: 'N/A' }} &bull; 
-                        <strong>Motivo:</strong> {{ $tratamiento_motivo ?: 'Consulta' }}
+                        <strong>Motivo:</strong> {{ $tratamiento_motivo ?: 'Plan de tratamiento general' }}
+                        @if (!empty($id_cita))
+                            &bull; <span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">Cita #{{ $id_cita }}</span>
+                        @endif
                     @else
-                        Seleccione un paciente de la lista lateral o use la agenda.
+                        <span style="color: #64748b;">Seleccione una cita desde su Agenda o elija un paciente para iniciar su atención.</span>
                     @endif
                 </p>
             </div>
         </div>
-        <div class="actions-container" style="margin-top: 20px; text-align: right;">
-            <button type="button" class="btn-success-action" id="btn-guardar-enviar-historial" style="background-color: #2bc48a; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                 Guardar y enviar a historial clínico
+        
+        <div class="actions-container" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="min-width: 240px;">
+                <select id="select-paciente-cambio" class="form-control" style="padding: 9px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; width: 100%; background: #ffffff; cursor: pointer;" onchange="if(this.value) window.location.href='/odontologo/planes?paciente_id='+this.value">
+                    <option value="">-- Seleccionar Paciente --</option>
+                    @if(isset($lista_pacientes))
+                        @foreach($lista_pacientes as $pac)
+                            <option value="{{ $pac->ID_PACIENTE }}" {{ (!empty($id_paciente) && $id_paciente == $pac->ID_PACIENTE) ? 'selected' : '' }}>
+                                {{ $pac->NOMBRE_COMPLETO }} (Doc: {{ $pac->NUMERO_DOCUMENTO }})
+                            </option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+
+            <a href="{{ url('/odontologo/agenda') }}" class="btn-primary" style="background-color: #1a56db; color: white; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-calendar-days"></i> Ver Agenda
+            </a>
+
+            <button type="button" class="btn-success-action" id="btn-guardar-enviar-historial" style="background-color: {{ !empty($id_paciente) ? '#2bc48a' : '#94a3b8' }}; color: white; padding: 10px 18px; border: none; border-radius: 6px; font-weight: bold; cursor: {{ !empty($id_paciente) ? 'pointer' : 'not-allowed' }}; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+                 <i class="fa-solid fa-floppy-disk"></i> Guardar y enviar a historial clínico
             </button>
         </div>
     </div>

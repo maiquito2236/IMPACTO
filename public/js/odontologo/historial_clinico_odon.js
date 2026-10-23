@@ -326,12 +326,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 .then(data => {
                     if (data.status === 'success') {
                         // Redirigir a tratamientos
-                        window.location.href = 'index.php?action=odontologo/tratamientos';
+                        window.location.href = '/odontologo/tratamientos';
                     } else {
                         alert(data.message || 'Ocurrió un error al procesar la solicitud.');
                         btnGuardarEnviar.innerHTML = originalText;
                         btnGuardarEnviar.disabled = false;
-                        window.location.href = 'index.php?action=odontologo/tratamientos'; // redirigir igual si se guardó pero falló correo
+                        window.location.href = '/odontologo/tratamientos'; // redirigir igual si se guardó pero falló correo
                     }
                 })
                 .catch(err => {

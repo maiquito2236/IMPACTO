@@ -183,10 +183,10 @@ class AuthController extends Controller
             DB::commit();
 
             // Notificar al Administrador
-            Notificador::enviarAAdmin(13, "El paciente $nombres $apellidos se ha registrado en la plataforma.");
+            Notificador::enviarAAdmin(18, "El paciente $nombres $apellidos se ha registrado en la plataforma.");
 
             // Notificar al Paciente
-            Notificador::enviarAUsuario($idUsuario, 7, "¡Bienvenido/a $nombres a Sonríe Dental! Ya puedes agendar tus citas desde el portal.");
+            Notificador::enviarAUsuario($idUsuario, 16, "¡Bienvenido/a $nombres a Sonríe Dental! Ya puedes agendar tus citas desde el portal.");
 
             return redirect()->route('login')->with('ALERTA_EXITO', 'Usuario registrado exitosamente. Ya puede iniciar sesión.');
 

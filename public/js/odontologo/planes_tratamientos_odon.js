@@ -51,6 +51,17 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             e.stopPropagation();
 
+            const pacienteId = patientIdInput ? patientIdInput.value.trim() : '';
+            if (!pacienteId || pacienteId === "" || pacienteId === "0") {
+                Swal.fire({
+                    title: 'Sin paciente seleccionado',
+                    text: 'Para registrar piezas en el odontograma, primero seleccione un paciente en el menú superior o inicie una cita desde la Agenda.',
+                    icon: 'info',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
             currentTooth = tooth;
             const toothNumber = tooth.textContent.trim();
 
@@ -156,6 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
             const pacienteId = patientIdInput ? patientIdInput.value.trim() : '';
             const fecha = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
 
+            if (!pacienteId || pacienteId === "" || pacienteId === "0") {
+                Swal.fire('Atención', 'Debe seleccionar un paciente o una cita desde la Agenda para registrar tratamientos.', 'warning');
+                return;
+            }
+
             if (Object.keys(tratamientosEnMemoria).length === 0) {
                 Swal.fire('Odontograma Vacío', 'Selecciona al menos una pieza y asígnale un procedimiento.', 'info');
                 return;
@@ -219,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Enviamos múltiples peticiones si hay varios procedimientos distintos
                     const promesasFetch = arrayPeticiones.map(payload => 
-                        fetch('//odontologo/procedimientos/guardarMasivo', {
+                        fetch('/odontologo/procedimientos/guardarMasivo', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
@@ -232,7 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (errores.length === 0) {
                             Swal.fire('¡Éxito!', 'Historial clínico actualizado correctamente.', 'success').then(() => {
                                 const citaIdParam = (citaIdInput && citaIdInput.value) ? `&cita_id=${citaIdInput.value}` : '';
-                                window.location.href = `index.php?action=odontologo/historial-clinico&paciente_id=${pacienteId}${citaIdParam}`; 
+                                window.location.href = `/odontologo/historial-clinico?paciente_id=${pacienteId}${citaIdParam}`; 
                             });
                         } else {
                             Swal.fire('Error', 'Algunos procedimientos no se guardaron correctamente.', 'error');
@@ -268,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* ==========================================================================
        5. CONSUMIR EL CATÁLOGO DE PROCEDIMIENTOS CLÍNICOS
        ========================================================================== */
-    fetch('//odontologo/agenda/obtener_lista_procedimientos')
+    fetch('/odontologo/agenda/obtener_lista_procedimientos')
         .then(res => {
             if (!res.ok) throw new Error("Código de respuesta del servidor: " + res.status);
             return res.json();

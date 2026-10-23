@@ -28,62 +28,49 @@ class PlanTratamientoController extends Controller
         $id_cita = (int) $request->query('id_cita', 0);
         $paciente_id_param = (int) $request->query('paciente_id', 0);
 
-        $paciente_nombre = "Seleccione Paciente";
+        $paciente_nombre = "Ningún paciente seleccionado";
         $id_paciente = "";
         $documento = "";
-        $tratamiento_motivo = "Ninguno asignado";
+        $tratamiento_motivo = "";
         $procedimientos_paciente = [];
         $total_presupuesto = 0.00;
 
         if ($id_cita > 0) {
-            $detalleCita = DB::selectOne("
-                SELECT 
-                    ID_CITA AS id_cita, 
-                    DOC_PACIENTE AS documento, 
-                    PACIENTE_ID_PACIENTE AS id_paciente,
-                    NOMBRE_PACIENTE AS paciente,
-                    TRIM(MOTIVO) AS tratamiento  
-                FROM vista_citas
-                WHERE ID_CITA = ?
-            ", [$id_cita]);
+            $detalleCita = DB::table('vista_citas')
+                ->where('ID_CITA', $id_cita)
+                ->first();
 
             if ($detalleCita) {
-                $id_paciente        = $detalleCita->id_paciente;
-                $paciente_nombre    = $detalleCita->paciente;
-                $documento          = $detalleCita->documento;
-                $tratamiento_motivo = $detalleCita->tratamiento ?: 'Consulta';
+                $id_paciente        = $detalleCita->PACIENTE_ID_PACIENTE;
+                $paciente_nombre    = $detalleCita->NOMBRE_PACIENTE;
+                $documento          = $detalleCita->DOC_PACIENTE;
+                $tratamiento_motivo = trim($detalleCita->MOTIVO) ?: 'Consulta';
             }
         } elseif ($paciente_id_param > 0) {
-            $pac = DB::selectOne("
-                SELECT ID_PACIENTE as id_paciente, NUMERO_DOCUMENTO as documento, NOMBRE_COMPLETO as paciente
-                FROM vista_pacientes WHERE ID_PACIENTE = ?
-            ", [$paciente_id_param]);
+            $pac = DB::table('vista_pacientes')
+                ->where('ID_PACIENTE', $paciente_id_param)
+                ->first();
             if ($pac) {
-                $id_paciente = $pac->id_paciente;
-                $paciente_nombre = $pac->paciente;
-                $documento = $pac->documento;
-            }
-        } else {
-            // Cargar el primer paciente disponible para facilitar la vista
-            $primerPac = DB::selectOne("
-                SELECT ID_PACIENTE as id_paciente, NUMERO_DOCUMENTO as documento, NOMBRE_COMPLETO as paciente
-                FROM vista_pacientes LIMIT 1
-            ");
-            if ($primerPac) {
-                $id_paciente = $primerPac->id_paciente;
-                $paciente_nombre = $primerPac->paciente;
-                $documento = $primerPac->documento;
+                $id_paciente = $pac->ID_PACIENTE;
+                $paciente_nombre = $pac->NOMBRE_COMPLETO;
+                $documento = $pac->NUMERO_DOCUMENTO;
+                $tratamiento_motivo = 'Plan de tratamiento general';
             }
         }
+
+        $lista_pacientes = DB::table('vista_pacientes')
+            ->select('ID_PACIENTE', 'NUMERO_DOCUMENTO', 'NOMBRE_COMPLETO')
+            ->orderBy('NOMBRE_COMPLETO', 'asc')
+            ->get();
 
         if (!empty($id_paciente)) {
             $odontologo_id = $this->getOdontologoId();
 
             $sqlHist = "
                 SELECT 
-                    HISTORIA_CLINICA_ID_HISTORIA_CLINICA AS ID_HISTORIA_CLINICA,
+                    HISTORIA_CLINICA_ID_HISTORIA_CLINICA,
                     FECHA_REGISTRO,
-                    PROCEDIMIENTOS_ID_PROCEDIMIENTO AS ID_PROCEDIMIENTO,
+                    PROCEDIMIENTOS_ID_PROCEDIMIENTO,
                     NOMBRE_PROCEDIMIENTO,
                     IF(TIEMPO_ESTIMADO_PROCEDIMIENTO > 40, 'EVOLUCION_FASES', 'SESION_UNICA') AS TIPO_SEGUIMIENTO,
                     PRECIO_APLICADO,
@@ -113,7 +100,8 @@ class PlanTratamientoController extends Controller
             'documento',
             'tratamiento_motivo',
             'procedimientos_paciente',
-            'total_presupuesto'
+            'total_presupuesto',
+            'lista_pacientes'
         ));
     }
 

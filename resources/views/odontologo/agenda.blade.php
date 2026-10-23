@@ -43,7 +43,7 @@
                     </div>
                 @endfor
 
-                @for ($hora = 5; $hora <= 20; $hora++)
+                @for ($hora = 6; $hora <= 22; $hora++)
                     <div class="time-cell">{{ $hora }}:00</div>
 
                     @for ($i = 0; $i < 5; $i++)
@@ -127,9 +127,14 @@
             </div>
         </div>
 
-        <div class="modal-footer">
-            <a href="#" class="btn-cancel-modal">Cancelar</a>
-            <a href="#" class="btn-confirm-reprogram" id="btn-confirm-reprogramar">Confirmar Reprogramación</a>
+        <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <button type="button" class="btn-action-submit" id="btn-iniciar-desde-reprogramar" style="background-color: #2bc48a; color: white; border: none; padding: 9px 16px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-tooth"></i> Iniciar y Ver Odontograma
+            </button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <a href="#" class="btn-cancel-modal">Cancelar</a>
+                <a href="#" class="btn-confirm-reprogram" id="btn-confirm-reprogramar">Confirmar Reprogramación</a>
+            </div>
         </div>
     </div>
 </div>

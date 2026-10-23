@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Mes en JS es 0-11, MySQL es 1-12
             const mesReal = selectedMonth + 1;
-            const response = await fetch(`/odontologo/agenda/obtener_citas_mes&mes=${mesReal}&anio=${selectedYear}`);
+            const response = await fetch(`/odontologo/agenda/obtener_citas_mes?mes=${mesReal}&anio=${selectedYear}`);
             const citas = await response.json();
             const citasPorDia = {};
 
@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let datosBD = null;
 
             try {
-                const respuesta = await fetch(`/odontologo/agenda/obtener_detalle_cita&id=${idCita}`);
+                const respuesta = await fetch(`/odontologo/agenda/obtener_detalle_cita?id=${idCita}`);
                 if (respuesta.ok) {
                     const contentType = respuesta.headers.get("content-type");
                     if (contentType && contentType.includes("application/json")) {
@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = "Cargando horarios..."; 
 
         try {
-            const url = `/odontologo/agenda/obtener_horas_ocupadas&fecha=${fechaSeleccionada}`;
+            const url = `/odontologo/agenda/obtener_horas_ocupadas?fecha=${fechaSeleccionada}`;
             const response = await fetch(url);
             const horasOcupadas = await response.json();
             const todasLasHoras = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
@@ -681,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const docInput = document.getElementById("modal-nuevo-documento") || document.getElementById("docInput");
             if (!docInput) return;
             const doc = docInput.value;
-            const res = await fetch(`/odontologo/agenda/buscar_paciente&doc=${doc}`);
+            const res = await fetch(`/odontologo/agenda/buscar_paciente?doc=${doc}`);
             const data = await res.json();
             
             if (data.encontrado) {
@@ -701,14 +701,32 @@ document.addEventListener('DOMContentLoaded', () => {
         btnIniciar.addEventListener('click', (e) => {
             e.preventDefault();
             const idCita = document.getElementById("idCitaOculto")?.value;
-            if (idCita) { window.location.href = `index.php?action=odontologo/planes&id_cita=${idCita}`; } 
-            else { alert("Error: No se pudo identificar la cita."); }
+            const idPaciente = document.getElementById("idPacienteHidden")?.value;
+            if (idCita) { 
+                window.location.href = `/odontologo/planes?id_cita=${idCita}`; 
+            } else if (idPaciente) {
+                window.location.href = `/odontologo/planes?paciente_id=${idPaciente}`;
+            } else { 
+                Swal.fire("Atención", "No se pudo identificar la cita.", "warning"); 
+            }
+        });
+    }
+
+    const btnIniciarDesdeReprog = document.getElementById('btn-iniciar-desde-reprogramar');
+    if (btnIniciarDesdeReprog) {
+        btnIniciarDesdeReprog.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentAppointmentId) {
+                window.location.href = `/odontologo/planes?id_cita=${currentAppointmentId}`;
+            } else {
+                Swal.fire("Atención", "No se pudo identificar la cita seleccionada.", "warning");
+            }
         });
     }
 
     async function fetchCancelInfo(id_cita) {
         try {
-            const res = await fetch(`/odontologo/agenda/obtener_info_cancelacion&id=${id_cita}`);
+            const res = await fetch(`/odontologo/agenda/obtener_info_cancelacion?id=${id_cita}`);
             const data = await res.json();
             if(data && data.status !== 'error') {
                 Swal.fire({
