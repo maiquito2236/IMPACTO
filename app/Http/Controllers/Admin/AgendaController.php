@@ -49,6 +49,12 @@ class AgendaController extends Controller
                     $this->reprogramarCita($request->id_cita, $request->nueva_fecha, $request->nueva_hora, $request->motivo);
                     return response()->json(['status' => 'success']);
                 
+                case 'carga_masiva':
+                    return $this->cargaMasiva($request);
+
+                case 'descargar_plantilla':
+                    return $this->descargarPlantillaCsv();
+                
                 default:
                     return response()->json(['status' => 'error', 'message' => 'Operación no válida'], 400);
             }
@@ -255,6 +261,94 @@ class AgendaController extends Controller
             'FECHA_HORA' => $fecha_hora,
             'ESTADO_CITA_ID' => 1,
             'MOTIVO' => DB::raw("CONCAT(MOTIVO, ' | Reprogramada: $motivo')")
+        ]);
+    }
+
+    public function cargaMasiva(Request $request)
+    {
+        if ($request->has('descargar_plantilla')) {
+            return $this->descargarPlantillaCsv();
+        }
+
+        if ($request->hasFile('archivo_csv')) {
+            $file = fopen($request->file('archivo_csv')->getRealPath(), 'r');
+            $line = fgets($file);
+            $separator = (strpos($line, ';') !== false) ? ';' : ',';
+            rewind($file);
+            $header = fgetcsv($file, 0, $separator);
+            $successCount = 0; $errorCount = 0; $erroresDetalle = [];
+
+            while (($row = fgetcsv($file, 0, $separator)) !== false) {
+                if (count($row) == 1 && empty(trim($row[0]))) continue;
+                if (count($row) < 4) { $errorCount++; continue; }
+                $docPaciente = trim($row[0]);
+                if (strtoupper($docPaciente) === 'DOCUMENTO_PACIENTE') continue;
+
+                $docOdontologo = trim($row[1]);
+                $fechaHora = trim($row[2]);
+                $motivo = trim($row[3]);
+                $estadoId = isset($row[4]) && trim($row[4]) !== '' ? (int)trim($row[4]) : 1;
+
+                try {
+                    $pac = DB::selectOne("
+                        SELECT p.ID_PACIENTE 
+                        FROM paciente p 
+                        JOIN usuarios u ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS 
+                        WHERE u.NUMERO_DOCUMENTO = ?
+                    ", [$docPaciente]);
+
+                    if (!$pac) {
+                        throw new Exception("Paciente con documento $docPaciente no encontrado.");
+                    }
+
+                    $odo = DB::selectOne("
+                        SELECT o.ID_ODONTOLOGO 
+                        FROM odontologo o 
+                        JOIN usuarios u ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS 
+                        WHERE u.NUMERO_DOCUMENTO = ?
+                    ", [$docOdontologo]);
+
+                    if (!$odo) {
+                        throw new Exception("Odontólogo con documento $docOdontologo no encontrado.");
+                    }
+
+                    DB::table('cita')->insert([
+                        'PACIENTE_ID_PACIENTE'     => $pac->ID_PACIENTE,
+                        'ODONTOLOGO_ID_ODONTOLOGO' => $odo->ID_ODONTOLOGO,
+                        'FECHA_HORA'               => $fechaHora,
+                        'FECHA_ATENCION'           => $fechaHora,
+                        'MOTIVO'                   => $motivo,
+                        'ESTADO_CITA_ID'           => $estadoId,
+                        'FECHA_CREACION'           => now()
+                    ]);
+                    $successCount++;
+                } catch (Exception $e) {
+                    $errorCount++;
+                    $erroresDetalle[] = "Cita doc $docPaciente: " . $e->getMessage();
+                }
+            }
+            fclose($file);
+            return response()->json([
+                'success'        => true,
+                'successCount'   => $successCount,
+                'errorCount'     => $errorCount,
+                'erroresDetalle' => $erroresDetalle
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No se subió ningún archivo'], 400);
+    }
+
+    public function descargarPlantillaCsv()
+    {
+        return response()->streamDownload(function() {
+            $output = fopen('php://output', 'w');
+            fputs($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['DOCUMENTO_PACIENTE', 'DOCUMENTO_ODONTOLOGO', 'FECHA_HORA', 'MOTIVO', 'ESTADO_CITA_ID']);
+            fputcsv($output, ['1001001001', '1002003001', date('Y-m-d 09:00:00'), 'Consulta general', '1']);
+            fclose($output);
+        }, 'plantilla_citas.csv', [
+            'Content-Type' => 'text/csv; charset=utf-8'
         ]);
     }
 }

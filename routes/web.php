@@ -111,9 +111,12 @@ Route::post('/procesarRegistro', [AuthController::class, 'procesarRegistro']);
 Route::get('/recuperar', [AuthController::class, 'mostrarRecuperar'])->name('recuperar');
 Route::post('/recuperar', [AuthController::class, 'procesarRecuperar'])->name('recuperar.post');
 Route::post('/procesarRecuperar', [AuthController::class, 'procesarRecuperar']);
+Route::get('/restablecer', [AuthController::class, 'mostrarRecuperar'])->name('restablecer');
+Route::post('/procesarRestablecer', [AuthController::class, 'procesarRecuperar'])->name('restablecer.post');
 
 // Cierre de sesión (destruye sesión y redirige limpiamente)
 Route::any('/salir', [AuthController::class, 'salir'])->name('logout');
+Route::any('/salirAdmin', [AuthController::class, 'salir'])->name('logout.admin');
 Route::any('/logout', [AuthController::class, 'salir']);
 
 // Router inteligente según rol
@@ -152,6 +155,7 @@ Route::middleware(['ruta_segura:3'])->group(function () {
     Route::post('/paciente/pagos/guardar', [PacPago::class, 'guardarPago']);
     Route::get('/paciente/pagos/exportar-excel', [PacPago::class, 'exportarExcel']);
     Route::get('/paciente/pagos/imprimir', [PacPago::class, 'imprimir']);
+    Route::get('/verFactura', [PacPago::class, 'imprimir']);
 
     // 6. Perfil y Familiares / Menores a Cargo
     Route::get('/paciente/perfil', [PacPerfil::class, 'index'])->name('paciente.perfil');
@@ -193,16 +197,24 @@ Route::middleware(['ruta_segura:1,4'])->group(function () {
     Route::get('/admin/inicio', [AdminDashboard::class, 'index']);
     Route::get('/admin/agenda', [AdminAgenda::class, 'index']);
     Route::any('/api_agenda/{op}', [AdminAgenda::class, 'api']);
+    Route::post('/admin/agenda/carga_masiva', [AdminAgenda::class, 'cargaMasiva']);
+    Route::get('/admin/agenda/plantilla', [AdminAgenda::class, 'descargarPlantillaCsv']);
 
     Route::get('/admin/usuarios', [AdminGestionUsuario::class, 'index']);
     Route::redirect('/admin/gestion_usuario', '/admin/usuarios');
     Route::any('/api_gestion_usuario', [AdminGestionUsuario::class, 'api']);
+    Route::post('/admin/gestion_usuario/carga_masiva', [AdminGestionUsuario::class, 'cargaMasiva']);
+    Route::get('/admin/gestion_usuario/plantilla', [AdminGestionUsuario::class, 'descargarPlantillaCsv']);
+    Route::post('/admin/usuarios/carga_masiva', [AdminGestionUsuario::class, 'cargaMasiva']);
+    Route::get('/admin/usuarios/plantilla', [AdminGestionUsuario::class, 'descargarPlantillaCsv']);
 
     Route::get('/admin/consultorios', [AdminConsultorio::class, 'index']);
     Route::any('/api_consultorios/{op}', [AdminConsultorio::class, 'api']);
 
     Route::get('/admin/horarios', [AdminHorario::class, 'index']);
     Route::any('/api_horarios/{op}', [AdminHorario::class, 'api']);
+    Route::post('/admin/horarios/carga_masiva', [AdminHorario::class, 'cargaMasiva']);
+    Route::get('/admin/horarios/plantilla', [AdminHorario::class, 'descargarPlantillaCsv']);
 
     Route::get('/admin/facturacion', [AdminFacturacion::class, 'index']);
     Route::any('/api_facturacion/{sub}/{op}', [AdminFacturacion::class, 'apiSub']);
@@ -280,11 +292,15 @@ Route::prefix('LOGIN_ORIGINAL')->group(function () {
     Route::post('/procesarRegistro', [AuthController::class, 'procesarRegistro']);
     Route::get('/recuperar', [AuthController::class, 'mostrarRecuperar']);
     Route::post('/procesarRecuperar', [AuthController::class, 'procesarRecuperar']);
+    Route::get('/restablecer', [AuthController::class, 'mostrarRecuperar']);
+    Route::post('/procesarRestablecer', [AuthController::class, 'procesarRecuperar']);
     Route::get('/dashboard', [AuthController::class, 'mostrarDashboard'])->middleware('ruta_segura');
     Route::any('/salir', [AuthController::class, 'salir']);
+    Route::any('/salirAdmin', [AuthController::class, 'salir']);
 
     // Rutas protegidas de paciente con prefijo
     Route::middleware(['ruta_segura:3'])->group(function () {
+        Route::get('/verFactura', [PacPago::class, 'imprimir']);
         Route::get('/mis_citas', [PacCita::class, 'index']);
         Route::get('/pedir_cita', [PacCita::class, 'pedirCita']);
         Route::post('/guardar_cita', [PacCita::class, 'guardarCita']);

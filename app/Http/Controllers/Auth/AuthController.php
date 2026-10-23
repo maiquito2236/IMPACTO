@@ -200,8 +200,28 @@ class AuthController extends Controller
     /**
      * Muestra la vista de recuperar contraseña
      */
-    public function mostrarRecuperar()
+    public function mostrarRecuperar(Request $request)
     {
+        $token = $request->query('token');
+        if ($token) {
+            $usuario = DB::table('usuarios')
+                ->where('TOKEN_RECUPERACION', $token)
+                ->where('TOKEN_EXPIRACION', '>=', now())
+                ->first();
+
+            if ($usuario) {
+                session([
+                    'recuperar_token_valido' => $token,
+                    'recuperar_correo'       => $usuario->CORREO,
+                    'recuperar_fase'         => 'cambiar'
+                ]);
+                return view('auth.recuperar')->with('SUCCESS', 'Código de recuperación validado correctamente. Ingresa tu nueva contraseña.');
+            } else {
+                session(['recuperar_fase' => 'solicitar']);
+                return view('auth.recuperar')->with('ERROR', 'El enlace o token de recuperación es inválido o ha expirado.');
+            }
+        }
+
         session(['recuperar_fase' => 'solicitar']);
         session()->forget(['recuperar_correo', 'recuperar_token_valido']);
         return view('auth.recuperar');

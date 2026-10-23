@@ -35,6 +35,10 @@ class GestionUsuarioController extends Controller
                     return $this->actualizarRol($request);
                 case 'eliminar':
                     return $this->eliminar($request);
+                case 'carga_masiva':
+                    return $this->cargaMasiva($request);
+                case 'descargar_plantilla':
+                    return $this->descargarPlantillaCsv();
                 default:
                     throw new Exception("Operación no reconocida: '$op'.");
             }
@@ -234,5 +238,125 @@ class GestionUsuarioController extends Controller
 
         DB::table('usuarios')->where('ID_USUARIOS', $id)->update(['ESTADO' => 'Inactivo']);
         return response()->json(['ok' => true, 'mensaje' => 'Usuario desactivado correctamente.']);
+    }
+
+    public function cargaMasiva(Request $request)
+    {
+        if ($request->has('descargar_plantilla')) {
+            return $this->descargarPlantillaCsv();
+        }
+
+        if ($request->hasFile('archivo_csv')) {
+            $file = fopen($request->file('archivo_csv')->getRealPath(), 'r');
+            $line = fgets($file);
+            $separator = (strpos($line, ';') !== false) ? ';' : ',';
+            rewind($file);
+            $header = fgetcsv($file, 0, $separator);
+
+            $successCount = 0; $errorCount = 0; $erroresDetalle = [];
+            while (($row = fgetcsv($file, 0, $separator)) !== false) {
+                if (count($row) == 1 && empty(trim($row[0]))) continue;
+                if (count($row) < 8) { $errorCount++; continue; }
+                $numDoc = trim($row[3]);
+                if (strtoupper($numDoc) === 'NUMERO_DOCUMENTO') continue;
+
+                $dataUsuario = [
+                    'nombres'          => trim($row[0]),
+                    'apellidos'        => trim($row[1]),
+                    'tipo_documento'   => trim($row[2]),
+                    'numero_documento' => $numDoc,
+                    'telefono'         => trim($row[4]),
+                    'correo'           => trim($row[5]),
+                    'genero'           => trim($row[6]),
+                    'estado'           => 'Activo',
+                    'rol'              => strtoupper(trim($row[7])) === 'ODONTOLOGO' ? 2 : 3
+                ];
+
+                try {
+                    $this->registrarUsuarioMasivo(
+                        $dataUsuario,
+                        isset($row[8]) ? trim($row[8]) : null,
+                        isset($row[9]) ? trim($row[9]) : null
+                    );
+                    $successCount++;
+                } catch (Exception $e) {
+                    $errorCount++;
+                    $erroresDetalle[] = "Documento $numDoc: " . $e->getMessage();
+                }
+            }
+            fclose($file);
+            return response()->json([
+                'success'        => true,
+                'successCount'   => $successCount,
+                'errorCount'     => $errorCount,
+                'erroresDetalle' => $erroresDetalle
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No se subió ningún archivo'], 400);
+    }
+
+    public function descargarPlantillaCsv()
+    {
+        return response()->streamDownload(function() {
+            $output = fopen('php://output', 'w');
+            fputs($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['NOMBRES', 'APELLIDOS', 'TIPO_DOCUMENTO', 'NUMERO_DOCUMENTO', 'TELEFONO', 'CORREO', 'GENERO', 'ROL', 'ESPECIALIDAD_ID_SI_ES_ODONTOLOGO', 'EPS_ID_SI_ES_PACIENTE']);
+            fputcsv($output, ['Juan', 'Perez', 'C.C', '123456789', '3001234567', 'juan@example.com', 'MASCULINO', 'PACIENTE', '', '1']);
+            fputcsv($output, ['Maria', 'Gomez', 'C.E', '987654321', '3009876543', 'maria@example.com', 'FEMENINO', 'ODONTOLOGO', '1', '']);
+            fclose($output);
+        }, 'plantilla_usuarios.csv', [
+            'Content-Type' => 'text/csv; charset=utf-8'
+        ]);
+    }
+
+    private function registrarUsuarioMasivo($dataUsuario, $especialidades = null, $epsId = null)
+    {
+        $numDoc = $dataUsuario['numero_documento'];
+        $existe = DB::table('usuarios')->where('NUMERO_DOCUMENTO', $numDoc)->first();
+        if ($existe) {
+            throw new Exception("El usuario con documento $numDoc ya está registrado.");
+        }
+
+        DB::beginTransaction();
+        try {
+            $id = DB::table('usuarios')->insertGetId([
+                'NOMBRES'          => $dataUsuario['nombres'],
+                'APELLIDOS'        => $dataUsuario['apellidos'],
+                'TIPO_DOCUMENTO'   => $dataUsuario['tipo_documento'] ?: 'C.C',
+                'NUMERO_DOCUMENTO' => $numDoc,
+                'TELEFONO'         => $dataUsuario['telefono'] ?: null,
+                'CORREO'           => $dataUsuario['correo'],
+                'GENERO'           => $dataUsuario['genero'] ?: 'MASCULINO',
+                'CONTRASEÑA'       => Hash::make($numDoc),
+                'ESTADO'           => $dataUsuario['estado'] ?: 'Activo',
+                'ROLES_ID_ROLES'   => $dataUsuario['rol']
+            ]);
+
+            if ($dataUsuario['rol'] == 2) {
+                $espId = (int)($especialidades ?: 1);
+                $odoId = DB::table('odontologo')->insertGetId([
+                    'USUARIOS_ID_USUARIOS'         => $id,
+                    'ESPECIALIDAD_ID_ESPECIALIDAD' => $espId,
+                    'CONSULTORIO_ID_CONSULTORIO'   => null
+                ]);
+
+                DB::table('odontologo_has_especialidad')->insert([
+                    'ODONTOLOGO_ID_ODONTOLOGO'    => $odoId,
+                    'ESPECIALIDAD_ID_ESPECIALIDAD' => $espId
+                ]);
+            } elseif ($dataUsuario['rol'] == 3) {
+                DB::table('paciente')->insert([
+                    'USUARIOS_ID_USUARIOS' => $id,
+                    'EPS_ID_EPS'           => (int)($epsId ?: 1)
+                ]);
+            }
+
+            DB::commit();
+            return true;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 }
