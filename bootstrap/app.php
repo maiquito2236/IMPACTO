@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->validateCsrfTokens(except: [
+            // Chatbot Landing
+            'chatbot/*',
+            'chatbot/mensaje',
+
             // Admin
             'api_gestion_usuario',
             'api_agenda/*',

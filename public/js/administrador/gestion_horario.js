@@ -16,17 +16,17 @@ async function cargarDatosIniciales() {
     try {
         const response = await fetch('/api_horarios/listar');
         const json = await response.json();
-        
-        window.odontologosDB = json.data || []; 
+
+        window.odontologosDB = json.data || [];
         window.listaOdontologos = json.listaOdontologos || [];
-        
-        poblarSelectOdontologos(); 
+
+        poblarSelectOdontologos();
         configurarEventosModal();
-        
-        renderCalendarioPrincipal(); 
+
+        renderCalendarioPrincipal();
 
         if (document.getElementById('calendar-selector-container')) {
-            renderCalendarSelector(); 
+            renderCalendarSelector();
         }
 
         renderTabla();
@@ -42,7 +42,7 @@ window.tsOdontologo = null;
 function poblarSelectOdontologos() {
     const selectNuevo = document.getElementById('odontologo_id');
     const plantillaHtml = '<option value="">Seleccionar odontólogo...</option>';
-    
+
     if (selectNuevo) {
         if (window.tsOdontologo) {
             window.tsOdontologo.destroy();
@@ -61,7 +61,7 @@ function poblarSelectOdontologos() {
         });
     }
 
-    if(document.getElementById('kpi-odontologos-activos')) {
+    if (document.getElementById('kpi-odontologos-activos')) {
         document.getElementById('kpi-odontologos-activos').textContent = window.listaOdontologos.length;
     }
 }
@@ -82,9 +82,9 @@ function buscarOdontologo(texto) {
 // ── RENDERIZAR TABLA ──────────
 function renderTabla() {
     const tbody = document.getElementById('tabla-body');
-    if (!tbody) return; 
-    tbody.innerHTML = ''; 
-    
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
     const datosFiltrados = obtenerDatosMesActual().filter(o => {
         const estaActivo = o.ESTADO !== 'Inactivo';
         const nombreCompleto = `${o.NOMBRES} ${o.APELLIDOS}`.toLowerCase();
@@ -102,12 +102,12 @@ function renderTabla() {
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">No se encontraron resultados.</td></tr>';
         return;
     }
-    
+
     datosFiltrados.forEach(o => {
         const tr = document.createElement('tr');
         const rangoHorario = `${o.HORA_INICIO.substring(0, 5)} - ${o.HORA_FIN.substring(0, 5)}`;
         const consultorio = o.CONSULTORIO || 'Sin asignar';
-        
+
         tr.innerHTML = `
             <td><div class="doc-cell"><span class="doc-name"><strong>${o.NOMBRES} ${o.APELLIDOS}</strong></span></div></td>
             <td>${o.NOMBRE_PROCEDIMIENTO || 'Sin procedimiento'}</td>
@@ -141,7 +141,7 @@ function renderCalendarioPrincipal() {
     const today = new Date();
 
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    if(textoMes) textoMes.textContent = `${monthNames[month]} ${year}`;
+    if (textoMes) textoMes.textContent = `${monthNames[month]} ${year}`;
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -175,7 +175,7 @@ function renderCalendarioPrincipal() {
     for (let i = 0; i < celdasFaltantes; i++) {
         html += `<div class="cal-mes-celda cal-mes-celda--vacia"></div>`;
     }
-    
+
     container.innerHTML = html;
     actualizarKPIsMes();
 }
@@ -196,7 +196,7 @@ function limpiarFormularioHorario() {
     const form = document.getElementById('formHorario');
     if (form) form.reset();
     if (window.tsOdontologo) window.tsOdontologo.clear(true);
-    
+
     const inputId = document.getElementById('id_horario');
     const inputFecha = document.getElementById('fecha_horario');
     const titulo = document.getElementById('modal-horario-titulo');
@@ -206,7 +206,7 @@ function limpiarFormularioHorario() {
     if (inputFecha) inputFecha.value = '';
     if (titulo) titulo.textContent = 'Nuevo Horario';
     if (btnGuardar) btnGuardar.textContent = 'Guardar Horario';
-    
+
     const grupoDescanso = document.getElementById('grupo-descanso');
     if (grupoDescanso) {
         grupoDescanso.style.display = 'none';
@@ -247,7 +247,7 @@ function editarHorario(idHorario) {
     const o = window.odontologosDB.find(x => x.ID_HORARIO == idHorario);
     if (!o) return;
 
-    const titulo = document.getElementById('modal-horario-titulo'); 
+    const titulo = document.getElementById('modal-horario-titulo');
     const btnGuardar = document.getElementById('btn-guardar-horario');
     if (titulo) titulo.textContent = 'Editar Horario';
     if (btnGuardar) btnGuardar.textContent = 'Actualizar Horario';
@@ -261,7 +261,7 @@ function editarHorario(idHorario) {
     if (jornadaDB === 'Día Completo' || jornadaDB === 'Jornada completa') {
         jornadaDB = 'Jornada Completa';
     }
-    
+
     document.getElementById('jornada').value = jornadaDB;
     document.getElementById('consultorio').value = o.CONSULTORIO || '';
 
@@ -283,7 +283,7 @@ function editarHorario(idHorario) {
         fechaSeleccionada = new Date(anio, mes - 1, dia);
         currentViewDate = new Date(anio, mes - 1, dia);
         document.getElementById("fecha_horario").value = o.FECHA;
-        renderCalendarSelector(); 
+        renderCalendarSelector();
     }
 
     document.getElementById('modal-nuevo-horario').classList.add('active');
@@ -293,7 +293,7 @@ async function guardarHorario() {
     const formData = new FormData();
     formData.append('id_horario', document.getElementById('id_horario').value);
     formData.append('odontologo_id', document.getElementById('odontologo_id').value);
-    formData.append('fecha', document.getElementById('fecha_horario').value); 
+    formData.append('fecha', document.getElementById('fecha_horario').value);
     formData.append('jornada', document.getElementById('jornada').value);
     formData.append('consultorio', document.getElementById('consultorio').value);
     formData.append('hora_inicio', document.getElementById('hora_inicio').value);
@@ -304,7 +304,7 @@ async function guardarHorario() {
 
     try {
         const response = await fetch('/api_horarios/guardar', { method: 'POST', body: formData });
-        const data = await response.json(); 
+        const data = await response.json();
 
         if (data.status === "success") {
             cerrarModal('nuevo-horario');
@@ -358,7 +358,7 @@ async function eliminarHorario(idHorario) {
 
         if (res.status === 'success') {
             await cargarDatosIniciales();
-            
+
             Swal.fire({
                 icon: 'success',
                 title: 'Eliminado',
@@ -391,7 +391,7 @@ function exportarDatos() {
         showToast('No hay datos para exportar en el mes seleccionado');
         return;
     }
-        
+
     const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const mesTexto = monthNames[fechaCalendarioPrincipal.getMonth()];
     const anio = fechaCalendarioPrincipal.getFullYear();
@@ -438,7 +438,7 @@ function exportarDatos() {
     a.href = URL.createObjectURL(blob);
     a.download = `Reporte_Horarios_${mesTexto}_${anio}.xls`;
     a.click();
-    
+
     showToast('✅ Exportando reporte en Excel...');
 }
 
@@ -465,31 +465,31 @@ function renderCalendarSelector() {
     if (!container) return;
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
-    const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const hoy = new Date();
-    
+
     let html = `<div class="selector-header"><button type="button" onclick="cambiarMesSelector(-1)">◀</button><span>${monthNames[month]} ${year}</span><button type="button" onclick="cambiarMesSelector(1)">▶</button></div><div class="selector-grid"><div class="day-name">Do</div><div class="day-name">Lu</div><div class="day-name">Ma</div><div class="day-name">Mi</div><div class="day-name">Ju</div><div class="day-name">Vi</div><div class="day-name">Sa</div>`;
-    
-    for(let i=0; i<firstDay; i++) html += `<div class="day empty"></div>`;
-    
-    for(let day=1; day<=daysInMonth; day++){
-        let clases="day";
-        if(day===hoy.getDate() && month===hoy.getMonth() && year===hoy.getFullYear()) clases+=" today";
-        if(fechaSeleccionada && fechaSeleccionada.getDate()===day && fechaSeleccionada.getMonth()===month && fechaSeleccionada.getFullYear()===year) clases+=" selected";
+
+    for (let i = 0; i < firstDay; i++) html += `<div class="day empty"></div>`;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        let clases = "day";
+        if (day === hoy.getDate() && month === hoy.getMonth() && year === hoy.getFullYear()) clases += " today";
+        if (fechaSeleccionada && fechaSeleccionada.getDate() === day && fechaSeleccionada.getMonth() === month && fechaSeleccionada.getFullYear() === year) clases += " selected";
         html += `<div class="${clases}" onclick="seleccionarFecha(${day})">${day}</div>`;
     }
-    
+
     html += `</div>`;
     container.innerHTML = html;
 }
 
-function seleccionarFecha(day){
+function seleccionarFecha(day) {
     const year = currentViewDate.getFullYear();
     const month = currentViewDate.getMonth();
-    fechaSeleccionada = new Date(year,month,day);
-    document.getElementById("fecha_horario").value = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    fechaSeleccionada = new Date(year, month, day);
+    document.getElementById("fecha_horario").value = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     renderCalendarSelector();
 }
 
@@ -539,7 +539,7 @@ function mostrarDetalleDia(fecha) {
     const horarios = window.odontologosDB.filter(h => h.FECHA === fecha && h.ESTADO !== "Inactivo");
     document.getElementById("detalle-dia-fecha").textContent = "Detalles para horarios del dia " + fecha;
     const body = document.getElementById("detalle-dia-body");
-    body.innerHTML = ""; 
+    body.innerHTML = "";
 
     if (horarios.length === 0) {
         body.innerHTML = `<div class="sin-registros"><i class="fa-solid fa-calendar-xmark"></i><p>No existen horarios registrados para este día.</p></div>`;
@@ -561,7 +561,7 @@ function mostrarDetalleDia(fecha) {
                     </div>
                     <div><b>Consultorio</b><br>${h.CONSULTORIO || "Sin asignar"}</div>
                     <div><b>Jornada</b><br>${h.JORNADA}</div>
-                    <div><b>Horario</b><br>${h.HORA_INICIO.substring(0,5)} - ${h.HORA_FIN.substring(0,5)}</div>
+                    <div><b>Horario</b><br>${h.HORA_INICIO.substring(0, 5)} - ${h.HORA_FIN.substring(0, 5)}</div>
                 </div>
             </div>`;
         });
@@ -585,7 +585,7 @@ function actualizarKPIsMes() {
 
     if (document.getElementById('kpi-horarios-total')) {
         document.getElementById('kpi-horarios-total').textContent = datosMes.length;
-        if(document.getElementById('kpi-turnos-disponibles')) {
+        if (document.getElementById('kpi-turnos-disponibles')) {
             document.getElementById('kpi-turnos-disponibles').textContent = datosMes.filter(h => h.ESTADO.toLowerCase() === 'disponible').length;
         }
         if (document.getElementById('kpi-turnos-ocupados')) {

@@ -18,11 +18,74 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* ==========================================================================
+       SELECTOR MODO ODONTOGRAMA (ADULTO 32 / INFANTIL 20)
+       ========================================================================== */
+    const btnOdoAdulto = document.getElementById("btn-odo-adulto");
+    const btnOdoInfantil = document.getElementById("btn-odo-infantil");
+    const visAdulto = document.getElementById("visualizer-adulto");
+    const visInfantil = document.getElementById("visualizer-infantil");
+    const headerTitle = document.getElementById("odontograma-header-title");
+    const esInfantilDefault = document.getElementById("esInfantilDefault");
+
+    function switchOdontogramaMode(mode) {
+        if (mode === 'infantil') {
+            if (visAdulto) visAdulto.style.display = 'none';
+            if (visInfantil) visInfantil.style.display = 'flex';
+            if (headerTitle) headerTitle.textContent = 'Odontograma Clínico (Infantil)';
+            if (btnOdoAdulto) {
+                btnOdoAdulto.style.background = 'transparent';
+                btnOdoAdulto.style.color = '#64748b';
+                btnOdoAdulto.classList.remove('active');
+            }
+            if (btnOdoInfantil) {
+                btnOdoInfantil.style.background = '#1a56db';
+                btnOdoInfantil.style.color = '#ffffff';
+                btnOdoInfantil.classList.add('active');
+            }
+        } else {
+            if (visAdulto) visAdulto.style.display = 'flex';
+            if (visInfantil) visInfantil.style.display = 'none';
+            if (headerTitle) headerTitle.textContent = 'Odontograma Clínico (Adulto)';
+            if (btnOdoAdulto) {
+                btnOdoAdulto.style.background = '#1a56db';
+                btnOdoAdulto.style.color = '#ffffff';
+                btnOdoAdulto.classList.add('active');
+            }
+            if (btnOdoInfantil) {
+                btnOdoInfantil.style.background = 'transparent';
+                btnOdoInfantil.style.color = '#64748b';
+                btnOdoInfantil.classList.remove('active');
+            }
+        }
+    }
+
+    if (btnOdoAdulto) {
+        btnOdoAdulto.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchOdontogramaMode('adulto');
+        });
+    }
+
+    if (btnOdoInfantil) {
+        btnOdoInfantil.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchOdontogramaMode('infantil');
+        });
+    }
+
+    if (esInfantilDefault && esInfantilDefault.value === '1') {
+        switchOdontogramaMode('infantil');
+    } else {
+        switchOdontogramaMode('adulto');
+    }
+
+    /* ==========================================================================
        1. CARGA INICIAL DESDE LA BASE DE DATOS (HISTORIAL PASADO -> VERDES)
        ========================================================================== */
     function cargarOdontogramaPacienteActual() {
         const pacienteId = patientIdInput ? patientIdInput.value.trim() : '';
-        teeth.forEach(t => t.classList.remove("active-tooth", "saved-tooth"));
+        const allTeeth = document.querySelectorAll(".tooth-select");
+        allTeeth.forEach(t => t.classList.remove("active-tooth", "saved-tooth"));
 
         if (!pacienteId || pacienteId === "" || pacienteId === "0") return;
 
@@ -30,9 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .then(res => res.json())
             .then(tratamientosGuardados => {
                 if (Array.isArray(tratamientosGuardados)) {
-                    teeth.forEach(t => {
+                    allTeeth.forEach(t => {
                         const numeroPieza = t.textContent.trim();
-                        if (tratamientosGuardados.includes(numeroPieza)) {
+                        if (tratamientosGuardados.includes(numeroPieza) || tratamientosGuardados.includes(parseInt(numeroPieza))) {
                             t.classList.add("saved-tooth"); 
                         }
                     });
@@ -278,6 +341,62 @@ document.addEventListener("DOMContentLoaded", () => {
                 modal.style.display = "none";
                 modal.classList.remove("active");
             }
+        });
+    }
+
+    /* ==========================================================================
+       4.1 BOTÓN REINICIAR / LIMPIAR SELECCIÓN DEL ODONTOGRAMA
+       ========================================================================== */
+    const btnResetTeeth = document.getElementById("resetTeeth");
+    if (btnResetTeeth) {
+        btnResetTeeth.addEventListener("click", (e) => {
+            e.preventDefault();
+
+            if (Object.keys(tratamientosEnMemoria).length === 0) {
+                teeth.forEach(t => t.classList.remove("active-tooth"));
+                cargarOdontogramaPacienteActual();
+                Swal.fire({
+                    title: 'Odontograma al día',
+                    text: 'No tienes piezas seleccionadas en borrador para limpiar.',
+                    icon: 'info',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Reiniciar selección?',
+                text: 'Se limpiarán las piezas dentales seleccionadas en el borrador actual.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, reiniciar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    tratamientosEnMemoria = {};
+                    ultimosProcedimientosIds = [];
+                    currentTooth = null;
+
+                    teeth.forEach(t => t.classList.remove("active-tooth"));
+                    cargarOdontogramaPacienteActual();
+                    renderizarBorradoresEnTabla();
+
+                    Swal.fire({
+                        title: 'Selección reiniciada',
+                        text: 'Se limpió la selección. Ya puedes volver a seleccionar las piezas dentales deseadas.',
+                        icon: 'success',
+                        timer: 1800,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+                }
+            });
         });
     }
 

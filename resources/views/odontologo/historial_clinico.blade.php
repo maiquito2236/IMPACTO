@@ -18,6 +18,7 @@
     @else
 
     <input type="hidden" id="pacienteIdHidden" value="{{ $pacienteIdReal }}">
+    <input type="hidden" id="esInfantilHidden" value="{{ !empty($es_infantil) ? '1' : '0' }}">
     
     <!-- ENCABEZADO OCULTO (Solo visible en PDF e Impresión) -->
     <div id="print-header" style="display: none; text-align: center; margin-bottom: 30px; border-bottom: 3px solid #3b82f6; padding-bottom: 15px;">
@@ -60,12 +61,26 @@
     </div>
 
     <section class="dashboard-block odontogram-section">
-        <div class="block-header">
-            <h3>2D odontograma adulto</h3>
-            <a href="/odontologo/agenda" class="link-view-all">Ver agenda completa</a>
+        <div class="block-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <h3 id="odontograma-title" style="margin: 0;">2D odontograma {{ !empty($es_infantil) ? 'infantil' : 'adulto' }}</h3>
+                
+                <!-- SELECTOR TIPO ODONTOGRAMA HC -->
+                <div class="odontogram-type-selector no-print" style="display: inline-flex; background: #e2e8f0; padding: 3px; border-radius: 8px; gap: 3px;">
+                    <button type="button" id="btn-hc-adulto" class="btn-hc-toggle {{ empty($es_infantil) ? 'active' : '' }}" style="border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: {{ empty($es_infantil) ? '#3b82f6' : 'transparent' }}; color: {{ empty($es_infantil) ? '#ffffff' : '#475569' }};">
+                        <i class="fa-solid fa-user"></i> Adulto (32)
+                    </button>
+                    <button type="button" id="btn-hc-infantil" class="btn-hc-toggle {{ !empty($es_infantil) ? 'active' : '' }}" style="border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: {{ !empty($es_infantil) ? '#3b82f6' : 'transparent' }}; color: {{ !empty($es_infantil) ? '#ffffff' : '#475569' }};">
+                        <i class="fa-solid fa-child"></i> Infantil (20)
+                    </button>
+                </div>
+            </div>
+
+            <a href="/odontologo/agenda" class="link-view-all no-print">Ver agenda completa</a>
         </div>
 
-        <div class="odontogram-graphic">
+        <!-- ODONTOGRAMA ADULTO -->
+        <div class="odontogram-graphic" id="hc-graphic-adulto" style="display: {{ empty($es_infantil) ? 'flex' : 'none' }};">
             <div class="teeth-row superior">
                 @foreach([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] as $num)
                     <div class="tooth-item" data-tooth-number="{{ $num }}">
@@ -79,6 +94,27 @@
                 @foreach([17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32] as $num)
                     <div class="tooth-item" data-tooth-number="{{ $num }}">
                         <div class="tooth-shape premolar" id="shape-{{ $num }}"></div>
+                        <span class="tooth-number">{{ $num }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- ODONTOGRAMA INFANTIL (1-10 Superior, 11-20 Inferior) -->
+        <div class="odontogram-graphic" id="hc-graphic-infantil" style="display: {{ !empty($es_infantil) ? 'flex' : 'none' }};">
+            <div class="teeth-row superior">
+                @foreach([1,2,3,4,5,6,7,8,9,10] as $num)
+                    <div class="tooth-item" data-tooth-number="{{ $num }}">
+                        <span class="tooth-number">{{ $num }}</span>
+                        <div class="tooth-shape premolar" id="shape-ped-{{ $num }}"></div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="teeth-row inferior">
+                @foreach([11,12,13,14,15,16,17,18,19,20] as $num)
+                    <div class="tooth-item" data-tooth-number="{{ $num }}">
+                        <div class="tooth-shape premolar" id="shape-ped-{{ $num }}"></div>
                         <span class="tooth-number">{{ $num }}</span>
                     </div>
                 @endforeach

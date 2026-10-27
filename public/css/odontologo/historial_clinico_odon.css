@@ -720,3 +720,14 @@ body.pdf-mode .odontogram-section {
     overflow: visible !important; 
     overflow-x: visible !important; 
 }
+
+/* Ocultar elementos marcados como no-print en PDF e Impresión */
+body.pdf-mode .no-print {
+    display: none !important;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}

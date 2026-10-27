@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\Notificador;
 
 class PagoController extends Controller
 {
@@ -98,6 +99,8 @@ class PagoController extends Controller
         }
 
         try {
+            DB::beginTransaction();
+
             DB::table('pago')->insert([
                 'FACTURA_ID_FACTURA' => $idFactura,
                 'MONTO'              => $monto,
@@ -106,8 +109,58 @@ class PagoController extends Controller
                 'ESTADO'             => 'PAGADO'
             ]);
 
+            // Obtener información de la factura
+            $factura = DB::table('vista_facturacion')->where('ID_FACTURA', $idFactura)->first();
+            $totalFactura = (float) ($factura ? $factura->TOTAL : 0);
+            $totalPagado = (float) DB::table('pago')
+                ->where('FACTURA_ID_FACTURA', $idFactura)
+                ->where('ESTADO', 'PAGADO')
+                ->sum('MONTO');
+            $saldoRestante = max(0, $totalFactura - $totalPagado);
+            $esPagoTotal = ($totalPagado >= $totalFactura && $totalFactura > 0);
+
+            if ($esPagoTotal) {
+                DB::table('factura')->where('ID_FACTURA', $idFactura)->update(['ESTADO' => 'PAGADA']);
+            }
+
+            $montoFmt = '$' . number_format($monto, 0, ',', '.');
+            $saldoFmt = '$' . number_format($saldoRestante, 0, ',', '.');
+            $nombrePaciente = $factura ? $factura->NOMBRE_PACIENTE : 'Un paciente';
+            $procedimiento = $factura ? ($factura->PROCEDIMIENTO ?? 'Tratamiento Odontológico') : 'Tratamiento Odontológico';
+
+            if ($esPagoTotal) {
+                // Notificar Administrador (Tipo 23: PAGO RECIBIDO)
+                Notificador::enviarAAdmin(23, "El paciente {$nombrePaciente} canceló la totalidad de la factura #{$idFactura} con un pago de {$montoFmt} ({$procedimiento}).");
+
+                // Notificar Paciente (Tipo 5: CONFIRMACION DEL PAGO)
+                if ($factura && $factura->ID_USUARIO_PACIENTE) {
+                    Notificador::enviarAUsuario($factura->ID_USUARIO_PACIENTE, 5, "Hemos recibido tu pago total de {$montoFmt} para la factura #{$idFactura} ({$procedimiento}). ¡Tu deuda ha sido saldada!");
+                }
+
+                // Notificar Odontólogo (Tipo 24: PAGO REGISTRADO)
+                if ($factura && $factura->ID_ODONTOLOGO) {
+                    Notificador::enviarAOdontologo($factura->ID_ODONTOLOGO, 24, "El paciente {$nombrePaciente} canceló la totalidad de la factura #{$idFactura} ({$montoFmt}) para {$procedimiento}.");
+                }
+            } else {
+                // Notificar Administrador (Tipo 20: ABONO)
+                Notificador::enviarAAdmin(20, "El paciente {$nombrePaciente} realizó un abono de {$montoFmt} a la factura #{$idFactura} ({$procedimiento}). Saldo restante: {$saldoFmt}.");
+
+                // Notificar Paciente (Tipo 19: ABONO)
+                if ($factura && $factura->ID_USUARIO_PACIENTE) {
+                    Notificador::enviarAUsuario($factura->ID_USUARIO_PACIENTE, 19, "Hemos recibido tu abono de {$montoFmt} para la factura #{$idFactura} ({$procedimiento}). Saldo restante: {$saldoFmt}. ¡Gracias!");
+                }
+
+                // Notificar Odontólogo (Tipo 25: ABONO REGISTRADO)
+                if ($factura && $factura->ID_ODONTOLOGO) {
+                    Notificador::enviarAOdontologo($factura->ID_ODONTOLOGO, 25, "El paciente {$nombrePaciente} realizó un abono de {$montoFmt} a la factura #{$idFactura} ({$procedimiento}).");
+                }
+            }
+
+            DB::commit();
+
             return response()->json(['status' => 'success', 'success' => true, 'message' => 'Abono registrado con éxito.']);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json(['status' => 'error', 'success' => false, 'message' => 'Error al registrar el pago: ' . $e->getMessage()]);
         }
     }

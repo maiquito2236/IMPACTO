@@ -208,6 +208,14 @@ class AgendaController extends Controller
             FROM procedimientos 
             WHERE UPPER(ESTADO) = 'ACTIVO' OR ESTADO = '1'
         ");
+
+        $procedimientos = array_map(function ($p) {
+            if (isset($p->NOMBRE_PROCEDIMIENTO) && strpos($p->NOMBRE_PROCEDIMIENTO, 'Ã') !== false) {
+                $p->NOMBRE_PROCEDIMIENTO = mb_convert_encoding($p->NOMBRE_PROCEDIMIENTO, 'ISO-8859-1', 'UTF-8');
+            }
+            return $p;
+        }, $procedimientos);
+
         return response()->json($procedimientos);
     }
 

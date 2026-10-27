@@ -58,10 +58,41 @@ class PlanTratamientoController extends Controller
             }
         }
 
+        $es_infantil = false;
+        $edad_paciente = null;
+        if (!empty($id_paciente)) {
+            $pacInfo = DB::table('vista_pacientes')->where('ID_PACIENTE', $id_paciente)->first();
+            if ($pacInfo) {
+                if (!empty($pacInfo->FECHA_NACIMIENTO)) {
+                    $edad_paciente = \Carbon\Carbon::parse($pacInfo->FECHA_NACIMIENTO)->age;
+                    if ($edad_paciente < 12) {
+                        $es_infantil = true;
+                    }
+                } elseif (($pacInfo->TIPO_DOCUMENTO ?? '') === 'R.C') {
+                    $es_infantil = true;
+                }
+            }
+        }
+
         $lista_pacientes = DB::table('vista_pacientes')
-            ->select('ID_PACIENTE', 'NUMERO_DOCUMENTO', 'NOMBRE_COMPLETO')
+            ->select('ID_PACIENTE', 'NUMERO_DOCUMENTO', 'NOMBRE_COMPLETO', 'TIPO_DOCUMENTO', 'FECHA_NACIMIENTO')
             ->orderBy('NOMBRE_COMPLETO', 'asc')
-            ->get();
+            ->get()
+            ->map(function($p) {
+                $esInf = false;
+                $edad = null;
+                if (!empty($p->FECHA_NACIMIENTO)) {
+                    $edad = \Carbon\Carbon::parse($p->FECHA_NACIMIENTO)->age;
+                    if ($edad < 12) {
+                        $esInf = true;
+                    }
+                } elseif (($p->TIPO_DOCUMENTO ?? '') === 'R.C') {
+                    $esInf = true;
+                }
+                $p->es_infantil = $esInf;
+                $p->edad = $edad;
+                return $p;
+            });
 
         if (!empty($id_paciente)) {
             $odontologo_id = $this->getOdontologoId();
@@ -93,6 +124,27 @@ class PlanTratamientoController extends Controller
             }
         }
 
+        $cleanUtf8 = function ($item) use (&$cleanUtf8) {
+            if (is_array($item)) {
+                return array_map($cleanUtf8, $item);
+            }
+            if (is_object($item)) {
+                foreach ($item as $k => $v) {
+                    $item->$k = $cleanUtf8($v);
+                }
+                return $item;
+            }
+            if (is_string($item) && strpos($item, 'Ã') !== false) {
+                return mb_convert_encoding($item, 'ISO-8859-1', 'UTF-8');
+            }
+            return $item;
+        };
+
+        $paciente_nombre = $cleanUtf8($paciente_nombre);
+        $tratamiento_motivo = $cleanUtf8($tratamiento_motivo);
+        $procedimientos_paciente = array_map($cleanUtf8, $procedimientos_paciente);
+        $lista_pacientes = $lista_pacientes->map(fn($p) => $cleanUtf8($p));
+
         return view('odontologo.planes', compact(
             'id_cita',
             'paciente_nombre',
@@ -101,7 +153,9 @@ class PlanTratamientoController extends Controller
             'tratamiento_motivo',
             'procedimientos_paciente',
             'total_presupuesto',
-            'lista_pacientes'
+            'lista_pacientes',
+            'es_infantil',
+            'edad_paciente'
         ));
     }
 
@@ -218,6 +272,16 @@ class PlanTratamientoController extends Controller
                     'CANTIDAD' => 1
                 ]);
 
+                // Emitir factura automáticamente para este tratamiento
+                DB::table('factura')->insert([
+                    'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => $id_historia_clinica,
+                    'CITA_ID_CITA' => $cita_id > 0 ? $cita_id : 0,
+                    'FECHA_EMISION' => now(),
+                    'TOTAL' => $precio_aplicado,
+                    'ESTADO' => 'EMITIDA',
+                    'PACIENTE_ID_PACIENTE' => $paciente_id
+                ]);
+
                 if (!empty($piezasSeleccionadas)) {
                     foreach ($piezasSeleccionadas as $numPieza) {
                         DB::table('odontograma_tratamientos')->insert([
@@ -264,6 +328,16 @@ class PlanTratamientoController extends Controller
                         'CANTIDAD' => 1
                     ]);
 
+                    // Emitir factura automáticamente para este tratamiento
+                    DB::table('factura')->insert([
+                        'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => $id_historia_clinica,
+                        'CITA_ID_CITA' => $cita_id > 0 ? $cita_id : 0,
+                        'FECHA_EMISION' => now(),
+                        'TOTAL' => $precio_aplicado,
+                        'ESTADO' => 'EMITIDA',
+                        'PACIENTE_ID_PACIENTE' => $paciente_id
+                    ]);
+
                     DB::table('odontograma_tratamientos')->insert([
                         'PACIENTE_ID_PACIENTE' => $paciente_id,
                         'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
@@ -276,9 +350,12 @@ class PlanTratamientoController extends Controller
                 }
             }
 
-            // Actualizar cita con recomendaciones y observaciones
-            if ($cita_id > 0 && (!empty($recomendacion) || !empty($diagnostico_general))) {
-                $citaUpdate = [];
+            // Actualizar cita con recomendaciones, observaciones y marcarla como atendida/completada
+            if ($cita_id > 0) {
+                $citaUpdate = [
+                    'ESTADO_CITA_ID' => 2,
+                    'FECHA_ATENCION' => now()
+                ];
                 if (!empty($recomendacion)) $citaUpdate['RECOMENDACIONES'] = $recomendacion;
                 if (!empty($diagnostico_general)) $citaUpdate['OBSERVACIONES_DOCTOR'] = $diagnostico_general;
                 DB::table('cita')->where('ID_CITA', $cita_id)->update($citaUpdate);

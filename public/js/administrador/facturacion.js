@@ -22,14 +22,14 @@ async function cargarFacturasDB() {
             headers: { 'Cache-Control': 'no-cache' }
         });
         const data = await response.json();
-        
+
         if (data.status === 'success') {
             dbFacturacion = data.facturas.map(f => {
                 const totalBD = parseFloat(f.total) || 0;
                 const pagadoBD = parseFloat(f.pagado) || 0;
                 let fechaFormateada = f.fecha_emision;
                 let fechaSort = '';
-                if(fechaFormateada && fechaFormateada.includes('-')) {
+                if (fechaFormateada && fechaFormateada.includes('-')) {
                     const partes = fechaFormateada.split(' ')[0].split('-');
                     fechaFormateada = `${partes[2]}/${partes[1]}/${partes[0]}`;
                     fechaSort = `${partes[0]}${partes[1]}${partes[2]}`;
@@ -49,7 +49,7 @@ async function cargarFacturasDB() {
                     metodo: "Múltiple"
                 };
             });
-            
+
             buildTable();
         } else {
             mostrarToast("Error cargando facturas", "error");
@@ -64,14 +64,14 @@ function buildTable() {
 
     const tableElement = $('#tablaFacturacion');
     let table;
-    
+
     // Configuramos DataTables y lo guardamos en memoria
     if ($.fn.DataTable.isDataTable(tableElement)) {
         table = tableElement.DataTable();
     } else {
         table = tableElement.DataTable({
-            "order": [[ 0, "desc" ]],
-            "dom": '<"top"lf>rt<"bottom"ip>', 
+            "order": [[0, "desc"]],
+            "dom": '<"top"lf>rt<"bottom"ip>',
             "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
             "language": {
                 "search": "Buscar:",
@@ -127,15 +127,15 @@ function recalcularKPIs() {
         cards[2].textContent = "$ 0.00"; // Abonos directos desactivados
         cards[3].textContent = "$ " + deudas.toLocaleString("es-CO", { minimumFractionDigits: 2 });
     }
-    
+
     // Cierre de caja
     const factHoy = dbFacturacion.filter(f => f.fecha === hoy);
     const totalHoy = factHoy.reduce((s, f) => s + f.pagado, 0);
     const rows = document.querySelectorAll(".cash-row strong");
     if (rows.length >= 3) {
         rows[0].textContent = "$ " + totalHoy.toLocaleString("es-CO", { minimumFractionDigits: 2 }); // Asumiendo todo efectivo temporalmente
-        rows[1].textContent = "$ 0.00"; 
-        rows[2].textContent = "$ 0.00"; 
+        rows[1].textContent = "$ 0.00";
+        rows[2].textContent = "$ 0.00";
     }
     const totalEl = document.querySelector(".cash-total-row strong");
     if (totalEl) totalEl.textContent = "$ " + totalHoy.toLocaleString("es-CO", { minimumFractionDigits: 2 });
@@ -149,20 +149,20 @@ async function cargarConfiguracionPrueba() {
     try {
         const response = await fetch('/api_facturacion/configuracion');
         const data = await response.json();
-        
+
         if (data.status === 'success') {
             const tbody = document.getElementById("configTableBody");
             tbody.innerHTML = '';
-            
+
             const selectOdontologoLiq = document.getElementById("selectOdontologoLiq");
             if (selectOdontologoLiq) {
                 selectOdontologoLiq.innerHTML = '<option value="">Seleccione un doctor...</option>';
             }
-            
+
             data.data.forEach(doc => {
                 const tr = document.createElement("tr");
                 const inicial = doc.doctor.charAt(0);
-                
+
                 tr.innerHTML = `
                     <td>
                         <div class="doctor-profile-td">
@@ -214,7 +214,7 @@ async function editarPorcentaje(idOdontologo, nombre, porcentajeActual) {
             const res = await response.json();
             if (res.status === 'success') {
                 mostrarToast("Porcentaje actualizado", "success");
-                cargarConfiguracionPrueba(); 
+                cargarConfiguracionPrueba();
             } else { mostrarToast(res.message, "error"); }
         } catch (error) { mostrarToast("Error de conexión", "error"); }
     }
@@ -224,11 +224,11 @@ async function editarPorcentaje(idOdontologo, nombre, porcentajeActual) {
 // 4. PESTAÑA 3: LIQUIDACIÓN (EGRESOS)
 // =====================================================
 
-document.getElementById("btnCalcular")?.addEventListener("click", async function() {
+document.getElementById("btnCalcular")?.addEventListener("click", async function () {
     const idDoc = document.getElementById("selectOdontologoLiq").value;
     const mes = document.getElementById("mesLiquidacion").value;
 
-    if(!idDoc || !mes) return mostrarToast("Selecciona el Odontólogo y el Mes", "error");
+    if (!idDoc || !mes) return mostrarToast("Selecciona el Odontólogo y el Mes", "error");
 
     try {
         const response = await fetch('/api_facturacion/liquidacion/calcular', {
@@ -254,7 +254,7 @@ document.getElementById("btnCalcular")?.addEventListener("click", async function
     } catch (error) { mostrarToast("Error calculando la liquidación", "error"); }
 });
 
-document.getElementById("btnRegistrarEgreso")?.addEventListener("click", async function() {
+document.getElementById("btnRegistrarEgreso")?.addEventListener("click", async function () {
     if (!liqDataTemporal || liqDataTemporal.total_pagado <= 0) return mostrarToast("No hay producción para registrar.", "error");
 
     try {
@@ -270,7 +270,7 @@ document.getElementById("btnRegistrarEgreso")?.addEventListener("click", async f
             document.getElementById("resultadoLiquidacion").style.display = "none";
             document.getElementById("selectOdontologoLiq").value = "";
             document.getElementById("mesLiquidacion").value = "";
-            liqDataTemporal = null; 
+            liqDataTemporal = null;
         } else { mostrarToast(res.message, "error"); }
     } catch (error) { mostrarToast("Error de conexión", "error"); }
 });
@@ -284,10 +284,10 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
         // Quita la clase activa de todos y la pone en el seleccionado
         document.querySelectorAll(".tab-btn").forEach(t => t.classList.remove("active"));
         e.target.classList.add("active");
-        
+
         // Oculta todos los contenidos
         document.querySelectorAll(".tab-content").forEach(c => c.style.display = "none");
-        
+
         activeTab = e.target.getAttribute("data-tab");
         document.getElementById("content-" + activeTab).style.display = "block";
 
@@ -302,7 +302,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
         }
 
         // Cargar los datos según la pestaña
-        if(activeTab === "ingresos") {
+        if (activeTab === "ingresos") {
             buildTable();
         } else if (activeTab === "configuracion" || activeTab === "egresos") {
             cargarConfiguracionPrueba();
@@ -333,17 +333,17 @@ function exportarIndividual(formato) {
     const num = document.getElementById("exportFacturaNum").value;
     // Extraer solo el número (quitar "FAC-")
     const idFactura = parseInt(num.replace("FAC-", ""));
-    
+
     // Cerrar el modal
     document.getElementById("modalExportIndividual").style.display = "none";
-    
+
     // Mostrar notificación
     if (formato === "imprimir") {
         mostrarToast(`Preparando ${num} para imprimir...`, "info");
     } else {
         mostrarToast(`Generando ${formato.toUpperCase()} de ${num}...`, "info");
     }
-    
+
     // Abrir en nueva pestaña
     window.open(`/api_facturacion/exportar-individual?id=${idFactura}&formato=${formato}`, '_blank');
 }
@@ -353,7 +353,7 @@ async function cargarKPIsReal() {
         // Obtenemos Resumen y Cierre en una sola petición
         const response = await fetch('/api_facturacion/resumen?t=' + new Date().getTime());
         const res = await response.json();
-        
+
         if (res.status === 'success') {
             const d = res.data; // Aquí vienen los datos del resumen
             const c = res.caja; // Aquí vienen los datos del cierre (Efectivo/Tarjeta/Transf)
@@ -388,10 +388,10 @@ function abrirModalPago(num, paciente, pendiente) {
     document.getElementById("pagoNumFactura").value = num;
     document.getElementById("pagoDetalle").value = `${num} - ${paciente}`;
     document.getElementById("pagoPendienteVisual").value = "$ " + parseFloat(pendiente).toLocaleString("es-CO");
-    
+
     // Sugerimos pagar la totalidad por defecto
     const inputMonto = document.getElementById("pagoMonto");
-    inputMonto.value = pendiente; 
+    inputMonto.value = pendiente;
     inputMonto.max = pendiente; // No puede pagar más de lo que debe
 
     // Mostramos el modal
@@ -434,9 +434,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const numFactura = document.getElementById("pagoNumFactura").value;
             const metodo = document.getElementById("pagoMetodo").value;
             const monto = parseFloat(document.getElementById("pagoMonto").value);
-            
+
             // Le quitamos el "FAC-" para mandarle solo el número a la BD
-            const idFacturaBD = parseInt(numFactura.replace("FAC-", "")); 
+            const idFacturaBD = parseInt(numFactura.replace("FAC-", ""));
 
             try {
                 const response = await fetch('/api_facturacion/pago/guardar', {
@@ -448,82 +448,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (res.status === 'success') {
                     mostrarToast("✅ Pago registrado correctamente", "success");
-                    modalPago.style.display = "none"; 
-                    formPago.reset(); 
-                    
+                    modalPago.style.display = "none";
+                    formPago.reset();
+
                     // Actualizamos la tabla y los números de arriba para que se refleje el pago
                     cargarFacturasDB();
                     cargarKPIsReal();
                 } else {
                     mostrarToast(res.message, "error");
                 }
-                } catch (error) {
-                    console.error("Error al guardar:", error);
-                    mostrarToast("Error de conexión con el servidor", "error");
-                }
-            });
-        }
+            } catch (error) {
+                console.error("Error al guardar:", error);
+                mostrarToast("Error de conexión con el servidor", "error");
+            }
+        });
+    }
 
-        // Carga inicial
-        const inputMes = document.getElementById("mesLiquidacion");
-        if(inputMes) inputMes.setAttribute("max", new Date().toISOString().slice(0, 7));
-        
-        cargarFacturasDB();
-        cargarKPIsReal();
-    });
+    // Carga inicial
+    const inputMes = document.getElementById("mesLiquidacion");
+    if (inputMes) inputMes.setAttribute("max", new Date().toISOString().slice(0, 7));
 
-    // =====================================================
-    // EXPORTACIÓN DINÁMICA CON SELECTOR DE MES
-    // =====================================================
+    cargarFacturasDB();
+    cargarKPIsReal();
+});
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const inputMesExportar = document.getElementById("mesExportar");
-        if(inputMesExportar) {
-            // Obtenemos el mes actual en formato YYYY-MM
-            const hoyStr = new Date().toISOString().slice(0, 7);
-            // Bloqueamos los meses futuros
-            inputMesExportar.setAttribute("max", hoyStr);
-            // Dejamos el mes actual seleccionado por defecto
-            inputMesExportar.value = hoyStr; 
-        }
-    });
+// =====================================================
+// EXPORTACIÓN DINÁMICA CON SELECTOR DE MES
+// =====================================================
 
-    // =====================================================
-    // EXPORTACIÓN DINÁMICA CON SELECTOR DE MES
-    // =====================================================
+document.addEventListener("DOMContentLoaded", () => {
+    const inputMesExportar = document.getElementById("mesExportar");
+    if (inputMesExportar) {
+        // Obtenemos el mes actual en formato YYYY-MM
+        const hoyStr = new Date().toISOString().slice(0, 7);
+        // Bloqueamos los meses futuros
+        inputMesExportar.setAttribute("max", hoyStr);
+        // Dejamos el mes actual seleccionado por defecto
+        inputMesExportar.value = hoyStr;
+    }
+});
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const inputMesExportar = document.getElementById("mesExportar");
-        if(inputMesExportar) {
-            const hoyStr = new Date().toISOString().slice(0, 7);
-            inputMesExportar.setAttribute("max", hoyStr);
-            inputMesExportar.value = hoyStr; 
-        }
-    });
+// =====================================================
+// EXPORTACIÓN DINÁMICA CON SELECTOR DE MES
+// =====================================================
 
-    // =====================================================
-    // EXPORTACIÓN DINÁMICA (INGRESOS Y EGRESOS)
-    // =====================================================
-    document.getElementById("btnDescargarDatos")?.addEventListener("click", (e) => {
-        e.preventDefault(); 
+document.addEventListener("DOMContentLoaded", () => {
+    const inputMesExportar = document.getElementById("mesExportar");
+    if (inputMesExportar) {
+        const hoyStr = new Date().toISOString().slice(0, 7);
+        inputMesExportar.setAttribute("max", hoyStr);
+        inputMesExportar.value = hoyStr;
+    }
+});
 
-        const selectFormato = document.getElementById("formatoExportar");
-        const mesExportar = document.getElementById("mesExportar").value;
+// =====================================================
+// EXPORTACIÓN DINÁMICA (INGRESOS Y EGRESOS)
+// =====================================================
+document.getElementById("btnDescargarDatos")?.addEventListener("click", (e) => {
+    e.preventDefault();
 
-        if (!mesExportar) {
-            return mostrarToast("Por favor selecciona un mes para exportar", "error");
-        }
+    const selectFormato = document.getElementById("formatoExportar");
+    const mesExportar = document.getElementById("mesExportar").value;
 
-        const formato = selectFormato.value;
-        // activeTab ya sabe si estás en 'ingresos' o 'egresos'
-        const tipoReporte = activeTab; 
+    if (!mesExportar) {
+        return mostrarToast("Por favor selecciona un mes para exportar", "error");
+    }
 
-        if (formato === "imprimir") {
-            mostrarToast(`Preparando reporte de ${tipoReporte} para imprimir...`, "info");
-        } else {
-            mostrarToast(`Generando ${formato.toUpperCase()} de ${tipoReporte}...`, "info");
-        }
+    const formato = selectFormato.value;
+    // activeTab ya sabe si estás en 'ingresos' o 'egresos'
+    const tipoReporte = activeTab;
 
-        // Llama a la ruta exportar pasando el tipo correcto
-        window.open(`/api_facturacion/exportar?tipo=${tipoReporte}&formato=${formato}&mes=${mesExportar}`, '_blank');
-    });
+    if (formato === "imprimir") {
+        mostrarToast(`Preparando reporte de ${tipoReporte} para imprimir...`, "info");
+    } else {
+        mostrarToast(`Generando ${formato.toUpperCase()} de ${tipoReporte}...`, "info");
+    }
+
+    // Llama a la ruta exportar pasando el tipo correcto
+    window.open(`/api_facturacion/exportar?tipo=${tipoReporte}&formato=${formato}&mes=${mesExportar}`, '_blank');
+});

@@ -161,10 +161,59 @@ $(document).ready(function () {
                 });
 
 
+                // Selector Odontograma Paciente (Adulto / Infantil)
+                const btnPacAdulto = document.getElementById("btn-pac-odo-adulto");
+                const btnPacInfantil = document.getElementById("btn-pac-odo-infantil");
+                const pacGraphicAdulto = document.getElementById("pac-graphic-adulto");
+                const pacGraphicInfantil = document.getElementById("pac-graphic-infantil");
+                const pacTitle = document.getElementById("pac-odontograma-title");
+
+                function switchPacOdontogramaMode(mode) {
+                    if (mode === 'infantil') {
+                        if (pacGraphicAdulto) pacGraphicAdulto.style.display = 'none';
+                        if (pacGraphicInfantil) pacGraphicInfantil.style.display = 'flex';
+                        if (pacTitle) pacTitle.textContent = 'Odontograma Interactivo (Infantil)';
+                        if (btnPacAdulto) {
+                            btnPacAdulto.style.background = 'transparent';
+                            btnPacAdulto.style.color = '#64748b';
+                        }
+                        if (btnPacInfantil) {
+                            btnPacInfantil.style.background = '#0b57d0';
+                            btnPacInfantil.style.color = 'white';
+                        }
+                    } else {
+                        if (pacGraphicAdulto) pacGraphicAdulto.style.display = 'flex';
+                        if (pacGraphicInfantil) pacGraphicInfantil.style.display = 'none';
+                        if (pacTitle) pacTitle.textContent = 'Odontograma Interactivo (Adulto)';
+                        if (btnPacAdulto) {
+                            btnPacAdulto.style.background = '#0b57d0';
+                            btnPacAdulto.style.color = 'white';
+                        }
+                        if (btnPacInfantil) {
+                            btnPacInfantil.style.background = 'transparent';
+                            btnPacInfantil.style.color = '#64748b';
+                        }
+                    }
+                }
+
+                if (btnPacAdulto && !btnPacAdulto.dataset.bound) {
+                    btnPacAdulto.dataset.bound = 'true';
+                    btnPacAdulto.addEventListener('click', () => switchPacOdontogramaMode('adulto'));
+                }
+                if (btnPacInfantil && !btnPacInfantil.dataset.bound) {
+                    btnPacInfantil.dataset.bound = 'true';
+                    btnPacInfantil.addEventListener('click', () => switchPacOdontogramaMode('infantil'));
+                }
+
+                if (typeof data.es_infantil !== 'undefined') {
+                    switchPacOdontogramaMode(data.es_infantil ? 'infantil' : 'adulto');
+                }
+
                 if (data.dientes) {
                     const teethItems = document.querySelectorAll(".tooth-item");
                     const printList = document.getElementById("print-tooth-list");
                     if (printList) printList.innerHTML = ""; 
+                    const printedTeeth = new Set();
                     
                     teethItems.forEach(item => {
                         const toothNum = item.getAttribute("data-tooth-number");
@@ -195,7 +244,8 @@ $(document).ready(function () {
                                 toothModal.style.display = "flex";
                             });
                             
-                            if (printList) {
+                            if (printList && !printedTeeth.has(toothNum)) {
+                                printedTeeth.add(toothNum);
                                 const estadoClase = toothData.estado === 'HECHO' ? 'hecho' : 'proceso';
                                 const colorIcono = toothData.estado === 'HECHO' ? '#10b981' : '#f59e0b';
                                 

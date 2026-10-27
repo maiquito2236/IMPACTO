@@ -51,7 +51,13 @@ body {
         }
         .input-group-custom .form-control { 
             border: 1px solid #E2E8F0; border-radius: 0.6rem; 
-            padding: 0.75rem 1rem 0.75rem 2.8rem; background-color: #ffffff; font-size: 0.95rem;
+            padding: 0.75rem 2.8rem 0.75rem 2.8rem; background-color: #ffffff; font-size: 0.95rem;
         }
         .input-group-custom .form-control:focus { box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.12); border-color: #0F62FE; }
-        .input-group-custom .eye-icon { position: absolute; right: 15px; left: auto; cursor: pointer; color: #A0AEC0; }
+        .input-group-custom .eye-icon { position: absolute; right: 15px; left: auto; cursor: pointer; color: #A0AEC0; z-index: 10; }
+
+        /* Ocultar el botón nativo de revelar contraseña de Edge e Internet Explorer (evita doble ojo) */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none !important;
+        }

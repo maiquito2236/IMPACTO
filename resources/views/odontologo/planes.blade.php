@@ -59,8 +59,11 @@
                     <option value="">-- Seleccionar Paciente --</option>
                     @if(isset($lista_pacientes))
                         @foreach($lista_pacientes as $pac)
-                            <option value="{{ $pac->ID_PACIENTE }}" {{ (!empty($id_paciente) && $id_paciente == $pac->ID_PACIENTE) ? 'selected' : '' }}>
-                                {{ $pac->NOMBRE_COMPLETO }} (Doc: {{ $pac->NUMERO_DOCUMENTO }})
+                            <option value="{{ $pac->ID_PACIENTE }}" 
+                                    data-es-infantil="{{ !empty($pac->es_infantil) ? '1' : '0' }}" 
+                                    data-edad="{{ $pac->edad ?? '' }}" 
+                                    {{ (!empty($id_paciente) && $id_paciente == $pac->ID_PACIENTE) ? 'selected' : '' }}>
+                                {{ $pac->NOMBRE_COMPLETO }} (Doc: {{ $pac->NUMERO_DOCUMENTO }}) {{ !empty($pac->es_infantil) ? '👶 [Infantil]' : '' }}
                             </option>
                         @endforeach
                     @endif
@@ -79,12 +82,27 @@
 
     <div class="workspace-grid">
         <section class="ui-panel panel-odontogram">
-            <h3>Odontograma Clínico</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin: 0;" id="odontograma-header-title">
+                    Odontograma Clínico {{ !empty($es_infantil) ? '(Infantil)' : '(Adulto)' }}
+                </h3>
 
-            <div class="odontogram-visualizer-box">
+                <!-- SELECTOR DE TIPO: ADULTO / INFANTIL -->
+                <div class="odontogram-type-selector" style="display: inline-flex; background: #f1f5f9; padding: 4px; border-radius: 8px; gap: 4px; border: 1px solid #cbd5e1;">
+                    <button type="button" id="btn-odo-adulto" class="btn-odo-toggle {{ empty($es_infantil) ? 'active' : '' }}" style="border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: {{ empty($es_infantil) ? '#1a56db' : 'transparent' }}; color: {{ empty($es_infantil) ? '#ffffff' : '#64748b' }}; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-user"></i> Adulto (32)
+                    </button>
+                    <button type="button" id="btn-odo-infantil" class="btn-odo-toggle {{ !empty($es_infantil) ? 'active' : '' }}" style="border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: {{ !empty($es_infantil) ? '#1a56db' : 'transparent' }}; color: {{ !empty($es_infantil) ? '#ffffff' : '#64748b' }}; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-child"></i> Infantil (20)
+                    </button>
+                </div>
+            </div>
+
+            <!-- ODONTOGRAMA ADULTO (1 al 32) -->
+            <div class="odontogram-visualizer-box" id="visualizer-adulto" style="display: {{ empty($es_infantil) ? 'flex' : 'none' }};">
                 <div class="dental-arch arch-upper">
                     @for($i = 1; $i <= 16; $i++)
-                        <a href="#modal-registrar-plan" class="tooth-item tooth-select">
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-tooth="{{ $i }}">
                             {{ $i }}
                         </a>
                     @endfor
@@ -94,7 +112,28 @@
 
                 <div class="dental-arch arch-lower">
                     @for($i = 17; $i <= 32; $i++)
-                        <a href="#modal-registrar-plan" class="tooth-item tooth-select">
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-tooth="{{ $i }}">
+                            {{ $i }}
+                        </a>
+                    @endfor
+                </div>
+            </div>
+
+            <!-- ODONTOGRAMA INFANTIL (1 al 20: 1-10 superior, 11-20 inferior) -->
+            <div class="odontogram-visualizer-box" id="visualizer-infantil" style="display: {{ !empty($es_infantil) ? 'flex' : 'none' }};">
+                <div class="dental-arch arch-upper">
+                    @for($i = 1; $i <= 10; $i++)
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-tooth="{{ $i }}">
+                            {{ $i }}
+                        </a>
+                    @endfor
+                </div>
+
+                <div class="jaw-divider-line"></div>
+
+                <div class="dental-arch arch-lower">
+                    @for($i = 11; $i <= 20; $i++)
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-tooth="{{ $i }}">
                             {{ $i }}
                         </a>
                     @endfor
@@ -102,8 +141,8 @@
             </div>
 
             <div class="odontogram-utility-bar">
-                <button class="btn-utility" id="resetTeeth" title="Limpiar Selección">
-                    <i class="fa-solid fa-rotate"></i>
+                <button type="button" class="btn-utility" id="resetTeeth" title="Limpiar Selección de Piezas">
+                    <i class="fa-solid fa-rotate-right" style="margin-right: 5px;"></i> Reiniciar Selección
                 </button>
             </div>
         </section>
@@ -219,6 +258,7 @@
                     <input type="text" class="form-control" id="patientInput" value="{{ $paciente_nombre }}" readonly>
                     <input type="hidden" id="patientIdInput" value="{{ $id_paciente }}">
                     <input type="hidden" id="citaIdInput" value="{{ $id_cita ?: '' }}">
+                    <input type="hidden" id="esInfantilDefault" value="{{ !empty($es_infantil) ? '1' : '0' }}">
                 </div>
 
                 <div class="form-group-field">

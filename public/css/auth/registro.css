@@ -81,3 +81,12 @@ body {
             box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.12); 
             border-color: #0F62FE; 
         }
+
+        /* Ocultar el botón nativo de revelar contraseña de Edge e Internet Explorer (evita doble ojo) */
+        input[type="password"]::-ms-reveal,
+        input[type="password"]::-ms-clear {
+            display: none !important;
+        }
+        input[type="password"] {
+            padding-right: 2.8rem !important;
+        }

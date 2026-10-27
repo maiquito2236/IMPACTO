@@ -212,12 +212,23 @@
 
                         <!-- SECCIÓN 1: ODONTOGRAMA -->
                         <section class="odontogram-section" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: white; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                            <div style="border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 32px; height: 32px; background: #e8f0fe; color: #0b57d0; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-teeth-open"></i></div>
-                                <h3 style="margin: 0; color: #0f172a; font-size: 1.15rem; font-weight: bold;">Odontograma Interactivo (Adulto)</h3>
+                            <div style="border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; background: #e8f0fe; color: #0b57d0; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-teeth-open"></i></div>
+                                    <h3 id="pac-odontograma-title" style="margin: 0; color: #0f172a; font-size: 1.15rem; font-weight: bold;">Odontograma Interactivo (Adulto)</h3>
+                                </div>
+                                <div class="no-print" style="display: inline-flex; background: #f1f5f9; padding: 3px; border-radius: 8px; gap: 3px; border: 1px solid #cbd5e1;">
+                                    <button type="button" id="btn-pac-odo-adulto" class="btn btn-sm" style="border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #0b57d0; color: white;">
+                                        Adulto (32)
+                                    </button>
+                                    <button type="button" id="btn-pac-odo-infantil" class="btn btn-sm" style="border: none; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">
+                                        Infantil (20)
+                                    </button>
+                                </div>
                             </div>
 
-                            <div class="odontogram-graphic">
+                            <!-- GRAFICO ADULTO -->
+                            <div class="odontogram-graphic" id="pac-graphic-adulto">
                                 <div class="teeth-row superior">
                                     @foreach([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] as $num)
                                         <div class="tooth-item" data-tooth-number="{{ $num }}">
@@ -231,6 +242,27 @@
                                     @foreach([17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32] as $num)
                                         <div class="tooth-item" data-tooth-number="{{ $num }}">
                                             <div class="tooth-shape premolar" id="shape-{{ $num }}"></div>
+                                            <span class="tooth-number">{{ $num }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- GRAFICO INFANTIL (1-10 Superior, 11-20 Inferior) -->
+                            <div class="odontogram-graphic" id="pac-graphic-infantil" style="display: none;">
+                                <div class="teeth-row superior">
+                                    @foreach([1,2,3,4,5,6,7,8,9,10] as $num)
+                                        <div class="tooth-item" data-tooth-number="{{ $num }}">
+                                            <span class="tooth-number">{{ $num }}</span>
+                                            <div class="tooth-shape premolar" id="shape-ped-pac-{{ $num }}"></div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="teeth-row inferior mt-4">
+                                    @foreach([11,12,13,14,15,16,17,18,19,20] as $num)
+                                        <div class="tooth-item" data-tooth-number="{{ $num }}">
+                                            <div class="tooth-shape premolar" id="shape-ped-pac-{{ $num }}"></div>
                                             <span class="tooth-number">{{ $num }}</span>
                                         </div>
                                     @endforeach

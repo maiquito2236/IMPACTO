@@ -112,6 +112,20 @@
                                         $tratamientoTexto = !empty($get_cita['NOMBRE_PROCEDIMIENTO']) ? $get_cita['NOMBRE_PROCEDIMIENTO'] : (!empty($get_cita['MOTIVO']) ? $get_cita['MOTIVO'] : 'Consulta Odontológica');
                                         $consultorioTexto = !empty($get_cita['NOMBRE_CONSULTORIO']) ? $get_cita['NOMBRE_CONSULTORIO'] : '--';
                                         $consultorioFormato = str_starts_with(strtolower($consultorioTexto), 'consultorio') ? $consultorioTexto : 'Consultorio ' . $consultorioTexto;
+
+                                        // Limpieza de caracteres de doble codificación (mojibake)
+                                        if (strpos($especialidadNombre, 'Ã') !== false) {
+                                            $especialidadNombre = mb_convert_encoding($especialidadNombre, 'ISO-8859-1', 'UTF-8');
+                                        }
+                                        if (strpos($doctorNombre, 'Ã') !== false) {
+                                            $doctorNombre = mb_convert_encoding($doctorNombre, 'ISO-8859-1', 'UTF-8');
+                                        }
+                                        if (strpos($tratamientoTexto, 'Ã') !== false) {
+                                            $tratamientoTexto = mb_convert_encoding($tratamientoTexto, 'ISO-8859-1', 'UTF-8');
+                                        }
+                                        if (strpos($consultorioFormato, 'Ã') !== false) {
+                                            $consultorioFormato = mb_convert_encoding($consultorioFormato, 'ISO-8859-1', 'UTF-8');
+                                        }
                                     @endphp
                                     <tr class="dashboard-card" data-status="{{ $estadoTexto }}">
                                         <td data-order="{{ date('YmdHis', $timestamp) }}">

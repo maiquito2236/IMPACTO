@@ -78,6 +78,16 @@ class CitaController extends Controller
             ", $pacientesIds);
 
             $citas = json_decode(json_encode($citas), true);
+
+            // Sanitizar cualquier texto con doble codificación UTF-8 (mojibake como Ã³)
+            $citas = array_map(function ($cita) {
+                foreach ($cita as $k => $v) {
+                    if (is_string($v) && strpos($v, 'Ã') !== false) {
+                        $cita[$k] = mb_convert_encoding($v, 'ISO-8859-1', 'UTF-8');
+                    }
+                }
+                return $cita;
+            }, $citas);
         }
 
         return view('paciente.citas.index', compact('citas'));

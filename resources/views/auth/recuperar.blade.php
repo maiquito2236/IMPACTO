@@ -83,7 +83,7 @@
                 <button type="submit" id="btnReenviarCode" class="btn-link-custom">Reenviar código</button>
             </form>
 
-        {{-- FASE 3: Cambiar Contraseña --}}
+        {{-- FASE 3: Cambiar Contraseña Coincidente --}}
         @elseif ($fase === 'cambiar')
             <div class="text-center">
                 <div class="avatar-circle"><i class="bi bi-person-fill"></i></div>
@@ -101,21 +101,19 @@
                     </div>
                 </div>
 
-                <div class="progress mt-2 mb-1" style="height: 5px;">
-                    <div id="passwordStrength" class="progress-bar transition-all" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-                <div id="strengthText" class="small mb-3 fw-bold" style="min-height: 20px;"></div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-dark small mb-1">Confirmar Contraseña:</label>
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark small mb-1">Confirmar contraseña:</label>
                     <div class="input-group-custom">
-                        <i class="bi bi-shield-check"></i>
-                        <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" class="form-control" placeholder="Repite tu nueva contraseña" required minlength="8">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" class="form-control" placeholder="Confirma tu nueva contraseña" required>
                         <i class="bi bi-eye eye-icon" onclick="togglePassword('confirmar_contrasena', this)"></i>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-action w-100 mb-3 shadow-sm">Cambiar Contraseña</button>
+                <div class="text-muted mb-4" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúscula, número y carácter especial.</div>
+                
+                <div id="jsErrorAlert" class="alert alert-danger p-2 small text-center rounded-3 mb-3 d-none">Las contraseñas no coinciden.</div>
+                
+                <button type="submit" class="btn btn-action w-100 shadow-sm">Guardar</button>
             </form>
         @endif
     </div>

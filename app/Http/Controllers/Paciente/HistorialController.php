@@ -151,9 +151,23 @@ class HistorialController extends Controller
                 'pac.ID_PACIENTE',
                 'u.NUMERO_DOCUMENTO as documento',
                 'u.CORREO as correo',
+                'u.TIPO_DOCUMENTO',
+                'u.FECHA_NACIMIENTO',
                 DB::raw("CONCAT(u.NOMBRES, ' ', u.APELLIDOS) as paciente_nombre")
             )
             ->first();
+
+        $esInfantil = false;
+        if ($demograficos) {
+            if (!empty($demograficos->FECHA_NACIMIENTO)) {
+                $edad = \Carbon\Carbon::parse($demograficos->FECHA_NACIMIENTO)->age;
+                if ($edad < 12) {
+                    $esInfantil = true;
+                }
+            } elseif (($demograficos->TIPO_DOCUMENTO ?? '') === 'R.C') {
+                $esInfantil = true;
+            }
+        }
 
         // 2. Alertas médicas (alergias, enfermedades, medicamentos)
         $alergias = [];
@@ -240,7 +254,8 @@ class HistorialController extends Controller
                 'ENFERMEDADES' => !empty($enfermedades) ? implode(', ', $enfermedades) : 'Ninguna',
                 'MEDICAMENTOS' => !empty($medicamentos) ? implode(', ', $medicamentos) : 'Ninguno',
             ],
-            'dientes'  => $toothData
+            'dientes'  => $toothData,
+            'es_infantil' => $esInfantil
         ]);
     }
 

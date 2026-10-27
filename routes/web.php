@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ChatbotController;
 
 // ==========================================
 // CONTROLADORES DE AUTENTICACIÓN
@@ -96,6 +97,13 @@ Route::post('/contacto', function (\Illuminate\Http\Request $request) {
 
     return back()->with('contacto_success', '¡Gracias por contactarnos! Tu mensaje ha sido recibido exitosamente. Uno de nuestros asesores se comunicará contigo pronto.');
 })->name('contacto.post');
+
+// =========================================================================
+// RUTA CHATBOT LANDING PAGE (Híbrido IA + Reglas locales)
+// =========================================================================
+Route::post('/chatbot/mensaje', [ChatbotController::class, 'enviarMensaje'])
+    ->middleware('throttle:40,1')
+    ->name('chatbot.mensaje');
 
 // =========================================================================
 // RUTAS DE AUTENTICACIÓN
