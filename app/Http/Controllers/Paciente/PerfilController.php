@@ -141,7 +141,6 @@ class PerfilController extends Controller
             'NOMBRES'          => $nombres,
             'APELLIDOS'        => $apellidos,
             'TIPO_DOCUMENTO'   => $tipoDoc,
-            'NUMERO_DOCUMENTO' => $numDoc,
             'TELEFONO'         => $telefono,
             'GENERO'           => $genero,
             'FECHA_NACIMIENTO' => $fechaNac ?: null,

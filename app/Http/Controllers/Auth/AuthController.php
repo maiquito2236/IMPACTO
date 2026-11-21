@@ -144,6 +144,10 @@ class AuthController extends Controller
         // Limpiar puntos, guiones y espacios del documento
         $numDoc = preg_replace('/\D/', '', $rawNumDoc);
 
+        if (!$request->has('acepta_terminos')) {
+            return back()->withInput()->with('ERROR', 'Debes aceptar los Términos, Condiciones y el Consentimiento Informado de Tratamiento de Datos.');
+        }
+
         if (empty($tipoDoc) || empty($numDoc) || empty($nombres) || empty($apellidos) || empty($correo) || empty($pass) || empty($genero)) {
             return back()->withInput()->with('ERROR', 'Todos los campos obligatorios deben ser diligenciados.');
         }

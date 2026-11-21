@@ -108,7 +108,14 @@
             </div>
             <div id="strengthText" class="small mt-1 fw-bold" style="min-height: 20px;"></div>
 
-            <div class="text-muted mb-4" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúscula, número y un carácter especial (ej. !@#$%).</div>
+            <div class="text-muted mb-3" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúscula, número y un carácter especial (ej. !@#$%).</div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="acepta_terminos" name="acepta_terminos" value="1" required {{ old('acepta_terminos') ? 'checked' : '' }}>
+                <label class="form-check-label small text-muted" for="acepta_terminos" style="font-size: 0.8rem;">
+                    Acepto los <a href="#" data-bs-toggle="modal" data-bs-target="#modalTerminos" class="text-decoration-none fw-bold" style="color: #0F62FE;">Términos, Condiciones y Consentimiento Informado de Tratamiento de Datos (Ley 1581 de 2012)</a>. *
+                </label>
+            </div>
             
             <button type="submit" class="btn btn-registrar w-100 mb-4 shadow-sm">Crear cuenta</button>
 
@@ -124,6 +131,31 @@
         </svg>
     </div>
     
+    <!-- Modal de Términos, Condiciones y Consentimiento Informado -->
+    <div class="modal fade" id="modalTerminos" tabindex="-1" aria-labelledby="modalTerminosLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold" id="modalTerminosLabel" style="color: #0F172A;">
+                        <i class="bi bi-shield-check text-primary me-2"></i>Términos y Consentimiento Informado
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body small text-muted" style="line-height: 1.65;">
+                    <p><strong>1. Autorización de Tratamiento de Datos Personales (Ley 1581 de 2012):</strong><br>
+                    Al registrarte en la plataforma <strong>SIGCO — Odonto Estética</strong>, autorizas de manera previa, expresa e informada el almacenamiento y tratamiento de tus datos personales y de salud (historia clínica, citas, antecedentes médicos, odontograma y facturación) exclusivamente para la prestación de servicios odontológicos y comunicaciones relacionadas.</p>
+                    <p><strong>2. Consentimiento Informado General:</strong><br>
+                    Declaras que la información suministrada es veraz y aceptas recibir notificaciones sobre agendamiento, recordatorios, cambios de citas y presupuestos al correo electrónico registrado. Los procedimientos clínicos específicos serán explicados por el odontólogo tratante antes de su ejecución.</p>
+                    <p class="mb-0"><strong>3. Confidencialidad y Derechos del Titular (Resolución 1995 de 1999):</strong><br>
+                    Tu historia clínica es confidencial y de acceso restringido al personal autorizado. Podrás consultar, actualizar y exportar tus datos personales y registros clínicos en cualquier momento desde tu portal de paciente.</p>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-primary btn-sm px-4 rounded-3" data-bs-dismiss="modal" onclick="document.getElementById('acepta_terminos').checked = true;">Aceptar y cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/auth/registro.js') }}"></script>
 </body>

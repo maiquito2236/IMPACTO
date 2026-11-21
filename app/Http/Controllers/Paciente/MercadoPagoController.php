@@ -132,10 +132,13 @@ class MercadoPagoController extends Controller
 
         if ($estado === 'success' && $mpStatus === 'approved' && $facturaId && $monto > 0) {
             // Verificar que no sea un pago duplicado
-            $existente = DB::table('pago')
-                ->where('FACTURA_ID_FACTURA', $facturaId)
-                ->where('REFERENCIA_EXTERNA', $paymentId)
-                ->exists();
+            $tieneRefExterna = $paymentId && DB::getSchemaBuilder()->hasColumn('pago', 'REFERENCIA_EXTERNA');
+            $existente = $tieneRefExterna
+                ? DB::table('pago')
+                    ->where('FACTURA_ID_FACTURA', $facturaId)
+                    ->where('REFERENCIA_EXTERNA', $paymentId)
+                    ->exists()
+                : false;
 
             if (!$existente) {
                 try {
@@ -219,10 +222,13 @@ class MercadoPagoController extends Controller
             $monto     = round((float) $m[2], 2);
 
             // Evitar duplicados
-            $existente = DB::table('pago')
-                ->where('FACTURA_ID_FACTURA', $facturaId)
-                ->where('REFERENCIA_EXTERNA', (string) $paymentId)
-                ->exists();
+            $tieneRefExterna = DB::getSchemaBuilder()->hasColumn('pago', 'REFERENCIA_EXTERNA');
+            $existente = $tieneRefExterna
+                ? DB::table('pago')
+                    ->where('FACTURA_ID_FACTURA', $facturaId)
+                    ->where('REFERENCIA_EXTERNA', (string) $paymentId)
+                    ->exists()
+                : false;
 
             if (!$existente) {
                 DB::statement('CALL sp_registrar_pago_factura(?, ?, ?, @nuevo_pago_id)', [

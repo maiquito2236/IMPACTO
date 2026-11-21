@@ -91,14 +91,13 @@ class PerfilController extends Controller
 
             DB::beginTransaction();
 
-            // 1. Actualizar usuarios
+            // 1. Actualizar usuarios (sin alterar el número de documento)
             DB::table('usuarios')
                 ->where('ID_USUARIOS', $idUsuario)
                 ->update([
                     'NOMBRES' => $nombres,
                     'APELLIDOS' => $apellidos,
                     'TIPO_DOCUMENTO' => $tipoDoc,
-                    'NUMERO_DOCUMENTO' => $numDoc,
                     'GENERO' => $genero,
                     'FECHA_NACIMIENTO' => $fechaNac,
                     'DIRECCION' => $direccion,
@@ -144,6 +143,9 @@ class PerfilController extends Controller
 
             // 3. Contraseña
             if (!empty($passNueva)) {
+                if (!preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/', $passNueva)) {
+                    throw new Exception('La contraseña debe tener mínimo 8 caracteres, incluir una mayúscula, un número y un carácter especial.');
+                }
                 DB::table('usuarios')
                     ->where('ID_USUARIOS', $idUsuario)
                     ->update(['CONTRASEÑA' => Hash::make($passNueva)]);

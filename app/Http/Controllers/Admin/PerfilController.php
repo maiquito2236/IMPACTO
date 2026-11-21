@@ -44,7 +44,6 @@ class PerfilController extends Controller
             'NOMBRES'          => $request->input('nombres'),
             'APELLIDOS'        => $request->input('apellidos'),
             'TIPO_DOCUMENTO'   => $request->input('tipo_documento'),
-            'NUMERO_DOCUMENTO' => $request->input('numero_documento'),
             'TELEFONO'         => $telefono,
             'CORREO'           => $request->input('correo'),
             'GENERO'           => $request->input('genero'),
