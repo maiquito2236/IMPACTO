@@ -52,12 +52,6 @@
                     <span class="legend-indicator blue">Citas</span>
                     <span class="legend-indicator green">Pacientes</span>
                     <span class="legend-indicator amber">Ingresos</span>
-                    
-                    <div class="chart-filter-dropdown">
-                        <button class="date-dropdown dropdown-small" id="btn-chart-filter">
-                            Últimos 7 días <i class="fas fa-chevron-down" style="margin-left: 6px; font-size: 10px;"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
             
@@ -148,7 +142,7 @@
                     <p style="padding:15px; color:#64748b; font-size:14px; text-align:center;">No hay recordatorios pendientes</p>
                 @endif
             </div>
-            <a href="#" id="btn-toggle-reminders" class="bottom-list-link">Ver todos los recordatorios →</a>
+            <a href="/admin/notificaciones" class="bottom-list-link">Ver todos los recordatorios →</a>
         </div>
 
         <!-- CARD: PRÓXIMAS CITAS -->
@@ -175,7 +169,7 @@
                     <p style="padding:15px; color:#64748b; font-size:14px; text-align:center;">No hay citas próximas</p>
                 @endif
             </div>
-            <a href="#" id="btn-toggle-citas" class="bottom-list-link">Ver todas las citas →</a>
+            <a href="/admin/agenda" class="bottom-list-link">Ver todas las citas →</a>
         </div>
 
     </div>

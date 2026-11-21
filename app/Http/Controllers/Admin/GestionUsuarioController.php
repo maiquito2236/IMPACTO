@@ -67,12 +67,38 @@ class GestionUsuarioController extends Controller
             ORDER BY ID_USUARIOS DESC
         ");
 
-        // Convertimos los objetos stdClass a arrays para poder agregarles la imagen
+        // 1. Obtener todas las especialidades reales de odontólogos desde odontologo_has_especialidad
+        $especialidadesOdo = DB::table('odontologo as o')
+            ->join('odontologo_has_especialidad as ohe', 'o.ID_ODONTOLOGO', '=', 'ohe.ODONTOLOGO_ID_ODONTOLOGO')
+            ->join('especialidad as e', 'ohe.ESPECIALIDAD_ID_ESPECIALIDAD', '=', 'e.ID_ESPECIALIDAD')
+            ->select(
+                'o.USUARIOS_ID_USUARIOS as usuario_id',
+                DB::raw("GROUP_CONCAT(DISTINCT ohe.ESPECIALIDAD_ID_ESPECIALIDAD ORDER BY ohe.ESPECIALIDAD_ID_ESPECIALIDAD ASC SEPARATOR ',') as especialidad_id"),
+                DB::raw("GROUP_CONCAT(DISTINCT e.NOMBRE_ESPECIALIDAD ORDER BY e.NOMBRE_ESPECIALIDAD ASC SEPARATOR ', ') as especialidad_nombre")
+            )
+            ->groupBy('o.USUARIOS_ID_USUARIOS')
+            ->get()
+            ->keyBy('usuario_id');
+
+        // Convertimos los objetos stdClass a arrays para poder agregarles la imagen y enriquecer especialidades
         $datosArray = json_decode(json_encode($datos), true);
 
         foreach ($datosArray as &$u) {
             $u['email'] = $u['email'] ?? '';
             $u['img'] = 'https://ui-avatars.com/api/?name=' . urlencode($u['nombre']) . '&background=0D8ABC&color=fff';
+
+            // Si el usuario es odontólogo y tiene especialidades registradas en odontologo_has_especialidad, enriquecer
+            if (isset($especialidadesOdo[$u['id']])) {
+                $espInfo = $especialidadesOdo[$u['id']];
+                $ids = explode(',', $espInfo->especialidad_id);
+                if (!empty($u['especialidad_id'])) {
+                    $idsFromView = explode(',', $u['especialidad_id']);
+                    $ids = array_unique(array_merge($ids, $idsFromView));
+                    sort($ids, SORT_NUMERIC);
+                }
+                $u['especialidad_id'] = implode(',', $ids);
+                $u['especialidad_nombre'] = $espInfo->especialidad_nombre;
+            }
         }
 
         return response()->json(['ok' => true, 'datos' => $datosArray]);
@@ -82,6 +108,7 @@ class GestionUsuarioController extends Controller
     {
         $datos = DB::table('especialidad')
             ->select('ID_ESPECIALIDAD AS id', 'NOMBRE_ESPECIALIDAD AS nombre')
+            ->whereIn('ESTADO', ['ACTIVO', 'Activo'])
             ->orderBy('nombre', 'asc')->get();
         return response()->json(['ok' => true, 'datos' => $datos]);
     }
@@ -247,7 +274,12 @@ class GestionUsuarioController extends Controller
         }
 
         if ($request->hasFile('archivo_csv')) {
-            $file = fopen($request->file('archivo_csv')->getRealPath(), 'r');
+            $uploaded = $request->file('archivo_csv');
+            $ext = strtolower($uploaded->getClientOriginalExtension());
+            if (!in_array($ext, ['csv', 'txt'], true) || $uploaded->getSize() > 5 * 1024 * 1024) {
+                return response()->json(['success' => false, 'message' => 'El archivo debe ser CSV/TXT y no superar los 5 MB.'], 422);
+            }
+            $file = fopen($uploaded->getRealPath(), 'r');
             $line = fgets($file);
             $separator = (strpos($line, ';') !== false) ? ';' : ',';
             rewind($file);
@@ -298,14 +330,35 @@ class GestionUsuarioController extends Controller
 
     public function descargarPlantillaCsv()
     {
-        return response()->streamDownload(function() {
+        $mes = date('Y-m');
+        return response()->streamDownload(function() use ($mes) {
             $output = fopen('php://output', 'w');
             fputs($output, "\xEF\xBB\xBF");
-            fputcsv($output, ['NOMBRES', 'APELLIDOS', 'TIPO_DOCUMENTO', 'NUMERO_DOCUMENTO', 'TELEFONO', 'CORREO', 'GENERO', 'ROL', 'ESPECIALIDAD_ID_SI_ES_ODONTOLOGO', 'EPS_ID_SI_ES_PACIENTE']);
-            fputcsv($output, ['Juan', 'Perez', 'C.C', '123456789', '3001234567', 'juan@example.com', 'MASCULINO', 'PACIENTE', '', '1']);
-            fputcsv($output, ['Maria', 'Gomez', 'C.E', '987654321', '3009876543', 'maria@example.com', 'FEMENINO', 'ODONTOLOGO', '1', '']);
+            fputcsv($output, ['NOMBRES', 'APELLIDOS', 'TIPO_DOCUMENTO', 'NUMERO_DOCUMENTO', 'TELEFONO', 'CORREO', 'GENERO', 'ROL', 'ESPECIALIDAD', 'EPS'], ';');
+
+            $usuarios = DB::select("
+                SELECT u.NOMBRES, u.APELLIDOS, u.TIPO_DOCUMENTO, u.NUMERO_DOCUMENTO, u.TELEFONO, u.CORREO, u.GENERO,
+                       r.ROL_NOMBRE AS ROL,
+                       IFNULL(e.NOMBRE_ESPECIALIDAD, '') AS ESPECIALIDAD,
+                       IFNULL(eps.NOMBRE_EPS, '') AS EPS
+                FROM usuarios u
+                JOIN roles r ON u.ROLES_ID_ROLES = r.ID_ROLES
+                LEFT JOIN odontologo o ON o.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
+                LEFT JOIN especialidad e ON o.ESPECIALIDAD_ID_ESPECIALIDAD = e.ID_ESPECIALIDAD
+                LEFT JOIN paciente p ON p.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
+                LEFT JOIN eps ON p.EPS_ID_EPS = eps.ID_EPS
+                WHERE u.ESTADO = 'Activo'
+                ORDER BY u.ROLES_ID_ROLES, u.NOMBRES
+            ");
+
+            foreach ($usuarios as $u) {
+                fputcsv($output, [
+                    $u->NOMBRES, $u->APELLIDOS, $u->TIPO_DOCUMENTO, $u->NUMERO_DOCUMENTO,
+                    $u->TELEFONO, $u->CORREO, $u->GENERO, $u->ROL, $u->ESPECIALIDAD, $u->EPS
+                ], ';');
+            }
             fclose($output);
-        }, 'plantilla_usuarios.csv', [
+        }, "usuarios_{$mes}.csv", [
             'Content-Type' => 'text/csv; charset=utf-8'
         ]);
     }

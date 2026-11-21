@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ChatbotController;
 
 // ==========================================
 // CONTROLADORES DE AUTENTICACIÓN
@@ -43,6 +44,7 @@ use App\Http\Controllers\Paciente\CitaController as PacCita;
 use App\Http\Controllers\Paciente\HistorialController as PacHistorial;
 use App\Http\Controllers\Paciente\TratamientoController as PacTratamiento;
 use App\Http\Controllers\Paciente\PagoController as PacPago;
+use App\Http\Controllers\Paciente\MercadoPagoController;
 use App\Http\Controllers\Paciente\PerfilController as PacPerfil;
 use App\Http\Controllers\Paciente\NotificacionController as PacNotificacion;
 
@@ -98,21 +100,39 @@ Route::post('/contacto', function (\Illuminate\Http\Request $request) {
 })->name('contacto.post');
 
 // =========================================================================
+// RUTA CHATBOT LANDING PAGE (Híbrido IA + Reglas locales)
+// =========================================================================
+Route::post('/chatbot/mensaje', [ChatbotController::class, 'enviarMensaje'])
+    ->middleware('throttle:40,1')
+    ->name('chatbot.mensaje');
+
+// =========================================================================
+// MERCADO PAGO (WEBHOOK Y RETORNO DEL CHECKOUT)
+// =========================================================================
+// El webhook debe ser público y no usa CSRF (ver bootstrap/app.php).
+Route::post('/webhooks/mercadopago', [MercadoPagoController::class, 'webhook'])
+    ->name('mercadopago.webhook');
+
+// Mercado Pago redirige aquí al terminar el checkout (success/failure/pending).
+Route::get('/paciente/pagos/mercadopago/retorno/{estado}', [MercadoPagoController::class, 'retorno'])
+    ->name('paciente.pagos.mp.retorno');
+
+// =========================================================================
 // RUTAS DE AUTENTICACIÓN
 // =========================================================================
 Route::get('/login', [AuthController::class, 'mostrarLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'procesarLogin'])->name('login.post');
-Route::post('/procesarLogin', [AuthController::class, 'procesarLogin']);
+Route::post('/login', [AuthController::class, 'procesarLogin'])->middleware('throttle:10,1')->name('login.post');
+Route::post('/procesarLogin', [AuthController::class, 'procesarLogin'])->middleware('throttle:10,1');
 
 Route::get('/registro', [AuthController::class, 'mostrarRegistro'])->name('registro');
-Route::post('/registro', [AuthController::class, 'procesarRegistro'])->name('registro.post');
-Route::post('/procesarRegistro', [AuthController::class, 'procesarRegistro']);
+Route::post('/registro', [AuthController::class, 'procesarRegistro'])->middleware('throttle:10,1')->name('registro.post');
+Route::post('/procesarRegistro', [AuthController::class, 'procesarRegistro'])->middleware('throttle:10,1');
 
 Route::get('/recuperar', [AuthController::class, 'mostrarRecuperar'])->name('recuperar');
-Route::post('/recuperar', [AuthController::class, 'procesarRecuperar'])->name('recuperar.post');
-Route::post('/procesarRecuperar', [AuthController::class, 'procesarRecuperar']);
+Route::post('/recuperar', [AuthController::class, 'procesarRecuperar'])->middleware('throttle:10,1')->name('recuperar.post');
+Route::post('/procesarRecuperar', [AuthController::class, 'procesarRecuperar'])->middleware('throttle:10,1');
 Route::get('/restablecer', [AuthController::class, 'mostrarRecuperar'])->name('restablecer');
-Route::post('/procesarRestablecer', [AuthController::class, 'procesarRecuperar'])->name('restablecer.post');
+Route::post('/procesarRestablecer', [AuthController::class, 'procesarRecuperar'])->middleware('throttle:10,1')->name('restablecer.post');
 
 // Cierre de sesión (destruye sesión y redirige limpiamente)
 Route::any('/salir', [AuthController::class, 'salir'])->name('logout');
@@ -153,6 +173,8 @@ Route::middleware(['ruta_segura:3'])->group(function () {
     // 5. Facturación y Pagos
     Route::get('/paciente/pagos', [PacPago::class, 'index'])->name('paciente.pagos');
     Route::post('/paciente/pagos/guardar', [PacPago::class, 'guardarPago']);
+    Route::post('/paciente/pagos/mercadopago/preferencia', [MercadoPagoController::class, 'crearPreferencia'])
+        ->name('paciente.pagos.mp.preferencia');
     Route::get('/paciente/pagos/exportar-excel', [PacPago::class, 'exportarExcel']);
     Route::get('/paciente/pagos/imprimir', [PacPago::class, 'imprimir']);
     Route::get('/verFactura', [PacPago::class, 'imprimir']);
@@ -161,6 +183,7 @@ Route::middleware(['ruta_segura:3'])->group(function () {
     Route::get('/paciente/perfil', [PacPerfil::class, 'index'])->name('paciente.perfil');
     Route::post('/paciente/perfil/actualizar', [PacPerfil::class, 'actualizar'])->name('paciente.perfil.actualizar');
     Route::post('/paciente/perfil/cambiar-password', [PacPerfil::class, 'cambiarPassword'])->name('paciente.perfil.cambiarPassword');
+    Route::post('/paciente/perfil/notificaciones', [PacPerfil::class, 'toggleNotificaciones'])->name('paciente.perfil.notificaciones');
     Route::get('/paciente/perfil/exportar', [PacPerfil::class, 'exportar']);
     Route::post('/paciente/hijos/registrar', [PacPerfil::class, 'registrarHijo'])->name('paciente.hijos.registrar');
     Route::post('/paciente/hijos/actualizar', [PacPerfil::class, 'actualizarHijo'])->name('paciente.hijos.actualizar');
@@ -168,8 +191,8 @@ Route::middleware(['ruta_segura:3'])->group(function () {
 
     // 7. Notificaciones
     Route::get('/paciente/notificaciones', [PacNotificacion::class, 'index'])->name('paciente.notificaciones');
-    Route::post('/paciente/notificaciones/marcar_leida', [PacNotificacion::class, 'marcarLeida']);
-    Route::post('/paciente/notificaciones/marcar_todas', [PacNotificacion::class, 'marcarTodas']);
+    Route::any('/paciente/notificaciones/marcar_leida', [PacNotificacion::class, 'marcarLeida']);
+    Route::any('/paciente/notificaciones/marcar_todas', [PacNotificacion::class, 'marcarTodas']);
 
     // Rutas directas de compatibilidad para paciente
     Route::get('/mis_citas', [PacCita::class, 'index']);
@@ -236,6 +259,7 @@ Route::middleware(['ruta_segura:1,4'])->group(function () {
 
     Route::get('/admin/perfil', [AdminPerfil::class, 'index']);
     Route::post('/admin/perfil/actualizar', [AdminPerfil::class, 'actualizar']);
+    Route::post('/admin/perfil/notificaciones', [AdminPerfil::class, 'toggleNotificaciones']);
 });
 
 // =========================================================================
@@ -278,6 +302,7 @@ Route::middleware(['ruta_segura:2'])->group(function () {
 
     Route::get('/odontologo/perfil', [OdoPerfil::class, 'index']);
     Route::post('/odontologo/perfil/actualizar', [OdoPerfil::class, 'actualizarPerfil']);
+    Route::post('/odontologo/perfil/notificaciones', [OdoPerfil::class, 'toggleNotificaciones']);
 
     Route::any('/Controllers/eliminar_notificacion.php', [OdoNotificacion::class, 'marcarComoLeida']);
 });
@@ -323,7 +348,7 @@ Route::prefix('LOGIN_ORIGINAL')->group(function () {
         Route::post('/paciente/perfil/cambiar-password', [PacPerfil::class, 'cambiarPassword']);
         Route::get('/exportarPerfil', [PacPerfil::class, 'exportar']);
         Route::get('/notificaciones', [PacNotificacion::class, 'index']);
-        Route::post('/paciente/notificaciones/marcar_leida', [PacNotificacion::class, 'marcarLeida']);
-        Route::post('/paciente/notificaciones/marcar_todas', [PacNotificacion::class, 'marcarTodas']);
+        Route::any('/paciente/notificaciones/marcar_leida', [PacNotificacion::class, 'marcarLeida']);
+        Route::any('/paciente/notificaciones/marcar_todas', [PacNotificacion::class, 'marcarTodas']);
     });
 });

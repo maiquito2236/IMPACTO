@@ -104,6 +104,7 @@
                 <h3 class="fs-6 fw-bold text-dark-blue mb-4">Selecciona la fecha y hora</h3>
                 
                 <div class="border rounded-3 p-3 mb-4">
+                    <div id="alerta-disponibilidad" class="mb-3" style="display: none;"></div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <button type="button" id="prev-month" class="btn btn-link btn-sm p-0 text-muted"><i class="fa-solid fa-chevron-left"></i></button>
                         <span id="current-month" class="fw-bold text-dark-blue small"></span>

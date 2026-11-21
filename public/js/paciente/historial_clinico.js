@@ -102,10 +102,42 @@ $(document).ready(function () {
     const elMedicamentos = document.getElementById("resumen-medicamentos");
     
     const elMotivoHoy = document.getElementById("resumen-cita-hoy");
+    const elObservaciones = document.getElementById("resumen-observaciones-doctor");
     const elProximaCita = document.getElementById("resumen-proxima-cita");
 
     const toothModal = document.getElementById("toothModal");
     const closeModal = document.getElementById("closeModal");
+
+    const btnPacAdulto = document.getElementById("btn-pac-adulto");
+    const btnPacNino = document.getElementById("btn-pac-nino");
+    const boxPacAdulto = document.getElementById("pac-odontograma-adulto");
+    const boxPacNino = document.getElementById("pac-odontograma-nino");
+    const tituloPac = document.getElementById("titulo-odontograma-pac");
+
+    function setModoOdontogramaPac(modo) {
+        if (boxPacAdulto && boxPacNino) {
+            boxPacAdulto.style.display = modo === "nino" ? "none" : "";
+            boxPacNino.style.display = modo === "nino" ? "" : "none";
+        }
+        if (tituloPac) {
+            tituloPac.textContent = modo === "nino"
+                ? "Odontograma Interactivo (Infantil - 20 Dientes)"
+                : "Odontograma Interactivo (Adulto - 32 Dientes)";
+        }
+        if (btnPacAdulto && btnPacNino) {
+            btnPacAdulto.style.background = modo === "adulto" ? "#0b57d0" : "transparent";
+            btnPacAdulto.style.color = modo === "adulto" ? "#ffffff" : "#475569";
+            btnPacNino.style.background = modo === "nino" ? "#0b57d0" : "transparent";
+            btnPacNino.style.color = modo === "nino" ? "#ffffff" : "#475569";
+        }
+    }
+
+    if (btnPacAdulto) {
+        btnPacAdulto.addEventListener("click", () => setModoOdontogramaPac("adulto"));
+    }
+    if (btnPacNino) {
+        btnPacNino.addEventListener("click", () => setModoOdontogramaPac("nino"));
+    }
 
     function getInitials(name) {
         if (!name) return "--";
@@ -116,7 +148,7 @@ $(document).ready(function () {
         return name.substring(0, 2).toUpperCase();
     }
 
-    function cargarDatosOdontograma(idCitaEspecifica, nombreDoctorListado, fechaIso) {
+    function cargarDatosOdontograma(idCitaEspecifica, nombreDoctorListado, fechaIso, idPacienteCita) {
         // Limpiamos los dientes primero
         document.querySelectorAll(".tooth-shape").forEach(shape => {
             shape.style.backgroundColor = '#f8fafc';
@@ -124,9 +156,8 @@ $(document).ready(function () {
             shape.parentElement.classList.remove('has-record');
         });
         
-        // El endpoint viejo cargaba de forma global, usaremos el mismo para alertas y paciente,
-        // pero podemos pasarle id_cita si el backend lo soporta, o asumimos que devuelve el estado global
-        let url = `/paciente/historial_clinico/datos_odontograma?paciente_id=${pacienteId}`;
+        const targetPacienteId = idPacienteCita || pacienteId;
+        let url = `/paciente/historial_clinico/datos_odontograma?paciente_id=${targetPacienteId}&id_cita=${idCitaEspecifica}`;
         if (fechaIso) {
             url += `&target_date=${fechaIso}`;
         }
@@ -136,7 +167,12 @@ $(document).ready(function () {
                 if (data.paciente) {
                     if (elNombre) elNombre.textContent = data.paciente.paciente_nombre || "Desconocido";
                     if (elAvatar) elAvatar.textContent = getInitials(data.paciente.paciente_nombre);
-                    if (elMeta) elMeta.textContent = `Identificación: ${data.paciente.documento || "--"} • Doctor Tratante: ${nombreDoctorListado || "--"}`;
+                    const edadTxt = (data.paciente.edad !== null && data.paciente.edad !== undefined) ? ` • Edad: ${data.paciente.edad} años` : "";
+                    if (elMeta) elMeta.textContent = `Identificación: ${data.paciente.documento || "--"}${edadTxt} • Doctor Tratante: ${nombreDoctorListado || "--"}`;
+
+                    const tienePiezaMayor20 = data.dientes && Object.keys(data.dientes).some(k => parseInt(k, 10) > 20);
+                    const esMenor = parseInt(data.paciente.es_menor || 0, 10) === 1;
+                    setModoOdontogramaPac((esMenor && !tienePiezaMayor20) ? "nino" : "adulto");
                 }
 
                 if (data.alertas) {
@@ -145,7 +181,7 @@ $(document).ready(function () {
                     if (elMedicamentos) elMedicamentos.textContent = data.alertas.MEDICAMENTOS || "Ninguno";
                 }
 
-                // Hacemos un fetch a la cita especifica para el resumen-cita-hoy
+                // Hacemos un fetch a la cita específica para el resumen clínico y notas de evolución
                 const formData = new FormData();
                 formData.append('id_cita', idCitaEspecifica);
                 fetch('/paciente/cita/detalle-historial-ajax', {
@@ -156,15 +192,16 @@ $(document).ready(function () {
                 .then(citaRes => {
                     if(citaRes.success) {
                         if(elMotivoHoy) elMotivoHoy.innerText = citaRes.data.TRATAMIENTOS_ODONTOGRAMA || citaRes.data.TRATAMIENTO || "Valoración";
-                        if(elProximaCita) elProximaCita.textContent = citaRes.data.RECOMENDACIONES || "Sin recomendaciones específicas";
+                        if(elObservaciones) elObservaciones.textContent = citaRes.data.OBSERVACIONES_DOCTOR || "Atención clínica registrada con normalidad.";
+                        if(elProximaCita) elProximaCita.textContent = citaRes.data.RECOMENDACIONES || "Continuar con las indicaciones médicas del especialista y asistir a sus controles odontológicos.";
                     }
                 });
-
 
                 if (data.dientes) {
                     const teethItems = document.querySelectorAll(".tooth-item");
                     const printList = document.getElementById("print-tooth-list");
                     if (printList) printList.innerHTML = ""; 
+                    const addedToPrint = new Set();
                     
                     teethItems.forEach(item => {
                         const toothNum = item.getAttribute("data-tooth-number");
@@ -173,8 +210,13 @@ $(document).ready(function () {
                             
                             const shape = item.querySelector(".tooth-shape");
                             if (shape) {
-                                shape.style.backgroundColor = toothData.estado === 'HECHO' ? '#2bc48a' : '#f59e0b';
-                                shape.style.borderColor = toothData.estado === 'HECHO' ? '#059669' : '#d97706';
+                                if (toothData.es_nuevo !== false) {
+                                    shape.style.backgroundColor = toothData.estado === 'HECHO' ? '#2bc48a' : '#f59e0b';
+                                    shape.style.borderColor = toothData.estado === 'HECHO' ? '#059669' : '#d97706';
+                                } else {
+                                    shape.style.backgroundColor = '#3b82f6';
+                                    shape.style.borderColor = '#2563eb';
+                                }
                             }
                             
                             item.classList.add("has-record");
@@ -195,16 +237,18 @@ $(document).ready(function () {
                                 toothModal.style.display = "flex";
                             });
                             
-                            if (printList) {
+                            if (printList && !addedToPrint.has(toothNum)) {
+                                addedToPrint.add(toothNum);
                                 const estadoClase = toothData.estado === 'HECHO' ? 'hecho' : 'proceso';
                                 const colorIcono = toothData.estado === 'HECHO' ? '#10b981' : '#f59e0b';
+                                const pastBadge = toothData.es_nuevo === false ? ' <span class="badge bg-secondary font-xs ms-1">Anterior</span>' : '';
                                 
                                 const detailHtml = `
                                     <div class="tooth-detail-card ${estadoClase}">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
                                             <div>
                                                 <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 1.1rem; font-weight: bold;">
-                                                    Pieza ${toothNum} <span style="color: #64748b; font-weight: normal; font-size: 0.95rem;">- ${toothData.nombre}</span>
+                                                    Pieza ${toothNum} <span style="color: #64748b; font-weight: normal; font-size: 0.95rem;">- ${toothData.nombre}</span>${pastBadge}
                                                 </h4>
                                                 <span style="background: ${toothData.estado === 'HECHO' ? '#ecfdf5' : '#fffbeb'}; color: ${colorIcono}; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; border: 1px solid ${toothData.estado === 'HECHO' ? '#a7f3d0' : '#fde68a'};">
                                                     <i class="fa-solid fa-circle-check me-1"></i> ${toothData.estado}
@@ -229,6 +273,50 @@ $(document).ready(function () {
                             }
                         }
                     });
+
+                    // Si existen procedimientos generales / boca completa (pieza 0)
+                    if (data.dientes['0'] && !addedToPrint.has('0')) {
+                        const toothData = data.dientes['0'];
+                        addedToPrint.add('0');
+                        const estadoClase = toothData.estado === 'HECHO' ? 'hecho' : 'proceso';
+                        const colorIcono = toothData.estado === 'HECHO' ? '#10b981' : '#f59e0b';
+                        const detailHtml = `
+                            <div class="tooth-detail-card ${estadoClase}">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+                                    <div>
+                                        <h4 style="margin: 0 0 4px 0; color: #0f172a; font-size: 1.1rem; font-weight: bold;">
+                                            Procedimiento General <span style="color: #64748b; font-weight: normal; font-size: 0.95rem;">- Boca Completa</span>
+                                        </h4>
+                                        <span style="background: ${toothData.estado === 'HECHO' ? '#ecfdf5' : '#fffbeb'}; color: ${colorIcono}; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; border: 1px solid ${toothData.estado === 'HECHO' ? '#a7f3d0' : '#fde68a'};">
+                                            <i class="fa-solid fa-circle-check me-1"></i> ${toothData.estado}
+                                        </span>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span style="display: block; color: #0f172a; font-weight: 600; font-size: 0.9rem;">Dr(a). ${toothData.doctor}</span>
+                                        <span style="color: #64748b; font-size: 0.8rem;"><i class="fa-regular fa-calendar me-1"></i> ${toothData.fecha}</span>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 10px;">
+                                    <strong style="color: #334155; font-size: 0.9rem; display: block; margin-bottom: 4px;">Procedimiento Realizado:</strong>
+                                    <p style="margin: 0; font-size: 0.95rem; color: #0f172a; background: #f8fafc; padding: 8px; border-radius: 6px;">${toothData.tratamiento}</p>
+                                </div>
+                                <div>
+                                    <strong style="color: #334155; font-size: 0.9rem; display: block; margin-bottom: 4px;">Observaciones:</strong>
+                                    <p style="margin: 0; font-size: 0.9rem; color: #475569;">${toothData.notas || "Ninguna observación adicional."}</p>
+                                </div>
+                            </div>
+                        `;
+                        printList.innerHTML += detailHtml;
+                    }
+
+                    if (printList && addedToPrint.size === 0) {
+                        printList.innerHTML = `
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 25px; color: #64748b; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                                <i class="fa-regular fa-folder-open fs-3 mb-2 d-block text-muted"></i>
+                                No se registraron procedimientos específicos por pieza dental en esta atención.
+                            </div>
+                        `;
+                    }
                 }
             })
             .catch(err => {
@@ -240,10 +328,11 @@ $(document).ready(function () {
     $(document).on('click', '.btn-ver-detalle', function(e) {
         e.preventDefault();
         const idCita = $(this).data('id');
+        const idPacienteCita = $(this).data('paciente-id');
         const docNombre = $(this).data('doc');
         const fechaIso = $(this).data('fecha-iso');
         
-        cargarDatosOdontograma(idCita, docNombre, fechaIso);
+        cargarDatosOdontograma(idCita, docNombre, fechaIso, idPacienteCita);
         
         // Guardamos el ID de la cita en los botones de imprimir para que exporten esa historia en concreto
         $('#btn-imprimir').data('id', idCita);

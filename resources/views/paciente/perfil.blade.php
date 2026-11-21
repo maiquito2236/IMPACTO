@@ -165,10 +165,13 @@
                         <div class="border rounded-3 p-3 mb-3 d-flex justify-content-between align-items-center bg-white" style="border-color: #cbd5e1 !important;">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="fa-regular fa-bell fs-5" style="color: #0b57d0;"></i>
-                                <span class="text-dark-blue fw-semibold" style="font-size: 0.88rem;">Notificaciones</span>
+                                <div>
+                                    <span class="text-dark-blue fw-semibold d-block" style="font-size: 0.88rem;">Notificaciones Web</span>
+                                    <small class="text-muted" style="font-size: 0.72rem;">Los avisos importantes de citas al correo permanecen activos</small>
+                                </div>
                             </div>
                             <div class="form-check form-switch m-0 p-0" style="min-height: auto;">
-                                <input class="form-check-input ms-0" type="checkbox" role="switch" id="toggleNotificaciones" checked style="cursor: pointer; width: 2.8em; height: 1.4em;">
+                                <input class="form-check-input ms-0" type="checkbox" role="switch" id="toggleNotificaciones" {{ ($usuario['NOTIFICACIONES_ACTIVAS'] ?? 1) ? 'checked' : '' }} style="cursor: pointer; width: 2.8em; height: 1.4em;">
                             </div>
                         </div>
 
@@ -258,7 +261,7 @@
                                             data-bs-target="#modalEditarHijo">
                                             <i class="fa-solid fa-pen font-xs"></i>
                                         </button>
-                                        <form action="{{ route('paciente.hijos.desvincular', $hijo->ID_PACIENTE_HAS_ACUDIENTE) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas desvincular a este menor de tu cuenta de acudiente?');">
+                                        <form action="{{ route('paciente.hijos.desvincular', $hijo->ID_PACIENTE_HAS_ACUDIENTE) }}" method="POST" class="form-desvincular-menor" data-nombre="{{ $hijo->NOMBRES }} {{ $hijo->APELLIDOS }}">
                                             @csrf
                                             <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center" title="Desvincular menor" style="width: 32px; height: 32px;">
                                                 <i class="fa-solid fa-trash-can font-xs"></i>
@@ -423,7 +426,7 @@
                             </select>
                         </div>
                     </div>
-
+                    
                     <!-- Enfermedad -->
                     <div class="form-group-custom">
                         <label>Enfermedad:</label>
@@ -818,7 +821,7 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('js/paciente/perfil.js') }}"></script>
+<script src="{{ asset('js/paciente/perfil.js') }}?v={{ filemtime(public_path('js/paciente/perfil.js')) }}"></script>
 <script>
     function toggleModalPass(inputId, btn) {
         const input = document.getElementById(inputId);

@@ -81,9 +81,9 @@ class NotificacionController extends Controller
     {
         $idUsuario = Auth::id() ?? session('usuario_id');
 
-        DB::update("
+        DB::statement("
             UPDATE notificaciones n
-            INNER JOIN tipo_notificacion tn ON n.TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION = tn.ID_TIPO_NOTIFICACION
+            LEFT JOIN tipo_notificacion tn ON n.TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION = tn.ID_TIPO_NOTIFICACION
             SET n.ESTADO = 'LEIDA', n.FECHA_LECTURA = NOW()
             WHERE n.ESTADO = 'NO_LEIDA'
               AND (n.USUARIOS_ID_USUARIOS = ? OR (n.USUARIOS_ID_USUARIOS IS NULL AND tn.ROL_DESTINO = 3))

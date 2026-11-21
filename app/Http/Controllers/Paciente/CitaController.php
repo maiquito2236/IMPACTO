@@ -17,12 +17,7 @@ class CitaController extends Controller
     public static function actualizarCitasVencidas()
     {
         try {
-            DB::table('cita')
-                ->where('ESTADO_CITA_ID', 1)
-                ->whereRaw('FECHA_HORA < DATE_SUB(NOW(), INTERVAL 6 HOUR)')
-                ->update([
-                    'ESTADO_CITA_ID' => 4 // No asistió
-                ]);
+            DB::statement('CALL sp_actualizar_citas_vencidas()');
         } catch (\Exception $e) {
             // Silencioso en caso de bloqueo momentáneo
         }
@@ -78,6 +73,16 @@ class CitaController extends Controller
             ", $pacientesIds);
 
             $citas = json_decode(json_encode($citas), true);
+
+            // Sanitizar cualquier texto con doble codificación UTF-8 (mojibake como Ã³)
+            $citas = array_map(function ($cita) {
+                foreach ($cita as $k => $v) {
+                    if (is_string($v) && strpos($v, 'Ã') !== false) {
+                        $cita[$k] = mb_convert_encoding($v, 'ISO-8859-1', 'UTF-8');
+                    }
+                }
+                return $cita;
+            }, $citas);
         }
 
         return view('paciente.citas.index', compact('citas'));
@@ -151,8 +156,8 @@ class CitaController extends Controller
             ORDER BY FECHA ASC, HORA_INICIO ASC
         ");
 
-        $doctorEspecialidades = DB::table('odontologo_has_especialidad')
-            ->select('ODONTOLOGO_ID_ODONTOLOGO', 'ESPECIALIDAD_ID_ESPECIALIDAD')
+        $doctorEspecialidades = DB::table('odontologo_especialidad')
+            ->select('ID_ODONTOLOGO as ODONTOLOGO_ID_ODONTOLOGO', 'ID_ESPECIALIDAD as ESPECIALIDAD_ID_ESPECIALIDAD')
             ->get()
             ->groupBy('ODONTOLOGO_ID_ODONTOLOGO');
 
@@ -224,24 +229,13 @@ class CitaController extends Controller
         try {
             DB::beginTransaction();
 
-            $idCitaNueva = DB::table('cita')->insertGetId([
-                'PACIENTE_ID_PACIENTE'              => $idPaciente,
-                'ODONTOLOGO_ID_ODONTOLOGO'          => $idOdontologo,
-                'FECHA_HORA'                        => $fechaHoraFormato,
-                'ESTADO_CITA_ID'                    => 1,
-                'MOTIVO'                            => $nombreProcedimiento,
-                'HORARIO_DISPONIBILIDAD_ID_HORARIO' => $idHorario,
-                'FECHA_CREACION'                    => now()
+            DB::statement('CALL sp_agendar_cita(?, ?, ?, ?, ?, @nueva_cita_id)', [
+                $idPaciente,
+                $idOdontologo,
+                $idHorario,
+                $idProcedimiento,
+                mb_substr($nombreProcedimiento, 0, 200)
             ]);
-
-            DB::table('cita_has_procedimiento')->insert([
-                'CITA_ID_CITA'                      => $idCitaNueva,
-                'PROCEDIMIENTO_ID_PROCEDIMIENTO'    => $idProcedimiento
-            ]);
-
-            DB::table('horario_disponibilidad')
-                ->where('ID_HORARIO', $idHorario)
-                ->update(['ESTADO' => 'Ocupado']);
 
             DB::commit();
 
@@ -288,7 +282,8 @@ class CitaController extends Controller
                 HORA_FIN,
                 ESTADO_HORARIO,
                 ODONTOLOGO_ID_ODONTOLOGO,
-                NOMBRE_ODONTOLOGO
+                NOMBRE_ODONTOLOGO,
+                NOMBRE_ODONTOLOGO AS NOMBRE_DOCTOR
             FROM vista_horarios_disponibilidad
             WHERE FECHA = ? AND ESTADO_HORARIO = 'Disponible'
             ORDER BY HORA_INICIO ASC
@@ -425,17 +420,10 @@ class CitaController extends Controller
             return redirect()->route('paciente.citas.index')->with('mensaje_error', 'La cita no existe.');
         }
 
-        // Liberar horario si existía
-        if ($cita->HORARIO_DISPONIBILIDAD_ID_HORARIO) {
-            DB::table('horario_disponibilidad')
-                ->where('ID_HORARIO', $cita->HORARIO_DISPONIBILIDAD_ID_HORARIO)
-                ->update(['ESTADO' => 'Disponible']);
-        }
-
-        DB::table('cita')->where('ID_CITA', $idCita)->update([
-            'ESTADO_CITA_ID'     => 3, // Cancelada
-            'MOTIVO_CANCELACION' => $motivoFinal,
-            'FECHA_CANCELACION'  => now()
+        // Cancelar cita y liberar horario mediante procedimiento almacenado
+        DB::statement('CALL sp_cancelar_cita(?, ?)', [
+            $idCita,
+            mb_substr($motivoFinal, 0, 255)
         ]);
 
         // Notificaciones
@@ -484,38 +472,11 @@ class CitaController extends Controller
         try {
             DB::beginTransaction();
 
-            // Liberar horario anterior
-            if ($citaOriginal->HORARIO_DISPONIBILIDAD_ID_HORARIO) {
-                DB::table('horario_disponibilidad')
-                    ->where('ID_HORARIO', $citaOriginal->HORARIO_DISPONIBILIDAD_ID_HORARIO)
-                    ->update(['ESTADO' => 'Disponible']);
-            }
-
-            // Ocupar nuevo horario
-            DB::table('horario_disponibilidad')
-                ->where('ID_HORARIO', $idHorarioNuevo)
-                ->update(['ESTADO' => 'Ocupado']);
-
-            // Actualizar cita
-            DB::table('cita')->where('ID_CITA', $idCita)->update([
-                'HORARIO_DISPONIBILIDAD_ID_HORARIO' => $idHorarioNuevo,
-                'FECHA_HORA'                        => $nuevaFechaHora,
-                'ODONTOLOGO_ID_ODONTOLOGO'          => $nuevoDoctor,
-                'ESTADO_CITA_ID'                    => 1 // Pendiente
+            DB::statement('CALL sp_reprogramar_cita(?, ?, ?)', [
+                $idCita,
+                $idHorarioNuevo,
+                mb_substr($motivoFinal, 0, 255)
             ]);
-
-            // Registrar en historial_reprogramacion_citas si la tabla existe
-            try {
-                DB::table('historial_reprogramacion_citas')->insert([
-                    'CITA_ID_CITA'         => $idCita,
-                    'FECHA_HORA_ANTERIOR'  => $citaOriginal->FECHA_HORA,
-                    'FECHA_HORA_NUEVA'     => $nuevaFechaHora,
-                    'MOTIVO_CAMBIO'        => $motivoFinal,
-                    'CREADO_EL'            => now()
-                ]);
-            } catch (\Exception $exHist) {
-                // Silencioso si no está la tabla de historial
-            }
 
             DB::commit();
 

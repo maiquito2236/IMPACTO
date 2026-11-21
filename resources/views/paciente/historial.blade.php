@@ -126,8 +126,9 @@
                                 <div class="d-flex gap-2 align-items-center">
                                     <button class="btn btn-outline-primary rounded-pill font-sm fw-bold d-flex align-items-center px-3 btn-ver-detalle" 
                                             data-id="{{ $cita['ID_CITA'] }}" 
+                                            data-paciente-id="{{ $cita['PACIENTE_ID_PACIENTE'] }}"
                                             data-doc="{{ $doctor }}" 
-                                            data-fecha-iso="{{ date('Y-m-d', strtotime($cita['FECHA_HORA'])) }}">
+                                            data-fecha-iso="{{ !empty($cita['FECHA_ATENCION']) ? date('Y-m-d', strtotime($cita['FECHA_ATENCION'])) : date('Y-m-d', strtotime($cita['FECHA_HORA'])) }}">
                                         <i class="fa-solid fa-file-medical me-2"></i> Ver Detalles
                                     </button>
                                 </div>
@@ -212,12 +213,24 @@
 
                         <!-- SECCIÓN 1: ODONTOGRAMA -->
                         <section class="odontogram-section" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: white; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                            <div style="border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 32px; height: 32px; background: #e8f0fe; color: #0b57d0; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-teeth-open"></i></div>
-                                <h3 style="margin: 0; color: #0f172a; font-size: 1.15rem; font-weight: bold;">Odontograma Interactivo (Adulto)</h3>
+                            <div style="border-bottom: 2px solid #f8fafc; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 32px; height: 32px; background: #e8f0fe; color: #0b57d0; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-teeth-open"></i></div>
+                                    <h3 id="titulo-odontograma-pac" style="margin: 0; color: #0f172a; font-size: 1.15rem; font-weight: bold;">Odontograma Interactivo (Adulto - 32 Dientes)</h3>
+                                </div>
+                                <div class="no-print" style="display: inline-flex; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1; gap: 4px;">
+                                    <button type="button" id="btn-pac-adulto"
+                                        style="border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: #0b57d0; color: #ffffff;">
+                                        <i class="fa-solid fa-user"></i> Adulto (32)
+                                    </button>
+                                    <button type="button" id="btn-pac-nino"
+                                        style="border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: transparent; color: #475569;">
+                                        <i class="fa-solid fa-child"></i> Niño (20)
+                                    </button>
+                                </div>
                             </div>
 
-                            <div class="odontogram-graphic">
+                            <div class="odontogram-graphic" id="pac-odontograma-adulto">
                                 <div class="teeth-row superior">
                                     @foreach([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] as $num)
                                         <div class="tooth-item" data-tooth-number="{{ $num }}">
@@ -231,6 +244,26 @@
                                     @foreach([17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32] as $num)
                                         <div class="tooth-item" data-tooth-number="{{ $num }}">
                                             <div class="tooth-shape premolar" id="shape-{{ $num }}"></div>
+                                            <span class="tooth-number">{{ $num }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <div class="odontogram-graphic" id="pac-odontograma-nino" style="display: none;">
+                                <div class="teeth-row superior" style="justify-content: center; gap: 14px;">
+                                    @foreach([1,2,3,4,5,6,7,8,9,10] as $num)
+                                        <div class="tooth-item" data-tooth-number="{{ $num }}">
+                                            <span class="tooth-number">{{ $num }}</span>
+                                            <div class="tooth-shape premolar" id="shape-pac-nino-{{ $num }}"></div>
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="teeth-row inferior mt-4" style="justify-content: center; gap: 14px;">
+                                    @foreach([11,12,13,14,15,16,17,18,19,20] as $num)
+                                        <div class="tooth-item" data-tooth-number="{{ $num }}">
+                                            <div class="tooth-shape premolar" id="shape-pac-nino-{{ $num }}"></div>
                                             <span class="tooth-number">{{ $num }}</span>
                                         </div>
                                     @endforeach
@@ -271,7 +304,8 @@
                                     Evolución Clínica y Notas
                                 </h3>
                                 <ul style="list-style: none; padding: 0; margin: 15px 0 0 0; display: flex; flex-direction: column; gap: 12px; font-size: 0.95rem; color: #334155;">
-                                    <li><strong style="color: #0f172a; display: block; margin-bottom: 4px;">Motivo Principal:</strong> <span id="resumen-cita-hoy" style="display: block; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">Cargando...</span></li>
+                                    <li><strong style="color: #0f172a; display: block; margin-bottom: 4px;">Procedimiento / Tratamiento:</strong> <span id="resumen-cita-hoy" style="display: block; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">Cargando...</span></li>
+                                    <li><strong style="color: #0f172a; display: block; margin-bottom: 4px;">Diagnóstico u Observaciones:</strong> <span id="resumen-observaciones-doctor" style="display: block; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">Cargando...</span></li>
                                     <li><strong style="color: #0f172a; display: block; margin-bottom: 4px;">Recomendaciones del Especialista:</strong> <span id="resumen-proxima-cita" style="display: block; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">Cargando...</span></li>
                                 </ul>
                             </div>

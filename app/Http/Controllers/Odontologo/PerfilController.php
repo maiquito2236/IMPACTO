@@ -32,9 +32,9 @@ class PerfilController extends Controller
 
         $odontologo = DB::table('odontologo')->where('USUARIOS_ID_USUARIOS', $idUsuario)->first();
         if ($odontologo) {
-            $espIds = DB::table('odontologo_has_especialidad')
-                ->where('ODONTOLOGO_ID_ODONTOLOGO', $odontologo->ID_ODONTOLOGO)
-                ->pluck('ESPECIALIDAD_ID_ESPECIALIDAD')
+            $espIds = DB::table('odontologo_especialidad')
+                ->where('ID_ODONTOLOGO', $odontologo->ID_ODONTOLOGO)
+                ->pluck('ID_ESPECIALIDAD')
                 ->toArray();
             if (empty($espIds) && !empty($odontologo->ESPECIALIDAD_ID_ESPECIALIDAD)) {
                 $espIds = [$odontologo->ESPECIALIDAD_ID_ESPECIALIDAD];
@@ -53,6 +53,7 @@ class PerfilController extends Controller
 
         $especialidades = DB::table('especialidad')
             ->select('ID_ESPECIALIDAD', 'NOMBRE_ESPECIALIDAD')
+            ->whereIn('ESTADO', ['ACTIVO', 'Activo'])
             ->orderBy('NOMBRE_ESPECIALIDAD', 'ASC')
             ->get()
             ->map(fn($item) => (array)$item)
@@ -148,26 +149,10 @@ class PerfilController extends Controller
                     ->update(['CONTRASEÑA' => Hash::make($passNueva)]);
             }
 
-            // 4. Notificaciones
+            // 4. Notificaciones (respetando preferencia de notificaciones web)
             try {
-                DB::table('notificaciones')->insert([
-                    'USUARIOS_ID_USUARIOS' => $idUsuario,
-                    'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 17,
-                    'MENSAJE' => "Tus datos personales fueron actualizados con éxito.",
-                    'FECHA_ENVIO' => now(),
-                    'ESTADO' => 'NO_LEIDA'
-                ]);
-
-                $admin = DB::table('usuarios')->where('ROLES_ID_ROLES', 1)->first();
-                if ($admin) {
-                    DB::table('notificaciones')->insert([
-                        'USUARIOS_ID_USUARIOS' => $admin->ID_USUARIOS,
-                        'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 18,
-                        'MENSAJE' => "El odontólogo {$nombres} {$apellidos} ha actualizado sus datos personales.",
-                        'FECHA_ENVIO' => now(),
-                        'ESTADO' => 'NO_LEIDA'
-                    ]);
-                }
+                \App\Helpers\Notificador::enviarAUsuario($idUsuario, 17, "Tus datos personales fueron actualizados con éxito.");
+                \App\Helpers\Notificador::enviarAAdmin(18, "El odontólogo {$nombres} {$apellidos} ha actualizado sus datos personales.");
             } catch (Exception $ign) {
                 // Notificaciones opcionales
             }
@@ -180,5 +165,20 @@ class PerfilController extends Controller
             DB::rollBack();
             return redirect('/odontologo/perfil?mode=edit&error=' . urlencode($e->getMessage()));
         }
+    }
+
+    public function toggleNotificaciones(Request $request)
+    {
+        $idUsuario = $this->getUsuarioId();
+        $activa = $request->boolean('activa') ? 1 : 0;
+
+        DB::table('usuarios')
+            ->where('ID_USUARIOS', $idUsuario)
+            ->update(['NOTIFICACIONES_ACTIVAS' => $activa]);
+
+        return response()->json([
+            'success' => true,
+            'activa'  => (bool) $activa,
+        ]);
     }
 }

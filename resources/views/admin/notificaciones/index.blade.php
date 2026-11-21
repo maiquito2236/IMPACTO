@@ -156,5 +156,5 @@
     <script>
         const NOTIFICACIONES_BD = @json($notificacionesJS ?? []);
     </script>
-    <script src="{{ asset('js/administrador/notificaciones.js') }}"></script>
+    <script src="{{ asset('js/administrador/notificaciones.js') }}?v={{ time() }}"></script>
 @endpush

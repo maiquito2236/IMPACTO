@@ -181,7 +181,8 @@ $(document).ready(function () {
         if (doctoresArray.length > 0) {
             let options = '<option value="" disabled selected>Selecciona odontólogo</option>';
             doctoresArray.forEach(docHorario => {
-                options += `<option value="${docHorario.ID_HORARIO}">Dr(a). ${docHorario.NOMBRE_DOCTOR}</option>`;
+                const doctorNombre = docHorario.NOMBRE_ODONTOLOGO || docHorario.NOMBRE_DOCTOR || 'Odontólogo';
+                options += `<option value="${docHorario.ID_HORARIO}">Dr(a). ${doctorNombre}</option>`;
             });
             
             $selectDoctor.html(options).prop('disabled', false);

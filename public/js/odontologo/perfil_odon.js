@@ -39,8 +39,56 @@ function mostrarAlertaRoja(mensaje) {
     }
 }
 
-// Validaciones W3C
+// Validaciones W3C y Switch de Notificaciones Web
 document.addEventListener('DOMContentLoaded', function() {
+    const toggleNotif = document.getElementById('toggleNotificacionesOdon');
+    if (toggleNotif) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        toggleNotif.addEventListener('change', function() {
+            const nuevoEstado = this.checked;
+            this.disabled = true;
+
+            fetch('/odontologo/perfil/notificaciones', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ activa: nuevoEstado ? 1 : 0 })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) throw new Error('Error al guardar');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: data.activa ? 'Notificaciones web activadas' : 'Notificaciones web desactivadas',
+                        showConfirmButton: false,
+                        timer: 2200,
+                        timerProgressBar: true
+                    });
+                }
+            })
+            .catch(() => {
+                toggleNotif.checked = !nuevoEstado;
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo guardar la preferencia de notificaciones.',
+                        confirmButtonColor: '#1a56db'
+                    });
+                }
+            })
+            .finally(() => {
+                toggleNotif.disabled = false;
+            });
+        });
+    }
+
     const formPerfil = document.getElementById('formPerfilOdon');
     
     if (formPerfil) {

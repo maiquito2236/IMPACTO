@@ -22,11 +22,23 @@ class PerfilController extends Controller
             ->where('p.USUARIOS_ID_USUARIOS', $idUsuario)
             ->select('p.*', 'e.NOMBRE_EPS')
             ->first();
-        $epsLista = DB::table('eps')->orderBy('NOMBRE_EPS', 'asc')->get();
+        $epsLista = DB::table('eps')
+            ->whereIn('ESTADO', ['ACTIVO', 'Activo'])
+            ->orderBy('NOMBRE_EPS', 'asc')
+            ->get();
 
         // Enfermedades y Alergias
-        $enfermedadesLista = DB::table('condicion_medica')->where('TIPO', 'ENFERMEDAD')->orderBy('NOMBRE_CONDICION', 'asc')->get();
-        $alergiasLista = DB::table('condicion_medica')->where('TIPO', 'ALERGIA')->orderBy('NOMBRE_CONDICION', 'asc')->get();
+        // Enfermedades y Alergias (pueden guardarse como ACTIVA o ACTIVO)
+        $enfermedadesLista = DB::table('condicion_medica')
+            ->where('TIPO', 'ENFERMEDAD')
+            ->whereIn('ESTADO', ['ACTIVA', 'ACTIVO', 'Activa', 'Activo'])
+            ->orderBy('NOMBRE_CONDICION', 'asc')
+            ->get();
+        $alergiasLista = DB::table('condicion_medica')
+            ->where('TIPO', 'ALERGIA')
+            ->whereIn('ESTADO', ['ACTIVA', 'ACTIVO', 'Activa', 'Activo'])
+            ->orderBy('NOMBRE_CONDICION', 'asc')
+            ->get();
 
         // Condiciones asignadas al paciente (usando vista_antecedentes_medicos)
         $condicionesPaciente = [];
@@ -521,5 +533,23 @@ class PerfilController extends Controller
         Notificador::enviarAUsuario($idUsuario, 16, "Tu contraseña ha sido actualizada exitosamente.");
 
         return redirect('/paciente/perfil')->with('EXITO_PERFIL', '¡Contraseña actualizada correctamente!');
+    }
+
+    /**
+     * Activa o desactiva las notificaciones para el paciente autenticado
+     */
+    public function toggleNotificaciones(Request $request)
+    {
+        $idUsuario = Auth::id() ?? session('usuario_id');
+        $activa = $request->boolean('activa') ? 1 : 0;
+
+        DB::table('usuarios')
+            ->where('ID_USUARIOS', $idUsuario)
+            ->update(['NOTIFICACIONES_ACTIVAS' => $activa]);
+
+        return response()->json([
+            'success' => true,
+            'activa'  => (bool) $activa,
+        ]);
     }
 }

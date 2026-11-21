@@ -42,6 +42,12 @@
                 <p class="patient-meta-sub" id="bannerPatientMeta">
                     @if (!empty($id_paciente))
                         <strong>Doc:</strong> {{ $documento ?: 'N/A' }} &bull; 
+                        @if(isset($edad_paciente) && $edad_paciente !== null)
+                            <strong>Edad:</strong> {{ $edad_paciente }} años &bull;
+                        @endif
+                        <span style="background: {{ !empty($es_menor) ? '#fef3c7' : '#e0f2fe' }}; color: {{ !empty($es_menor) ? '#b45309' : '#0369a1' }}; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                            <i class="fa-solid {{ !empty($es_menor) ? 'fa-child' : 'fa-user' }}"></i> {{ !empty($es_menor) ? 'Menor / Pediátrico' : 'Adulto' }}
+                        </span> &bull;
                         <strong>Motivo:</strong> {{ $tratamiento_motivo ?: 'Plan de tratamiento general' }}
                         @if (!empty($id_cita))
                             &bull; <span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">Cita #{{ $id_cita }}</span>
@@ -79,12 +85,26 @@
 
     <div class="workspace-grid">
         <section class="ui-panel panel-odontogram">
-            <h3>Odontograma Clínico</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                <h3 id="titulo-odontograma-planes" style="margin: 0;">
+                    {{ !empty($es_menor) ? 'Odontograma Clínico Infantil (20 Dientes)' : 'Odontograma Clínico Adulto (32 Dientes)' }}
+                </h3>
+                <div style="display: inline-flex; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1; gap: 4px;">
+                    <button type="button" id="btn-odontograma-adulto" data-mode="adulto"
+                        style="border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; background: {{ empty($es_menor) ? '#1a56db' : 'transparent' }}; color: {{ empty($es_menor) ? '#ffffff' : '#475569' }};">
+                        <i class="fa-solid fa-user"></i> Adulto (32)
+                    </button>
+                    <button type="button" id="btn-odontograma-nino" data-mode="nino"
+                        style="border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; background: {{ !empty($es_menor) ? '#1a56db' : 'transparent' }}; color: {{ !empty($es_menor) ? '#ffffff' : '#475569' }};">
+                        <i class="fa-solid fa-child"></i> Niño (20)
+                    </button>
+                </div>
+            </div>
 
-            <div class="odontogram-visualizer-box">
+            <div class="odontogram-visualizer-box" id="odontograma-box-adulto" style="display: {{ empty($es_menor) ? 'block' : 'none' }};">
                 <div class="dental-arch arch-upper">
                     @for($i = 1; $i <= 16; $i++)
-                        <a href="#modal-registrar-plan" class="tooth-item tooth-select">
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-pieza="{{ $i }}">
                             {{ $i }}
                         </a>
                     @endfor
@@ -94,7 +114,27 @@
 
                 <div class="dental-arch arch-lower">
                     @for($i = 17; $i <= 32; $i++)
-                        <a href="#modal-registrar-plan" class="tooth-item tooth-select">
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-pieza="{{ $i }}">
+                            {{ $i }}
+                        </a>
+                    @endfor
+                </div>
+            </div>
+
+            <div class="odontogram-visualizer-box" id="odontograma-box-nino" style="display: {{ !empty($es_menor) ? 'block' : 'none' }};">
+                <div class="dental-arch arch-upper" style="justify-content: center; gap: 10px;">
+                    @for($i = 1; $i <= 10; $i++)
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-pieza="{{ $i }}">
+                            {{ $i }}
+                        </a>
+                    @endfor
+                </div>
+
+                <div class="jaw-divider-line"></div>
+
+                <div class="dental-arch arch-lower" style="justify-content: center; gap: 10px;">
+                    @for($i = 11; $i <= 20; $i++)
+                        <a href="#modal-registrar-plan" class="tooth-item tooth-select" data-pieza="{{ $i }}">
                             {{ $i }}
                         </a>
                     @endfor
@@ -127,7 +167,6 @@
                 <div class="phases-table-list" id="contenedor-fases-dinamicas">
                     @if (!empty($procedimientos_paciente))
                         @foreach ($procedimientos_paciente as $index => $fase)
-                            @if ($fase['TIPO_SEGUIMIENTO'] === 'EVOLUCION_FASES')
                             <div class="table-row-item" 
                                  style="display: flex; justify-content: space-between; padding: 12px 10px; border-bottom: 1px solid #eee; align-items: center; 
                                         border-left: 4px solid {{ $fase['TIPO_SEGUIMIENTO'] === 'EVOLUCION_FASES' ? '#a855f7' : '#2bc48a' }}; margin-bottom: 5px; background: #fff;">
@@ -170,7 +209,6 @@
                                     ${{ number_format($fase['PRECIO_APLICADO'] * $fase['CANTIDAD'], 2) }}
                                 </span>
                             </div>
-                            @endif
                         @endforeach
                     @else
                         <div style="text-align: center; padding: 35px 15px; color: #6b7280;">
@@ -252,5 +290,5 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="{{ asset('js/odontologo/planes_tratamientos_odon.js') }}" defer></script>
+    <script src="{{ asset('js/odontologo/planes_tratamientos_odon.js') }}?v={{ time() }}" defer></script>
 @endpush

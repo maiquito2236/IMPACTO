@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\FacturacionPaciente;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
@@ -119,7 +120,7 @@ class FacturacionController extends Controller
                     if (empty($data['factura_id']) || empty($data['monto'])) {
                         throw new Exception("Faltan datos para el pago.");
                     }
-                    $this->registrarPago($data['factura_id'], $data['monto'], $data['metodo'] ?? 'Efectivo');
+                    $this->registrarPago($data['factura_id'], $data['monto'], $data['metodo'] ?? 'EFECTIVO');
                     return response()->json(['status' => 'success', 'message' => 'Pago registrado correctamente']);
 
                 default:
@@ -165,39 +166,18 @@ class FacturacionController extends Controller
                 if ($refs) {
                     $montoFmt = number_format((float)$data['total'], 2, ',', '.');
                     // Notificar Admin
-                    $adminUsers = DB::table('usuarios')->where('ROLES_ID_ROLES', 1)->where('ESTADO', 'Activo')->pluck('ID_USUARIOS');
-                    foreach ($adminUsers as $adminId) {
-                        DB::table('notificaciones')->insert([
-                            'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 26,
-                            'USUARIOS_ID_USUARIOS' => $adminId,
-                            'MENSAJE' => "Se generó la factura #{$idFactura} para {$refs->paciente_nombre} con saldo pendiente de $$montoFmt.",
-                            'FECHA_ENVIO' => now(),
-                            'ESTADO' => 'NO_LEIDA'
-                        ]);
-                    }
+                    \App\Helpers\Notificador::enviarAAdmin(26, "Se generó la factura #{$idFactura} para {$refs->paciente_nombre} con saldo pendiente de \${$montoFmt}.");
 
                     // Notificar Paciente
                     $pacienteUserId = DB::table('paciente')->where('ID_PACIENTE', $refs->PACIENTE_ID_PACIENTE)->value('USUARIOS_ID_USUARIOS');
                     if ($pacienteUserId) {
-                        DB::table('notificaciones')->insert([
-                            'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 27,
-                            'USUARIOS_ID_USUARIOS' => $pacienteUserId,
-                            'MENSAJE' => "Tu factura #{$idFactura} ha sido generada. Saldo pendiente: $$montoFmt.",
-                            'FECHA_ENVIO' => now(),
-                            'ESTADO' => 'NO_LEIDA'
-                        ]);
+                        \App\Helpers\Notificador::insertar(27, $pacienteUserId, "Tu factura #{$idFactura} ha sido generada. Saldo pendiente: \${$montoFmt}.");
                     }
 
                     // Notificar Odontólogo
                     $odonUserId = DB::table('odontologo')->where('ID_ODONTOLOGO', $refs->ODONTOLOGO_ID_ODONTOLOGO)->value('USUARIOS_ID_USUARIOS');
                     if ($odonUserId) {
-                        DB::table('notificaciones')->insert([
-                            'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 28,
-                            'USUARIOS_ID_USUARIOS' => $odonUserId,
-                            'MENSAJE' => "El paciente {$refs->paciente_nombre} quedó con saldo pendiente de $$montoFmt.",
-                            'FECHA_ENVIO' => now(),
-                            'ESTADO' => 'NO_LEIDA'
-                        ]);
+                        \App\Helpers\Notificador::insertar(28, $odonUserId, "El paciente {$refs->paciente_nombre} quedó con saldo pendiente de \${$montoFmt}.");
                     }
                 }
             }
@@ -298,25 +278,10 @@ class FacturacionController extends Controller
             $montoFmt = number_format($pago, 2, ',', '.');
 
             if ($odontologo && $odontologo->USUARIOS_ID_USUARIOS) {
-                DB::table('notificaciones')->insert([
-                    'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 24,
-                    'USUARIOS_ID_USUARIOS' => $odontologo->USUARIOS_ID_USUARIOS,
-                    'MENSAJE' => "El administrador te ha realizado un pago por $$montoFmt correspondiente al mes de $mes.",
-                    'FECHA_ENVIO' => now(),
-                    'ESTADO' => 'NO_LEIDA'
-                ]);
+                \App\Helpers\Notificador::insertar(32, $odontologo->USUARIOS_ID_USUARIOS, "Se ha registrado el pago de tu liquidación por \$$montoFmt correspondiente al mes de $mes.");
             }
 
-            $adminUsers = DB::table('usuarios')->where('ROLES_ID_ROLES', 1)->where('ESTADO', 'Activo')->pluck('ID_USUARIOS');
-            foreach ($adminUsers as $adminId) {
-                DB::table('notificaciones')->insert([
-                    'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 20,
-                    'USUARIOS_ID_USUARIOS' => $adminId,
-                    'MENSAJE' => "Has registrado un pago por $$montoFmt al odontólogo(a) $nombreOdontologo correspondiente al mes de $mes.",
-                    'FECHA_ENVIO' => now(),
-                    'ESTADO' => 'NO_LEIDA'
-                ]);
-            }
+            \App\Helpers\Notificador::enviarAAdmin(33, "Has registrado el pago de liquidación por \$$montoFmt al odontólogo(a) $nombreOdontologo correspondiente al mes de $mes.");
 
             DB::commit();
             return true;
@@ -354,9 +319,9 @@ class FacturacionController extends Controller
     private function obtenerCierreCajaHoy()
     {
         $sql = "SELECT 
-                    IFNULL(SUM(CASE WHEN METODO_PAGO = 'Efectivo' THEN MONTO ELSE 0 END), 0) as efectivo,
-                    IFNULL(SUM(CASE WHEN METODO_PAGO = 'Tarjeta' THEN MONTO ELSE 0 END), 0) as tarjeta,
-                    IFNULL(SUM(CASE WHEN METODO_PAGO = 'Transferencia' THEN MONTO ELSE 0 END), 0) as transferencia
+                    IFNULL(SUM(CASE WHEN METODO_PAGO = 'EFECTIVO' THEN MONTO ELSE 0 END), 0) as efectivo,
+                    IFNULL(SUM(CASE WHEN METODO_PAGO = 'TARJETA' THEN MONTO ELSE 0 END), 0) as tarjeta,
+                    IFNULL(SUM(CASE WHEN METODO_PAGO = 'TRANSFERENCIA' THEN MONTO ELSE 0 END), 0) as transferencia
                 FROM pago 
                 WHERE DATE(FECHA_PAGO) = CURDATE() AND ESTADO = 'PAGADO'";
         $res = DB::select($sql);
@@ -365,14 +330,17 @@ class FacturacionController extends Controller
 
     private function registrarPago($idFactura, $monto, $metodo)
     {
+        $metodo = strtoupper(trim((string) $metodo));
+        if (!in_array($metodo, ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA'], true)) {
+            throw new Exception("Método de pago no válido: $metodo");
+        }
+
         DB::beginTransaction();
         try {
-            DB::table('pago')->insert([
-                'FACTURA_ID_FACTURA' => $idFactura,
-                'MONTO' => $monto,
-                'METODO_PAGO' => $metodo,
-                'ESTADO' => 'PAGADO',
-                'FECHA_PAGO' => now()
+            DB::statement('CALL sp_registrar_pago_factura(?, ?, ?, @nuevo_pago_id)', [
+                (int) $idFactura,
+                $monto,
+                $metodo
             ]);
 
             $info = $this->obtenerFacturaIndividualData($idFactura);
@@ -395,41 +363,17 @@ class FacturacionController extends Controller
 
                     if ($esPagoTotal) {
                         foreach ($adminUsers as $adminId) {
-                            DB::table('notificaciones')->insert([
-                                'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 23,
-                                'USUARIOS_ID_USUARIOS' => $adminId,
-                                'MENSAJE' => "El paciente {$refs->paciente_nombre} ha cancelado la totalidad de la factura #{$idFactura} por $$montoFmt.",
-                                'FECHA_ENVIO' => now(),
-                                'ESTADO' => 'NO_LEIDA'
-                            ]);
+                            \App\Helpers\Notificador::insertar(23, $adminId, "El paciente {$refs->paciente_nombre} ha cancelado la totalidad de la factura #{$idFactura} por $$montoFmt.");
                         }
                         if ($pacienteUserId) {
-                            DB::table('notificaciones')->insert([
-                                'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 5,
-                                'USUARIOS_ID_USUARIOS' => $pacienteUserId,
-                                'MENSAJE' => "Hemos recibido tu pago total de $$montoFmt por concepto de {$f->tratamiento}. ¡Gracias!",
-                                'FECHA_ENVIO' => now(),
-                                'ESTADO' => 'NO_LEIDA'
-                            ]);
+                            \App\Helpers\Notificador::insertar(5, $pacienteUserId, "Hemos recibido tu pago total de $$montoFmt por concepto de {$f->tratamiento}. ¡Gracias!");
                         }
                     } else {
                         foreach ($adminUsers as $adminId) {
-                            DB::table('notificaciones')->insert([
-                                'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 20,
-                                'USUARIOS_ID_USUARIOS' => $adminId,
-                                'MENSAJE' => "El paciente {$refs->paciente_nombre} hizo un abono de $$montoFmt a la factura #{$idFactura}.",
-                                'FECHA_ENVIO' => now(),
-                                'ESTADO' => 'NO_LEIDA'
-                            ]);
+                            \App\Helpers\Notificador::insertar(20, $adminId, "El paciente {$refs->paciente_nombre} hizo un abono de $$montoFmt a la factura #{$idFactura}.");
                         }
                         if ($pacienteUserId) {
-                            DB::table('notificaciones')->insert([
-                                'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 19,
-                                'USUARIOS_ID_USUARIOS' => $pacienteUserId,
-                                'MENSAJE' => "Hemos recibido tu abono de $$montoFmt por concepto de {$f->tratamiento}. ¡Gracias!",
-                                'FECHA_ENVIO' => now(),
-                                'ESTADO' => 'NO_LEIDA'
-                            ]);
+                            \App\Helpers\Notificador::insertar(19, $pacienteUserId, "Hemos recibido tu abono de $$montoFmt por concepto de {$f->tratamiento}. ¡Gracias!");
                         }
                     }
                 }
@@ -671,7 +615,12 @@ class FacturacionController extends Controller
         }
 
         if ($request->hasFile('archivo_csv')) {
-            $file = fopen($request->file('archivo_csv')->getRealPath(), 'r');
+            $uploaded = $request->file('archivo_csv');
+            $ext = strtolower($uploaded->getClientOriginalExtension());
+            if (!in_array($ext, ['csv', 'txt'], true) || $uploaded->getSize() > 5 * 1024 * 1024) {
+                return response()->json(['success' => false, 'message' => 'El archivo debe ser CSV/TXT y no superar los 5 MB.'], 422);
+            }
+            $file = fopen($uploaded->getRealPath(), 'r');
             $line = fgets($file);
             $separator = (strpos($line, ';') !== false) ? ';' : ',';
             rewind($file);
@@ -684,7 +633,7 @@ class FacturacionController extends Controller
                 $docPaciente = trim($row[0]);
                 if ($docPaciente === 'DOCUMENTO_PACIENTE') continue;
 
-                $fecha = trim($row[1]); $metodo = trim($row[2]);
+                $fecha = trim($row[1]); $metodo = strtoupper(trim($row[2]));
                 $monto = (float)trim($row[3]); $total = (float)trim($row[4]); $estado = trim($row[5]);
 
                 try {
@@ -694,6 +643,8 @@ class FacturacionController extends Controller
                     DB::beginTransaction();
                     $idFactura = DB::table('factura')->insertGetId([
                         'PACIENTE_ID_PACIENTE' => $pac->ID_PACIENTE,
+                        'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => 0,
+                        'CITA_ID_CITA' => 0,
                         'FECHA_EMISION' => $fecha,
                         'TOTAL' => $total,
                         'ESTADO' => $estado
@@ -728,13 +679,39 @@ class FacturacionController extends Controller
 
     public function descargarPlantillaCsv()
     {
-        return response()->streamDownload(function() {
+        $mes = date('Y-m');
+        return response()->streamDownload(function() use ($mes) {
             $output = fopen('php://output', 'w');
             fputs($output, "\xEF\xBB\xBF");
-            fputcsv($output, ['DOCUMENTO_PACIENTE', 'FECHA_EMISION', 'METODO_PAGO', 'MONTO_ABONADO', 'TOTAL_FACTURA', 'ESTADO_FACTURA']);
-            fputcsv($output, ['1001001001', date('Y-m-d H:i:s'), 'Efectivo', '50000', '150000', 'PAGADA']);
+            fputcsv($output, ['NUM_FACTURA', 'DOCUMENTO_PACIENTE', 'PACIENTE', 'FECHA_EMISION', 'TOTAL', 'ESTADO_FACTURA', 'METODO_PAGO', 'MONTO_PAGADO', 'FECHA_PAGO', 'ESTADO_PAGO'], ';');
+
+            $facturas = DB::select("
+                SELECT f.ID_FACTURA,
+                       IFNULL(u.NUMERO_DOCUMENTO, '') AS DOC_PACIENTE,
+                       IFNULL(CONCAT(u.NOMBRES, ' ', u.APELLIDOS), '') AS PACIENTE,
+                       f.FECHA_EMISION, f.TOTAL, f.ESTADO,
+                       IFNULL(p.METODO_PAGO, '') AS METODO_PAGO,
+                       IFNULL(p.MONTO, 0) AS MONTO_PAGADO,
+                       IFNULL(p.FECHA_PAGO, '') AS FECHA_PAGO,
+                       IFNULL(p.ESTADO, '') AS ESTADO_PAGO
+                FROM factura f
+                LEFT JOIN paciente pac ON f.PACIENTE_ID_PACIENTE = pac.ID_PACIENTE
+                LEFT JOIN usuarios u ON pac.USUARIOS_ID_USUARIOS = u.ID_USUARIOS
+                LEFT JOIN pago p ON p.FACTURA_ID_FACTURA = f.ID_FACTURA
+                WHERE DATE_FORMAT(f.FECHA_EMISION, '%Y-%m') = ?
+                ORDER BY f.FECHA_EMISION
+            ", [$mes]);
+
+            foreach ($facturas as $f) {
+                $numFactura = 'FAC-' . str_pad($f->ID_FACTURA, 4, '0', STR_PAD_LEFT);
+                fputcsv($output, [
+                    $numFactura, $f->DOC_PACIENTE, $f->PACIENTE, $f->FECHA_EMISION,
+                    $f->TOTAL, $f->ESTADO, $f->METODO_PAGO, $f->MONTO_PAGADO,
+                    $f->FECHA_PAGO, $f->ESTADO_PAGO
+                ], ';');
+            }
             fclose($output);
-        }, 'plantilla_facturacion.csv', [
+        }, "facturacion_{$mes}.csv", [
             'Content-Type' => 'text/csv; charset=utf-8'
         ]);
     }

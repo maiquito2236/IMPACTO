@@ -12,53 +12,17 @@ return Application::configure(basePath: dirname(__DIR__))
     )
 
     ->withMiddleware(function (Middleware $middleware) {
+        // Confiar en proxies inversos (Cloudflare Tunnel) para detectar HTTPS correctamente
+        $middleware->trustProxies(at: '*');
+
         // Excluimos nuestras APIs y rutas de seguridad CSRF para compatibilidad con fetch/ajax JS
         $middleware->alias([
             'ruta_segura' => \App\Http\Middleware\RutaSegura::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
-            // Admin
-            'api_gestion_usuario',
-            'api_agenda/*',
-            'api_horarios/*',
-            'api_consultorios/*',
-            'api_facturacion/*',
-            'api_facturacion',
-            'api_reportes',
-            'api_reportes/*',
-            'api_otros/*',
-            'api_otros',
-            'admin/otros/*',
-            'admin/otros',
-            'api_otros',
-            'api_notificaciones/*',
-            'api_notificaciones',
-            'admin/facturacion/cargar-csv',
-            'admin/perfil/actualizar',
-
-            // Odontólogo
-            'odontologo/*',
-            'odontologo',
-            'Controllers/*',
-
-            // Paciente APIs y AJAX
-            'paciente/*',
-            'paciente/cita/*',
-            'paciente/pagos/*',
-            'paciente/notificaciones/*',
-            'guardar_cita',
-            'cancelar_cita',
-            'reprogramar_cita',
-            'login',
-            'registro',
-            'recuperar',
-            'procesarLogin',
-            'procesarRegistro',
-            'procesarRecuperar',
-            'procesarActualizarPerfil',
-            'contacto',
-            'LOGIN_ORIGINAL/*',
+            // Mercado Pago (webhook público externo — único endpoint que no puede enviar token CSRF)
+            'webhooks/mercadopago',
         ]);
     })
 

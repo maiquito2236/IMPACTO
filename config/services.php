@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-1.5-flash'),
+    ],
+
+    'mercadopago' => [
+        'access_token'        => env('MERCADO_PAGO_ACCESS_TOKEN'),
+        'public_key'          => env('MERCADO_PAGO_PUBLIC_KEY'),
+        'sandbox'             => env('MERCADO_PAGO_SANDBOX', true),
+        'currency_id'         => env('MERCADO_PAGO_CURRENCY_ID', 'COP'),
+        'statement_descriptor'=> env('MERCADO_PAGO_STATEMENT_DESCRIPTOR', 'ODONTOESTETICA'),
+    ],
+
 ];

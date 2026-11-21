@@ -35,7 +35,20 @@ class NotificacionController extends Controller
         $totalAlertas = count($notificaciones);
         $sinLeer = count(array_filter($notificaciones, fn($n) => $n['ESTADO'] === 'NO_LEIDA'));
 
-        $tiposNotificacion = DB::table('tipo_notificacion')->pluck('NOMBRE')->toArray();
+        $tiposBase = DB::table('tipo_notificacion')
+            ->where(function ($q) {
+                $q->where('ROL_DESTINO', 2)
+                  ->orWhere('NOMBRE', 'like', '%AGENDA%');
+            })
+            ->where('ESTADO', 'ACTIVO')
+            ->distinct()
+            ->pluck('NOMBRE')
+            ->toArray();
+
+        // Obtener de forma única los tipos de notificaciones recibidas por el odontólogo y combinarlos
+        $tiposRecibidos = array_unique(array_filter(array_column($notificaciones, 'TIPO_NOMBRE')));
+        $tiposNotificacion = array_values(array_unique(array_merge($tiposBase, $tiposRecibidos)));
+        sort($tiposNotificacion);
 
         return view('odontologo.notificaciones', compact(
             'notificaciones',
@@ -84,7 +97,10 @@ class NotificacionController extends Controller
             $updated = DB::table('notificaciones')
                 ->where('ID_NOTIFICACIONES', $id)
                 ->where('USUARIOS_ID_USUARIOS', $usuarioId)
-                ->update(['ESTADO' => 'LEIDA']);
+                ->update([
+                    'ESTADO' => 'LEIDA',
+                    'FECHA_LECTURA' => now()
+                ]);
 
             return response()->json(['success' => (bool)$updated]);
         }
@@ -99,7 +115,10 @@ class NotificacionController extends Controller
         DB::table('notificaciones')
             ->where('USUARIOS_ID_USUARIOS', $usuarioId)
             ->where('ESTADO', 'NO_LEIDA')
-            ->update(['ESTADO' => 'LEIDA']);
+            ->update([
+                'ESTADO' => 'LEIDA',
+                'FECHA_LECTURA' => now()
+            ]);
 
         return response()->json(['success' => true]);
     }

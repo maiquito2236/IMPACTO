@@ -112,10 +112,10 @@
                     <div class="toggle-box mt-3">
                         <div class="toggle-left">
                             <i class="fa-regular fa-bell"></i>
-                            <span>Notificaciones</span>
+                            <span>Notificaciones Web</span>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" checked>
+                            <input type="checkbox" id="toggleNotificacionesAdmin" {{ ($usuario->NOTIFICACIONES_ACTIVAS ?? 1) ? 'checked' : '' }}>
                             <span class="slider round"></span>
                         </label>
                     </div>
@@ -241,5 +241,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/administrador/perfilAdmin.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/administrador/perfilAdmin.js') }}?v={{ filemtime(public_path('js/administrador/perfilAdmin.js')) }}"></script>
 @endpush

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\Notificador;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -63,14 +64,26 @@ class PerfilController extends Controller
         DB::table('usuarios')->where('ID_USUARIOS', $id)->update($datos);
 
         // Notificación de actualización
-        DB::table('notificaciones')->insert([
-            'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 18,
-            'USUARIOS_ID_USUARIOS' => $id,
-            'MENSAJE' => 'Tus datos personales fueron actualizados con éxito.',
-            'FECHA_ENVIO' => now(),
-            'ESTADO' => 'NO_LEIDA'
-        ]);
+        Notificador::insertar(18, $id, 'Tus datos personales fueron actualizados con éxito.');
 
         return redirect('/admin/perfil')->with('exito_perfil', 'Datos actualizados correctamente.');
+    }
+
+    /**
+     * Activa o desactiva las notificaciones para el administrador autenticado
+     */
+    public function toggleNotificaciones(Request $request)
+    {
+        $id = Auth::id() ?: 1;
+        $activa = $request->boolean('activa') ? 1 : 0;
+
+        DB::table('usuarios')
+            ->where('ID_USUARIOS', $id)
+            ->update(['NOTIFICACIONES_ACTIVAS' => $activa]);
+
+        return response()->json([
+            'success' => true,
+            'activa'  => (bool) $activa,
+        ]);
     }
 }

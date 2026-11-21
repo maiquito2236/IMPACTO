@@ -8,10 +8,75 @@ document.addEventListener("DOMContentLoaded", () => {
     const patientIdInput = document.getElementById("patientIdInput");
     const dateInput = document.getElementById("dateInput");
 
+    const btnModoAdulto = document.getElementById("btn-odontograma-adulto");
+    const btnModoNino = document.getElementById("btn-odontograma-nino");
+    const boxAdulto = document.getElementById("odontograma-box-adulto");
+    const boxNino = document.getElementById("odontograma-box-nino");
+    const tituloOdontograma = document.getElementById("titulo-odontograma-planes");
+    const btnResetTeeth = document.getElementById("resetTeeth");
+
+    function cambiarModoOdontograma(modo) {
+        if (!boxAdulto || !boxNino) return;
+        if (modo === "nino") {
+            boxAdulto.style.display = "none";
+            boxNino.style.display = "block";
+            if (tituloOdontograma) tituloOdontograma.textContent = "Odontograma Clínico Infantil (20 Dientes)";
+            if (btnModoNino) {
+                btnModoNino.style.background = "#1a56db";
+                btnModoNino.style.color = "#ffffff";
+            }
+            if (btnModoAdulto) {
+                btnModoAdulto.style.background = "transparent";
+                btnModoAdulto.style.color = "#475569";
+            }
+        } else {
+            boxAdulto.style.display = "block";
+            boxNino.style.display = "none";
+            if (tituloOdontograma) tituloOdontograma.textContent = "Odontograma Clínico Adulto (32 Dientes)";
+            if (btnModoAdulto) {
+                btnModoAdulto.style.background = "#1a56db";
+                btnModoAdulto.style.color = "#ffffff";
+            }
+            if (btnModoNino) {
+                btnModoNino.style.background = "transparent";
+                btnModoNino.style.color = "#475569";
+            }
+        }
+    }
+
+    if (btnModoAdulto) {
+        btnModoAdulto.addEventListener("click", () => cambiarModoOdontograma("adulto"));
+    }
+    if (btnModoNino) {
+        btnModoNino.addEventListener("click", () => cambiarModoOdontograma("nino"));
+    }
+
     // MATRIZ LOCAL Y RECORDATORIOS DE FORMULARIO
     let tratamientosEnMemoria = {}; 
     let currentTooth = null;
     let ultimosProcedimientosIds = []; // 🔥 NUEVO: Recuerda las últimas opciones elegidas
+
+    // Función auxiliar para determinar si un procedimiento es de cobro global / boca completa
+    function esCobroGlobal(nombre, tipoCobro) {
+        if (parseInt(tipoCobro || 1) === 2) return true;
+        const nombreLower = (nombre || '').toLowerCase();
+        const patronesGenerales = [
+            'limpieza', 'detartraje', 'profilaxis', 'valoracion', 'valoración',
+            'diagnostico', 'diagnóstico', 'blanqueamiento', 'aclaramiento',
+            'protesis total', 'prótesis total', 'protesis parcial', 'prótesis parcial',
+            'ortodoncia', 'brackets', 'brakets', 'retenedor', 'diseño de sonrisa', 'diseño sonrisa'
+        ];
+        return patronesGenerales.some(p => nombreLower.includes(p));
+    }
+
+    if (btnResetTeeth) {
+        btnResetTeeth.addEventListener("click", () => {
+            tratamientosEnMemoria = {};
+            teeth.forEach(t => t.classList.remove("active-tooth"));
+            cargarOdontogramaPacienteActual();
+            renderizarBorradoresEnTabla();
+        });
+    }
 
     if (dateInput) {
         dateInput.value = new Date().toISOString().split('T')[0];
@@ -120,7 +185,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 const procId = cb.value;
                 const nombreProc = cb.dataset.nombre || '';
                 const precio = parseFloat(cb.dataset.precio || 0);
-                const tipoCobro = parseInt(cb.dataset.tipoCobro || 1);
+                const esGlobal = esCobroGlobal(nombreProc, cb.dataset.tipoCobro);
+                const tipoCobro = esGlobal ? 2 : 1;
 
                 ultimosProcedimientosIds.push(procId);
                 nombresProcedimientos.push(nombreProc);
@@ -135,11 +201,12 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (currentTooth) {
-                currentTooth.classList.remove("active-tooth");
-                currentTooth.classList.add("saved-tooth"); 
+                document.querySelectorAll(`.tooth-select[data-pieza='${piezaNum}']`).forEach(el => {
+                    el.classList.remove("active-tooth");
+                    el.classList.add("saved-tooth");
+                });
             }
 
-            renderizarBorradoresEnTabla();
             renderizarBorradoresEnTabla();
             const modal = document.getElementById("modal-registrar-plan");
             if (modal) {
@@ -177,18 +244,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 🔥 NUEVO: Agrupamos las piezas por procedimiento para que PHP las reciba como espera
+            // Agrupamos las piezas por procedimiento
             const payloadGrupos = {};
             for (const [pieza, arrayDatos] of Object.entries(tratamientosEnMemoria)) {
                 arrayDatos.forEach(datos => {
                     if (!payloadGrupos[datos.procedimiento_id]) {
                         payloadGrupos[datos.procedimiento_id] = {
-                            paciente_id: pacienteId,
                             procedimiento_id: datos.procedimiento_id,
                             precio_aplicado: datos.precio,
                             tipoCobro: datos.tipoCobro,
                             notas: datos.notas,
-                            fecha: fecha,
                             piezas: []
                         };
                     }
@@ -196,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
             }
 
-            const arrayPeticiones = Object.values(payloadGrupos);
+            const arrayProcedimientos = Object.values(payloadGrupos);
 
             Swal.fire({
                 title: 'Cierre de Historia Clínica',
@@ -226,32 +291,39 @@ document.addEventListener("DOMContentLoaded", () => {
                     const citaIdInput = document.getElementById("citaIdInput");
                     const cita_id = citaIdInput ? citaIdInput.value : '';
 
-                    // Agregar datos extra a los payloads
-                    arrayPeticiones.forEach(payload => {
-                        payload.diagnostico_general = extraData.diagnostico;
-                        payload.recomendacion = extraData.recomendacion;
-                        payload.cita_id = cita_id;
+                    Swal.fire({
+                        title: 'Guardando plan...',
+                        text: 'Por favor espera mientras se actualiza el historial clínico.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
                     });
 
-                    // Enviamos múltiples peticiones si hay varios procedimientos distintos
-                    const promesasFetch = arrayPeticiones.map(payload => 
-                        fetch('/odontologo/procedimientos/guardarMasivo', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        }).then(res => res.json())
-                    );
+                    // Enviamos todos los procedimientos en un único payload atómico para evitar bloqueos concurrentes
+                    const payloadFinal = {
+                        paciente_id: pacienteId,
+                        cita_id: cita_id,
+                        fecha: fecha,
+                        diagnostico_general: extraData.diagnostico,
+                        recomendacion: extraData.recomendacion,
+                        procedimientos: arrayProcedimientos
+                    };
 
-                    Promise.all(promesasFetch)
-                    .then(responses => {
-                        const errores = responses.filter(r => !r.success);
-                        if (errores.length === 0) {
+                    fetch('/odontologo/procedimientos/guardarMasivo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payloadFinal)
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response.success) {
                             Swal.fire('¡Éxito!', 'Historial clínico actualizado correctamente.', 'success').then(() => {
                                 const citaIdParam = (citaIdInput && citaIdInput.value) ? `&cita_id=${citaIdInput.value}` : '';
                                 window.location.href = `/odontologo/historial-clinico?paciente_id=${pacienteId}${citaIdParam}`; 
                             });
                         } else {
-                            Swal.fire('Error', 'Algunos procedimientos no se guardaron correctamente.', 'error');
+                            Swal.fire('Error al guardar', response.error || 'No se pudo guardar el plan de tratamiento.', 'error');
                         }
                     })
                     .catch(err => {
@@ -309,14 +381,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         checkbox.value = proc.ID_PROCEDIMIENTO;
                         checkbox.style.marginRight = "8px";
                         
-                        // 🔥 CORRECCIÓN CRÍTICA: Tu BD usa la columna 'COSTO' en vez de 'PRECIO'
+                        // 🔥 Verificación de cobro: 2 = Global/Boca Completa, 1 = Por Diente
                         const precioBase = proc.COSTO || proc.PRECIO || 0; 
+                        const esGlobal = esCobroGlobal(proc.NOMBRE_PROCEDIMIENTO, proc.TIPO_COBRO);
                         checkbox.dataset.precio = precioBase;
-                        checkbox.dataset.tipoCobro = proc.TIPO_COBRO || 1;
+                        checkbox.dataset.tipoCobro = esGlobal ? 2 : 1;
                         checkbox.dataset.nombre = proc.NOMBRE_PROCEDIMIENTO;
                         
                         label.appendChild(checkbox);
-                        label.appendChild(document.createTextNode(proc.NOMBRE_PROCEDIMIENTO));
+                        const textoEtiqueta = esGlobal 
+                            ? `${proc.NOMBRE_PROCEDIMIENTO} (General / Boca Completa)` 
+                            : proc.NOMBRE_PROCEDIMIENTO;
+                        label.appendChild(document.createTextNode(textoEtiqueta));
                         
                         select.appendChild(label);
                     }
@@ -381,13 +457,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             let cantidadCalculada = 1;
-            if (proc.tipoCobro === 1) { // 1 = Cobro por diente
+            const esGlobal = (proc.tipoCobro === 2) || esCobroGlobal(proc.nombre_procedimiento, proc.tipoCobro);
+            if (!esGlobal) { // 1 = Cobro por diente (solo si NO es global se multiplica por las piezas)
                 cantidadCalculada = piezasArr.length;
             }
-            // Si es 2 = Cobro Global, la cantidad a multiplicar es siempre 1.
+            // Si es 2 = Cobro Global / Boca Completa, la cantidad a multiplicar es siempre 1.
 
             let precioFinal = (proc.precio || 0.00) * cantidadCalculada;
             subtotalBorradores += precioFinal; // Acumulamos el costo
+
+            const textoDetalleCobro = esGlobal
+                ? `<small style="color: #6b21a8; display: block; font-size: 0.75rem; font-weight: 600;">• Cobro Global / Boca Completa (Piezas: ${piezasArr.join(', ')})</small>`
+                : `<small style="color: #0369a1; display: block; font-size: 0.75rem; font-weight: 600;">• ${piezasArr.length} ${piezasArr.length === 1 ? 'pieza' : 'piezas'} (${piezasArr.join(', ')}): $${(proc.precio || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} c/u</small>`;
 
             itemDiv.innerHTML = `
                 <span class="row-cell-name" style="display: flex; align-items: center; gap: 10px;">
@@ -397,7 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     <div>
                         <span style="font-weight: 600; color: #1f2937;">${nombreTexto}</span>
-                        <small style="color: #e67e22; display: block; font-size: 0.75rem;">Temporal (Por Guardar)</small>
+                        ${textoDetalleCobro}
                         ${proc.notas ? `
                             <small style="color: #6b7280; font-size: 0.7rem; display: block; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${proc.notas}">
                                 Obs: ${proc.notas}

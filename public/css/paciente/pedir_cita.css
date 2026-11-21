@@ -115,6 +115,18 @@
     font-weight: 700 !important;
 }
 
+.calendar-dates-grid div.dia-disponible {
+    color: var(--brand-blue);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.calendar-dates-grid div.disabled-day {
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    opacity: 0.4 !important;
+}
+
 .calendar-dates-grid div:not(.text-light-gray):not(.disabled-day):hover {
     background-color: var(--brand-light-blue);
     color: var(--brand-blue);

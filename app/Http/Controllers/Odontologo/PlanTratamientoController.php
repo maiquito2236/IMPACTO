@@ -34,6 +34,8 @@ class PlanTratamientoController extends Controller
         $tratamiento_motivo = "";
         $procedimientos_paciente = [];
         $total_presupuesto = 0.00;
+        $es_menor = false;
+        $edad_paciente = null;
 
         if ($id_cita > 0) {
             $detalleCita = DB::table('vista_citas')
@@ -55,6 +57,19 @@ class PlanTratamientoController extends Controller
                 $paciente_nombre = $pac->NOMBRE_COMPLETO;
                 $documento = $pac->NUMERO_DOCUMENTO;
                 $tratamiento_motivo = 'Plan de tratamiento general';
+                $es_menor = !empty($pac->ES_MENOR);
+                $edad_paciente = $pac->EDAD ?? null;
+            }
+        }
+
+        if (!empty($id_paciente) && $edad_paciente === null) {
+            $pacInfo = DB::table('vista_pacientes')
+                ->select('EDAD', 'ES_MENOR')
+                ->where('ID_PACIENTE', $id_paciente)
+                ->first();
+            if ($pacInfo) {
+                $es_menor = !empty($pacInfo->ES_MENOR);
+                $edad_paciente = $pacInfo->EDAD ?? null;
             }
         }
 
@@ -75,7 +90,7 @@ class PlanTratamientoController extends Controller
                     IF(TIEMPO_ESTIMADO_PROCEDIMIENTO > 40, 'EVOLUCION_FASES', 'SESION_UNICA') AS TIPO_SEGUIMIENTO,
                     PRECIO_APLICADO,
                     CANTIDAD,
-                    IF(TRATAMIENTO IS NULL OR TRATAMIENTO = '', 'Gral', TRATAMIENTO) AS PIEZA_DENTAL,
+                    IF(DIAGNOSTICO LIKE '%Piezas: %', SUBSTRING_INDEX(SUBSTRING_INDEX(DIAGNOSTICO, 'Piezas: ', -1), ' |', 1), IF(DIAGNOSTICO LIKE '%Pieza %', SUBSTRING_INDEX(SUBSTRING_INDEX(DIAGNOSTICO, 'Pieza ', -1), ' ', 1), 'Gral')) AS PIEZA_DENTAL,
                     DIAGNOSTICO AS NOTAS,
                     IF(PRECIO_APLICADO > 0, 'Hecho', 'Pendiente') AS ESTADO_FASE
                 FROM vista_procedimientos_hc
@@ -93,6 +108,27 @@ class PlanTratamientoController extends Controller
             }
         }
 
+        $cleanUtf8 = function ($item) use (&$cleanUtf8) {
+            if (is_array($item)) {
+                return array_map($cleanUtf8, $item);
+            }
+            if (is_object($item)) {
+                foreach ($item as $k => $v) {
+                    $item->$k = $cleanUtf8($v);
+                }
+                return $item;
+            }
+            if (is_string($item) && strpos($item, 'Ã') !== false) {
+                return mb_convert_encoding($item, 'ISO-8859-1', 'UTF-8');
+            }
+            return $item;
+        };
+
+        $paciente_nombre = $cleanUtf8($paciente_nombre);
+        $tratamiento_motivo = $cleanUtf8($tratamiento_motivo);
+        $procedimientos_paciente = array_map($cleanUtf8, $procedimientos_paciente);
+        $lista_pacientes = $lista_pacientes->map(fn($p) => $cleanUtf8($p));
+
         return view('odontologo.planes', compact(
             'id_cita',
             'paciente_nombre',
@@ -101,7 +137,9 @@ class PlanTratamientoController extends Controller
             'tratamiento_motivo',
             'procedimientos_paciente',
             'total_presupuesto',
-            'lista_pacientes'
+            'lista_pacientes',
+            'es_menor',
+            'edad_paciente'
         ));
     }
 
@@ -169,17 +207,22 @@ class PlanTratamientoController extends Controller
         $input = $request->json()->all() ?: $request->all();
 
         $paciente_id         = (int) ($input['paciente_id'] ?? 0);
-        $procedimiento_id    = (int) ($input['procedimiento_id'] ?? 0);
-        $precio_aplicado     = (float) ($input['precio_aplicado'] ?? 0.00);
-        $notas               = trim($input['notas'] ?? '');
-        $fecha               = isset($input['fecha']) ? $input['fecha'] . ' ' . date('H:i:s') : date('Y-m-d H:i:s');
-        $piezasSeleccionadas = $input['piezas'] ?? [];
+        $cita_id             = (int) ($input['cita_id'] ?? 0);
         $diagnostico_general = trim($input['diagnostico_general'] ?? '');
         $recomendacion        = trim($input['recomendacion'] ?? '');
-        $cita_id             = (int) ($input['cita_id'] ?? 0);
+        $fecha               = isset($input['fecha']) ? (strlen($input['fecha']) > 10 ? $input['fecha'] : $input['fecha'] . ' ' . date('H:i:s')) : date('Y-m-d H:i:s');
+        $fechaSoloDia        = date('Y-m-d', strtotime($fecha));
 
-        if ($paciente_id <= 0 || $procedimiento_id <= 0) {
-            return response()->json(['success' => false, 'error' => 'Datos obligatorios incompletos.'], 400);
+        // Normalizar los procedimientos: puede recibirse como array en 'procedimientos' o en formato individual
+        $procedimientosList = [];
+        if (isset($input['procedimientos']) && is_array($input['procedimientos'])) {
+            $procedimientosList = $input['procedimientos'];
+        } elseif (isset($input['procedimiento_id'])) {
+            $procedimientosList = [$input];
+        }
+
+        if ($paciente_id <= 0 || empty($procedimientosList)) {
+            return response()->json(['success' => false, 'error' => 'Datos obligatorios incompletos o lista de procedimientos vacía.'], 400);
         }
 
         $odontologo_id = $this->getOdontologoId();
@@ -187,69 +230,45 @@ class PlanTratamientoController extends Controller
         try {
             DB::beginTransaction();
 
-            $proc = DB::table('procedimientos')->where('ID_PROCEDIMIENTO', $procedimiento_id)->first();
-            if (!$proc) {
-                throw new Exception("El procedimiento seleccionado no existe en el catálogo.");
-            }
+            $totalPresupuestoTotal = 0.0;
+            $nombresProcsGuardados = [];
+            $facturasCreadas = [];
 
-            $nombreProc = $proc->NOMBRE_PROCEDIMIENTO;
-            $tipoCobro  = (int) ($proc->TIPO_COBRO ?? 1);
-            $ambito     = ($tipoCobro === 2 || empty($piezasSeleccionadas)) ? 'BOCA_COMPLETA' : 'POR_DIENTE';
+            foreach ($procedimientosList as $itemProc) {
+                $procedimiento_id    = (int) ($itemProc['procedimiento_id'] ?? 0);
+                $precio_aplicado     = (float) ($itemProc['precio_aplicado'] ?? 0.00);
+                $notas               = trim($itemProc['notas'] ?? ($input['notas'] ?? ''));
+                $piezasSeleccionadas = $itemProc['piezas'] ?? [];
 
-            if ($ambito === 'BOCA_COMPLETA') {
-                $motivo = $nombreProc;
-                $notasBase = !empty($piezasSeleccionadas) ? "Piezas: " . implode(', ', $piezasSeleccionadas) . " | " . $notas : $notas;
-                $notasFinales = (!empty($diagnostico_general) ? $diagnostico_general . " | " : "") . $notasBase;
-
-                $id_historia_clinica = DB::table('historia_clinica')->insertGetId([
-                    'FECHA_REGISTRO' => $fecha,
-                    'MOTIVO_CONSULTA' => $motivo,
-                    'DIAGNOSTICO' => $notasFinales,
-                    'TRATAMIENTO' => $nombreProc,
-                    'PACIENTE_ID_PACIENTE' => $paciente_id,
-                    'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
-                    'CITA_ID_CITA' => $cita_id > 0 ? $cita_id : null
-                ]);
-
-                DB::table('historia_clinica_has_procedimientos')->insert([
-                    'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => $id_historia_clinica,
-                    'PROCEDIMIENTOS_ID_PROCEDIMIENTO' => $procedimiento_id,
-                    'PRECIO_APLICADO' => $precio_aplicado,
-                    'CANTIDAD' => 1
-                ]);
-
-                if (!empty($piezasSeleccionadas)) {
-                    foreach ($piezasSeleccionadas as $numPieza) {
-                        DB::table('odontograma_tratamientos')->insert([
-                            'PACIENTE_ID_PACIENTE' => $paciente_id,
-                            'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
-                            'PIEZA_DENTAL' => $numPieza,
-                            'PROCEDIMIENTO_ID_PROCEDIMIENTO' => $procedimiento_id,
-                            'FECHA_REGISTRO' => $fecha,
-                            'NOTAS' => $notas,
-                            'ESTADO' => 'HECHO'
-                        ]);
-                    }
-                } else {
-                    DB::table('odontograma_tratamientos')->insert([
-                        'PACIENTE_ID_PACIENTE' => $paciente_id,
-                        'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
-                        'PIEZA_DENTAL' => 'Gral',
-                        'PROCEDIMIENTO_ID_PROCEDIMIENTO' => $procedimiento_id,
-                        'FECHA_REGISTRO' => $fecha,
-                        'NOTAS' => $notas,
-                        'ESTADO' => 'HECHO'
-                    ]);
+                if ($procedimiento_id <= 0) {
+                    continue;
                 }
-            } else {
-                foreach ($piezasSeleccionadas as $numPieza) {
-                    $motivo_defecto = $nombreProc;
-                    $notasBase = "Pieza " . $numPieza . " | " . $notas;
+
+                $proc = DB::table('procedimientos')->where('ID_PROCEDIMIENTO', $procedimiento_id)->first();
+                if (!$proc) {
+                    throw new Exception("El procedimiento (ID: {$procedimiento_id}) no existe en el catálogo.");
+                }
+
+                $nombreProc = $proc->NOMBRE_PROCEDIMIENTO;
+                $nombresProcsGuardados[] = $nombreProc;
+                $tipoCobro  = (int) ($itemProc['tipoCobro'] ?? ($proc->TIPO_COBRO ?? 1));
+
+                // Si es general por catálogo, por frontend o por naturaleza clínica
+                if ($tipoCobro === 2 || $this->esProcedimientoGeneral($nombreProc)) {
+                    $tipoCobro = 2;
+                }
+
+                $ambito = ($tipoCobro === 2 || empty($piezasSeleccionadas)) ? 'BOCA_COMPLETA' : 'POR_DIENTE';
+                $precioParaFactura = $precio_aplicado > 0 ? $precio_aplicado : (float) ($proc->COSTO ?? 0);
+
+                if ($ambito === 'BOCA_COMPLETA') {
+                    $motivo = $nombreProc;
+                    $notasBase = !empty($piezasSeleccionadas) ? "Piezas: " . implode(', ', $piezasSeleccionadas) . " | " . $notas : $notas;
                     $notasFinales = (!empty($diagnostico_general) ? $diagnostico_general . " | " : "") . $notasBase;
 
                     $id_historia_clinica = DB::table('historia_clinica')->insertGetId([
                         'FECHA_REGISTRO' => $fecha,
-                        'MOTIVO_CONSULTA' => $motivo_defecto,
+                        'MOTIVO_CONSULTA' => $motivo,
                         'DIAGNOSTICO' => $notasFinales,
                         'TRATAMIENTO' => $nombreProc,
                         'PACIENTE_ID_PACIENTE' => $paciente_id,
@@ -257,34 +276,118 @@ class PlanTratamientoController extends Controller
                         'CITA_ID_CITA' => $cita_id > 0 ? $cita_id : null
                     ]);
 
-                    DB::table('historia_clinica_has_procedimientos')->insert([
-                        'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => $id_historia_clinica,
-                        'PROCEDIMIENTOS_ID_PROCEDIMIENTO' => $procedimiento_id,
-                        'PRECIO_APLICADO' => $precio_aplicado,
-                        'CANTIDAD' => 1
+                    DB::statement('CALL sp_registrar_atencion_hc(?, ?, ?, ?, ?, @nuevo_reg_hc)', [
+                        $id_historia_clinica,
+                        $procedimiento_id,
+                        1,
+                        $precioParaFactura,
+                        mb_substr($notas, 0, 200)
                     ]);
 
-                    DB::table('odontograma_tratamientos')->insert([
-                        'PACIENTE_ID_PACIENTE' => $paciente_id,
-                        'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
-                        'PIEZA_DENTAL' => $numPieza,
-                        'PROCEDIMIENTO_ID_PROCEDIMIENTO' => $procedimiento_id,
-                        'FECHA_REGISTRO' => $fecha,
-                        'NOTAS' => $notas,
-                        'ESTADO' => 'HECHO'
+                    // Emitir factura automáticamente para este tratamiento
+                    $idFacturaCreada = DB::table('factura')->insertGetId([
+                        'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => $id_historia_clinica,
+                        'CITA_ID_CITA' => $cita_id > 0 ? $cita_id : 0,
+                        'FECHA_EMISION' => now(),
+                        'TOTAL' => $precioParaFactura,
+                        'ESTADO' => 'EMITIDA',
+                        'PACIENTE_ID_PACIENTE' => $paciente_id
                     ]);
+                    $facturasCreadas[] = $idFacturaCreada;
+
+                    $totalPresupuestoTotal += $precioParaFactura;
+
+                    if (!empty($piezasSeleccionadas)) {
+                        foreach ($piezasSeleccionadas as $numPieza) {
+                            $piezaInt = intval($numPieza);
+                            DB::table('odontograma_tratamientos')->insert([
+                                'PACIENTE_ID_PACIENTE' => $paciente_id,
+                                'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
+                                'PIEZA_DENTAL' => $piezaInt,
+                                'PROCEDIMIENTO_ID_PROCEDIMIENTO' => $procedimiento_id,
+                                'FECHA_REGISTRO' => $fechaSoloDia,
+                                'NOTAS' => $notas,
+                                'ESTADO' => 'HECHO'
+                            ]);
+                        }
+                    } else {
+                        DB::table('odontograma_tratamientos')->insert([
+                            'PACIENTE_ID_PACIENTE' => $paciente_id,
+                            'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
+                            'PIEZA_DENTAL' => 0,
+                            'PROCEDIMIENTO_ID_PROCEDIMIENTO' => $procedimiento_id,
+                            'FECHA_REGISTRO' => $fechaSoloDia,
+                            'NOTAS' => $notas,
+                            'ESTADO' => 'HECHO'
+                        ]);
+                    }
+                } else {
+                    foreach ($piezasSeleccionadas as $numPieza) {
+                        $piezaInt = intval($numPieza);
+                        $motivo_defecto = $nombreProc;
+                        $notasBase = "Pieza " . $piezaInt . " | " . $notas;
+                        $notasFinales = (!empty($diagnostico_general) ? $diagnostico_general . " | " : "") . $notasBase;
+
+                        $id_historia_clinica = DB::table('historia_clinica')->insertGetId([
+                            'FECHA_REGISTRO' => $fecha,
+                            'MOTIVO_CONSULTA' => $motivo_defecto,
+                            'DIAGNOSTICO' => $notasFinales,
+                            'TRATAMIENTO' => $nombreProc,
+                            'PACIENTE_ID_PACIENTE' => $paciente_id,
+                            'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
+                            'CITA_ID_CITA' => $cita_id > 0 ? $cita_id : null
+                        ]);
+
+                        DB::statement('CALL sp_registrar_atencion_hc(?, ?, ?, ?, ?, @nuevo_reg_hc)', [
+                            $id_historia_clinica,
+                            $procedimiento_id,
+                            1,
+                            $precioParaFactura,
+                            mb_substr($notas, 0, 200)
+                        ]);
+
+                        // Emitir factura automáticamente para este tratamiento
+                        $idFacturaCreada = DB::table('factura')->insertGetId([
+                            'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => $id_historia_clinica,
+                            'CITA_ID_CITA' => $cita_id > 0 ? $cita_id : 0,
+                            'FECHA_EMISION' => now(),
+                            'TOTAL' => $precioParaFactura,
+                            'ESTADO' => 'EMITIDA',
+                            'PACIENTE_ID_PACIENTE' => $paciente_id
+                        ]);
+                        $facturasCreadas[] = $idFacturaCreada;
+
+                        $totalPresupuestoTotal += $precioParaFactura;
+
+                        DB::table('odontograma_tratamientos')->insert([
+                            'PACIENTE_ID_PACIENTE' => $paciente_id,
+                            'ODONTOLOGO_ID_ODONTOLOGO' => $odontologo_id,
+                            'PIEZA_DENTAL' => $piezaInt,
+                            'PROCEDIMIENTO_ID_PROCEDIMIENTO' => $procedimiento_id,
+                            'FECHA_REGISTRO' => $fechaSoloDia,
+                            'NOTAS' => $notas,
+                            'ESTADO' => 'HECHO'
+                        ]);
+                    }
                 }
             }
 
-            // Actualizar cita con recomendaciones y observaciones
-            if ($cita_id > 0 && (!empty($recomendacion) || !empty($diagnostico_general))) {
-                $citaUpdate = [];
-                if (!empty($recomendacion)) $citaUpdate['RECOMENDACIONES'] = $recomendacion;
-                if (!empty($diagnostico_general)) $citaUpdate['OBSERVACIONES_DOCTOR'] = $diagnostico_general;
+            // Actualizar cita con recomendaciones, observaciones y marcarla como completada (UNA SOLA VEZ)
+            if ($cita_id > 0) {
+                $citaUpdate = [
+                    'ESTADO_CITA_ID' => 2,
+                    'FECHA_ATENCION' => now()
+                ];
+                if (!empty($recomendacion)) {
+                    $citaUpdate['RECOMENDACIONES'] = $recomendacion;
+                }
+                if (!empty($diagnostico_general)) {
+                    $citaUpdate['OBSERVACIONES_DOCTOR'] = $diagnostico_general;
+                }
                 DB::table('cita')->where('ID_CITA', $cita_id)->update($citaUpdate);
             }
 
-            // Notificaciones (usando vista_pacientes)
+            // Notificaciones (UNA SOLA VEZ)
             $pacUser = DB::selectOne("
                 SELECT ID_USUARIOS, NOMBRE_COMPLETO as nombre 
                 FROM vista_pacientes 
@@ -292,37 +395,52 @@ class PlanTratamientoController extends Controller
             ", [$paciente_id]);
 
             $nombre_paciente = $pacUser ? $pacUser->nombre : 'Paciente';
-            $montoTotal = ($ambito === 'BOCA_COMPLETA') ? $precio_aplicado : ($precio_aplicado * count($piezasSeleccionadas));
-            $monto_fmt = number_format($montoTotal, 2, ',', '.');
+            $monto_fmt = number_format($totalPresupuestoTotal, 2, ',', '.');
 
-            // Notificación al paciente
             if ($pacUser) {
-                DB::table('notificaciones')->insert([
-                    'MENSAJE' => "Tu nuevo plan de tratamiento ya está disponible en tu perfil.",
-                    'FECHA_ENVIO' => now(),
-                    'ESTADO' => 'NO_LEIDA',
-                    'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 1,
-                    'USUARIOS_ID_USUARIOS' => $pacUser->ID_USUARIOS
-                ]);
+                \App\Helpers\Notificador::insertar(30, $pacUser->ID_USUARIOS, "Tu nuevo plan de tratamiento ya está disponible en tu perfil.");
             }
 
-            // Notificación a admin
-            $adminUser = DB::table('usuarios')->where('ROLES_ID_ROLES', 1)->first();
-            if ($adminUser) {
-                DB::table('notificaciones')->insert([
-                    'MENSAJE' => "Se ha creado un nuevo plan de tratamiento para {$nombre_paciente} por \${$monto_fmt}.",
-                    'FECHA_ENVIO' => now(),
-                    'ESTADO' => 'NO_LEIDA',
-                    'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 1,
-                    'USUARIOS_ID_USUARIOS' => $adminUser->ID_USUARIOS
-                ]);
+            \App\Helpers\Notificador::enviarAAdmin(29, "Se ha creado un nuevo plan de tratamiento para {$nombre_paciente} por \${$monto_fmt}.");
+
+            if ($totalPresupuestoTotal > 0) {
+                $refFacturas = !empty($facturasCreadas)
+                    ? implode(', ', array_map(fn($id) => 'FAC-' . str_pad((string)$id, 4, '0', STR_PAD_LEFT), $facturasCreadas))
+                    : '';
+                $detalleFac = $refFacturas ? " ({$refFacturas})" : "";
+
+                \App\Helpers\Notificador::enviarAAdmin(26, "Se generó nueva deuda{$detalleFac} para {$nombre_paciente} con saldo pendiente de \${$monto_fmt}.");
+
+                if ($pacUser && $pacUser->ID_USUARIOS) {
+                    \App\Helpers\Notificador::insertar(27, $pacUser->ID_USUARIOS, "Tu factura{$detalleFac} ha sido generada. Saldo pendiente: \${$monto_fmt}.");
+                }
+
+                \App\Helpers\Notificador::enviarAOdontologo($odontologo_id, 28, "El paciente {$nombre_paciente} quedó con saldo pendiente de \${$monto_fmt}{$detalleFac}.");
             }
 
             DB::commit();
             return response()->json(['success' => true, 'mensaje' => 'Plan de tratamiento e historial guardado correctamente.']);
         } catch (Exception $e) {
             DB::rollBack();
+            \Illuminate\Support\Facades\Log::error("Error crítico en guardarMasivo: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json(['success' => false, 'error' => 'Error crítico: ' . $e->getMessage()], 500);
         }
+    }
+
+    private function esProcedimientoGeneral($nombre)
+    {
+        $nombreLower = mb_strtolower($nombre);
+        $patrones = [
+            'limpieza', 'detartraje', 'profilaxis', 'valoracion', 'valoración',
+            'diagnostico', 'diagnóstico', 'blanqueamiento', 'aclaramiento',
+            'protesis total', 'prótesis total', 'protesis parcial', 'prótesis parcial',
+            'ortodoncia', 'brackets', 'brakets', 'retenedor', 'diseño de sonrisa', 'diseño sonrisa'
+        ];
+        foreach ($patrones as $p) {
+            if (strpos($nombreLower, $p) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 }

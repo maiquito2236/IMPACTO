@@ -226,9 +226,9 @@
                 <div class="form-group">
                     <label>Método de Pago</label>
                     <select id="pagoMetodo" required>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Tarjeta">Tarjeta (Datáfono)</option>
-                        <option value="Transferencia">Transferencia (Nequi/Bancos)</option>
+                        <option value="EFECTIVO">Efectivo</option>
+                        <option value="TARJETA">Tarjeta (Datáfono)</option>
+                        <option value="TRANSFERENCIA">Transferencia (Nequi/Bancos)</option>
                     </select>
                 </div>
 

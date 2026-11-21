@@ -57,6 +57,69 @@ class HistorialController extends Controller
             ", $pacientesIds);
 
             $citas = json_decode(json_encode($citas), true);
+
+            // Precargar historias clínicas en una sola consulta para evitar N+1
+            $hcAll = DB::table('historia_clinica')
+                ->whereIn('PACIENTE_ID_PACIENTE', $pacientesIds)
+                ->get();
+            $hcPorCita = [];
+            $hcPorPacFecha = [];
+            foreach ($hcAll as $hcRow) {
+                if (!empty($hcRow->CITA_ID_CITA)) {
+                    $hcPorCita[(int) $hcRow->CITA_ID_CITA][] = $hcRow;
+                }
+                if (!empty($hcRow->FECHA_REGISTRO)) {
+                    $k = $hcRow->PACIENTE_ID_PACIENTE . '_' . date('Y-m-d', strtotime($hcRow->FECHA_REGISTRO));
+                    $hcPorPacFecha[$k][] = $hcRow;
+                }
+            }
+
+            foreach ($citas as &$c) {
+                $idCitaItem = (int) $c['ID_CITA'];
+                $hcList = collect($hcPorCita[$idCitaItem] ?? []);
+
+                if ($hcList->isEmpty()) {
+                    $fechasPosibles = [];
+                    if (!empty($c['FECHA_ATENCION'])) $fechasPosibles[] = date('Y-m-d', strtotime($c['FECHA_ATENCION']));
+                    if (!empty($c['FECHA_HORA'])) $fechasPosibles[] = date('Y-m-d', strtotime($c['FECHA_HORA']));
+                    $found = [];
+                    foreach (array_unique($fechasPosibles) as $fp) {
+                        $k = $c['PACIENTE_ID_PACIENTE'] . '_' . $fp;
+                        if (isset($hcPorPacFecha[$k])) {
+                            $found = array_merge($found, $hcPorPacFecha[$k]);
+                        }
+                    }
+                    $hcList = collect($found);
+                }
+
+                if ($hcList->isNotEmpty()) {
+                    $tratamientosHc = [];
+                    $diagnosticosHc = [];
+                    $observacionesHc = [];
+                    foreach ($hcList as $hc) {
+                        if (!empty($hc->TRATAMIENTO)) $tratamientosHc[] = $hc->TRATAMIENTO;
+                        elseif (!empty($hc->MOTIVO_CONSULTA)) $tratamientosHc[] = $hc->MOTIVO_CONSULTA;
+
+                        if (!empty($hc->DIAGNOSTICO)) $diagnosticosHc[] = $hc->DIAGNOSTICO;
+                        if (!empty($hc->OBSERVACIONES)) $observacionesHc[] = $hc->OBSERVACIONES;
+                    }
+
+                    $tratamientosHc = array_unique($tratamientosHc);
+                    $diagnosticosHc = array_unique($diagnosticosHc);
+                    $observacionesHc = array_unique($observacionesHc);
+
+                    if (!empty($tratamientosHc)) {
+                        $c['NOMBRE_PROCEDIMIENTO'] = implode(', ', $tratamientosHc);
+                    }
+                    if (empty($c['OBSERVACIONES_DOCTOR']) && !empty($diagnosticosHc)) {
+                        $c['OBSERVACIONES_DOCTOR'] = implode(' • ', $diagnosticosHc);
+                    }
+                    if (empty($c['RECOMENDACIONES']) && !empty($observacionesHc)) {
+                        $c['RECOMENDACIONES'] = implode(' • ', $observacionesHc);
+                    }
+                }
+            }
+            unset($c);
         }
 
         return view('paciente.historial', compact('citas', 'idPaciente'));
@@ -107,25 +170,96 @@ class HistorialController extends Controller
         $res['ESPECIALIDAD']       = !empty($res['NOMBRE_ESPECIALIDAD']) ? $res['NOMBRE_ESPECIALIDAD'] : 'General';
         $res['CONSULTORIO']        = $res['NOMBRE_CONSULTORIO'] ?? '';
         $res['ESTADO']             = $res['ESTADO_CITA'] ?? '';
-        $res['TRATAMIENTO']        = !empty($res['NOMBRE_PROCEDIMIENTO']) ? $res['NOMBRE_PROCEDIMIENTO'] : (!empty($res['MOTIVO']) ? $res['MOTIVO'] : 'Valoración General');
+
+        // 1. Cargar registros de historia_clinica vinculados a la cita
+        $hcList = DB::table('historia_clinica')
+            ->where('CITA_ID_CITA', $idCita)
+            ->get();
+
+        if ($hcList->isEmpty()) {
+            $fechasPosibles = [];
+            if (!empty($res['FECHA_ATENCION'])) $fechasPosibles[] = date('Y-m-d', strtotime($res['FECHA_ATENCION']));
+            if (!empty($res['FECHA_HORA'])) $fechasPosibles[] = date('Y-m-d', strtotime($res['FECHA_HORA']));
+            if (!empty($fechasPosibles)) {
+                $hcList = DB::table('historia_clinica')
+                    ->where('PACIENTE_ID_PACIENTE', $res['PACIENTE_ID_PACIENTE'])
+                    ->whereIn(DB::raw('DATE(FECHA_REGISTRO)'), $fechasPosibles)
+                    ->get();
+            }
+        }
+
+        $fechasTratamientos = [];
+        if (!empty($res['FECHA_ATENCION'])) $fechasTratamientos[] = date('Y-m-d', strtotime($res['FECHA_ATENCION']));
+        if (!empty($res['FECHA_HORA'])) $fechasTratamientos[] = date('Y-m-d', strtotime($res['FECHA_HORA']));
+
+        $tratamientosHc = [];
+        $diagnosticosHc = [];
+        $observacionesHc = [];
+
+        if ($hcList->isNotEmpty()) {
+            foreach ($hcList as $hc) {
+                if (!empty($hc->TRATAMIENTO)) $tratamientosHc[] = $hc->TRATAMIENTO;
+                elseif (!empty($hc->MOTIVO_CONSULTA)) $tratamientosHc[] = $hc->MOTIVO_CONSULTA;
+
+                if (!empty($hc->DIAGNOSTICO)) $diagnosticosHc[] = $hc->DIAGNOSTICO;
+                if (!empty($hc->OBSERVACIONES)) $observacionesHc[] = $hc->OBSERVACIONES;
+                if (!empty($hc->FECHA_REGISTRO)) $fechasTratamientos[] = date('Y-m-d', strtotime($hc->FECHA_REGISTRO));
+            }
+
+            $tratamientosHc = array_unique($tratamientosHc);
+            $diagnosticosHc = array_unique($diagnosticosHc);
+            $observacionesHc = array_unique($observacionesHc);
+
+            if (empty($res['NOMBRE_PROCEDIMIENTO']) && !empty($tratamientosHc)) {
+                $res['NOMBRE_PROCEDIMIENTO'] = implode(', ', $tratamientosHc);
+            }
+            if (empty($res['OBSERVACIONES_DOCTOR']) && !empty($diagnosticosHc)) {
+                $res['OBSERVACIONES_DOCTOR'] = implode(' • ', $diagnosticosHc);
+            }
+            if (empty($res['RECOMENDACIONES']) && !empty($observacionesHc)) {
+                $res['RECOMENDACIONES'] = implode(' • ', $observacionesHc);
+            }
+        }
+
+        $res['TRATAMIENTO'] = !empty($res['NOMBRE_PROCEDIMIENTO']) ? $res['NOMBRE_PROCEDIMIENTO'] : (!empty($res['MOTIVO']) ? $res['MOTIVO'] : 'Valoración General');
         $res['LISTA_TRATAMIENTOS'] = $res['TRATAMIENTO'];
 
-        // Tratamientos registrados en odontograma en la misma fecha
+        $fechasTratamientos = array_unique($fechasTratamientos);
+
+        // 2. Tratamientos registrados en odontograma en las fechas de esta atención
         try {
-            $piezas = DB::table('odontograma_tratamientos as ot')
+            $queryPiezas = DB::table('odontograma_tratamientos as ot')
                 ->join('procedimientos as p', 'ot.PROCEDIMIENTO_ID_PROCEDIMIENTO', '=', 'p.ID_PROCEDIMIENTO')
-                ->where('ot.PACIENTE_ID_PACIENTE', $res['PACIENTE_ID_PACIENTE'])
-                ->whereRaw('DATE(ot.FECHA_REGISTRO) = DATE(?)', [$res['FECHA_HORA']])
-                ->select('ot.PIEZA_DENTAL', 'p.NOMBRE_PROCEDIMIENTO')
-                ->get();
+                ->where('ot.PACIENTE_ID_PACIENTE', $res['PACIENTE_ID_PACIENTE']);
+
+            if (!empty($fechasTratamientos)) {
+                $queryPiezas->whereIn(DB::raw('DATE(ot.FECHA_REGISTRO)'), $fechasTratamientos);
+            }
+
+            $piezas = $queryPiezas->select('ot.PIEZA_DENTAL', 'p.NOMBRE_PROCEDIMIENTO')->get();
 
             if ($piezas->isNotEmpty()) {
-                $lineas = $piezas->map(fn($p) => "• {$p->NOMBRE_PROCEDIMIENTO} (Pieza {$p->PIEZA_DENTAL})")->implode("\n");
+                $lineas = $piezas->map(function($p) {
+                    return $p->PIEZA_DENTAL > 0 ? "• {$p->NOMBRE_PROCEDIMIENTO} (Pieza {$p->PIEZA_DENTAL})" : "• {$p->NOMBRE_PROCEDIMIENTO} (Boca Completa / General)";
+                })->implode("\n");
+                $res['TRATAMIENTOS_ODONTOGRAMA'] = $lineas;
+                $res['TRATAMIENTO'] = $lineas;
+            } elseif (!empty($tratamientosHc)) {
+                $lineas = collect($tratamientosHc)->map(function($t) {
+                    return "• {$t}";
+                })->implode("\n");
                 $res['TRATAMIENTOS_ODONTOGRAMA'] = $lineas;
                 $res['TRATAMIENTO'] = $lineas;
             }
         } catch (\Exception $e) {
             // Silencioso
+        }
+
+        if (empty($res['RECOMENDACIONES'])) {
+            $res['RECOMENDACIONES'] = 'Continuar con las indicaciones médicas del especialista y asistir a sus controles odontológicos.';
+        }
+        if (empty($res['OBSERVACIONES_DOCTOR'])) {
+            $res['OBSERVACIONES_DOCTOR'] = 'Atención clínica y procedimientos registrados con normalidad.';
         }
 
         return response()->json(['success' => true, 'data' => $res]);
@@ -142,16 +276,18 @@ class HistorialController extends Controller
 
         $pacienteId = intval($request->input('paciente_id') ?? $idPacienteDefault);
         $targetDate = $request->input('target_date');
+        $idCita = intval($request->input('id_cita') ?? 0);
 
-        // 1. Demográficos
-        $demograficos = DB::table('paciente as pac')
-            ->join('usuarios as u', 'pac.USUARIOS_ID_USUARIOS', '=', 'u.ID_USUARIOS')
-            ->where('pac.ID_PACIENTE', $pacienteId)
+        // 1. Demográficos (usando vista_pacientes)
+        $demograficos = DB::table('vista_pacientes')
+            ->where('ID_PACIENTE', $pacienteId)
             ->select(
-                'pac.ID_PACIENTE',
-                'u.NUMERO_DOCUMENTO as documento',
-                'u.CORREO as correo',
-                DB::raw("CONCAT(u.NOMBRES, ' ', u.APELLIDOS) as paciente_nombre")
+                'ID_PACIENTE',
+                'NUMERO_DOCUMENTO as documento',
+                'CORREO as correo',
+                'NOMBRE_COMPLETO as paciente_nombre',
+                'EDAD as edad',
+                'ES_MENOR as es_menor'
             )
             ->first();
 
@@ -180,6 +316,21 @@ class HistorialController extends Controller
             // Silencioso
         }
 
+        // Obtener fechas asociadas a la cita si se proporciona id_cita
+        $fechasCita = [];
+        if ($idCita > 0) {
+            $citaRow = DB::table('cita')->where('ID_CITA', $idCita)->first();
+            if ($citaRow) {
+                if (!empty($citaRow->FECHA_ATENCION)) $fechasCita[] = date('Y-m-d', strtotime($citaRow->FECHA_ATENCION));
+                if (!empty($citaRow->FECHA_HORA)) $fechasCita[] = date('Y-m-d', strtotime($citaRow->FECHA_HORA));
+            }
+            $hcRows = DB::table('historia_clinica')->where('CITA_ID_CITA', $idCita)->get();
+            foreach ($hcRows as $hc) {
+                if (!empty($hc->FECHA_REGISTRO)) $fechasCita[] = date('Y-m-d', strtotime($hc->FECHA_REGISTRO));
+            }
+            $fechasCita = array_unique($fechasCita);
+        }
+
         // 3. Dientes y tratamientos en odontograma
         $toothData = [];
         try {
@@ -198,7 +349,11 @@ class HistorialController extends Controller
                     'ot.FECHA_REGISTRO'
                 );
 
-            if ($targetDate) {
+            $maxFechaCita = !empty($fechasCita) ? max($fechasCita) : null;
+            if ($targetDate && $maxFechaCita) {
+                $fechaLimite = max($targetDate, $maxFechaCita);
+                $query->whereDate('ot.FECHA_REGISTRO', '<=', $fechaLimite);
+            } elseif ($targetDate && !$idCita) {
                 $query->whereDate('ot.FECHA_REGISTRO', '<=', $targetDate);
             }
 
@@ -206,15 +361,18 @@ class HistorialController extends Controller
 
             foreach ($datosDientes as $row) {
                 $pieza = $row->PIEZA_DENTAL;
+                $fechaRegistroRow = date('Y-m-d', strtotime($row->FECHA_REGISTRO));
+                $esDeEstaCita = empty($fechasCita) || in_array($fechaRegistroRow, $fechasCita);
+
                 if (!isset($toothData[$pieza])) {
                     $toothData[$pieza] = [
-                        'nombre'      => "Pieza Dental " . $pieza,
+                        'nombre'      => $pieza > 0 ? ("Pieza Dental " . $pieza) : "Boca Completa / General",
                         'estado'      => $row->estado,
                         'tratamiento' => $row->tratamiento,
                         'doctor'      => $row->doctor,
                         'fecha'       => $row->fecha,
                         'notas'       => $row->notas ?? '',
-                        'es_nuevo'    => $targetDate ? (date('Y-m-d', strtotime($row->FECHA_REGISTRO)) === $targetDate) : true
+                        'es_nuevo'    => $esDeEstaCita
                     ];
                 } else {
                     $toothData[$pieza]['tratamiento'] .= ', ' . $row->tratamiento;
@@ -223,6 +381,9 @@ class HistorialController extends Controller
                     }
                     if ($row->estado === 'HECHO') {
                         $toothData[$pieza]['estado'] = 'HECHO';
+                    }
+                    if ($esDeEstaCita) {
+                        $toothData[$pieza]['es_nuevo'] = true;
                     }
                 }
             }
@@ -304,12 +465,53 @@ class HistorialController extends Controller
 
         $datos = (array) $datos;
 
+        // Enriquecer con registros de historia_clinica y tratamientos odontológicos
+        $hcList = DB::table('historia_clinica')->where('CITA_ID_CITA', $idCita)->get();
+        if ($hcList->isEmpty()) {
+            $fechasPosibles = [];
+            if (!empty($datos['FECHA_ATENCION'])) $fechasPosibles[] = date('Y-m-d', strtotime($datos['FECHA_ATENCION']));
+            if (!empty($datos['FECHA_HORA'])) $fechasPosibles[] = date('Y-m-d', strtotime($datos['FECHA_HORA']));
+            if (!empty($fechasPosibles)) {
+                $hcList = DB::table('historia_clinica')
+                    ->where('PACIENTE_ID_PACIENTE', $datos['PACIENTE_ID_PACIENTE'])
+                    ->whereIn(DB::raw('DATE(FECHA_REGISTRO)'), $fechasPosibles)
+                    ->get();
+            }
+        }
+
+        if ($hcList->isNotEmpty()) {
+            $tratamientosHc = [];
+            $diagnosticosHc = [];
+            $observacionesHc = [];
+            foreach ($hcList as $hc) {
+                if (!empty($hc->TRATAMIENTO)) $tratamientosHc[] = $hc->TRATAMIENTO;
+                elseif (!empty($hc->MOTIVO_CONSULTA)) $tratamientosHc[] = $hc->MOTIVO_CONSULTA;
+
+                if (!empty($hc->DIAGNOSTICO)) $diagnosticosHc[] = $hc->DIAGNOSTICO;
+                if (!empty($hc->OBSERVACIONES)) $observacionesHc[] = $hc->OBSERVACIONES;
+            }
+
+            $tratamientosHc = array_unique($tratamientosHc);
+            $diagnosticosHc = array_unique($diagnosticosHc);
+            $observacionesHc = array_unique($observacionesHc);
+
+            if (!empty($tratamientosHc)) {
+                $datos['NOMBRE_PROCEDIMIENTO'] = implode(', ', $tratamientosHc);
+            }
+            if (empty($datos['OBSERVACIONES_DOCTOR']) && !empty($diagnosticosHc)) {
+                $datos['OBSERVACIONES_DOCTOR'] = implode(' • ', $diagnosticosHc);
+            }
+            if (empty($datos['RECOMENDACIONES']) && !empty($observacionesHc)) {
+                $datos['RECOMENDACIONES'] = implode(' • ', $observacionesHc);
+            }
+        }
+
         $fecha_atencion = !empty($datos['FECHA_ATENCION']) 
             ? date('d/m/Y \a \l\a\s h:i A', strtotime($datos['FECHA_ATENCION'])) 
             : date('d/m/Y \a \l\a\s h:i A', strtotime($datos['FECHA_HORA']));
         $procedimiento = !empty($datos['NOMBRE_PROCEDIMIENTO']) ? $datos['NOMBRE_PROCEDIMIENTO'] : (!empty($datos['MOTIVO']) ? $datos['MOTIVO'] : 'Valoración / Control General');
-        $observaciones = !empty($datos['OBSERVACIONES_DOCTOR']) ? $datos['OBSERVACIONES_DOCTOR'] : 'Sin observaciones registradas.';
-        $recomendaciones = !empty($datos['RECOMENDACIONES']) ? $datos['RECOMENDACIONES'] : 'Sin recomendaciones médicas especificadas.';
+        $observaciones = !empty($datos['OBSERVACIONES_DOCTOR']) ? $datos['OBSERVACIONES_DOCTOR'] : 'Procedimientos y atención clínica registrados satisfactoriamente.';
+        $recomendaciones = !empty($datos['RECOMENDACIONES']) ? $datos['RECOMENDACIONES'] : 'Continuar con las indicaciones médicas del especialista y asistir a sus controles odontológicos.';
         $fecha_emision = date('d/m/Y \a \l\a\s h:i A');
 
         $nombreDoctor = $datos['NOMBRE_ODONTOLOGO'] ?? 'Odontólogo Especialista';
@@ -423,7 +625,7 @@ class HistorialController extends Controller
         if ($formato === 'pdf') {
             $rutaLogo = public_path('img/logo_odontologia.png');
             $logo_src = '';
-            if (file_exists($rutaLogo)) {
+            if (extension_loaded('gd') && file_exists($rutaLogo)) {
                 $tipo_imagen = pathinfo($rutaLogo, PATHINFO_EXTENSION);
                 $datos_imagen = file_get_contents($rutaLogo);
                 $logo_src = 'data:image/' . $tipo_imagen . ';base64,' . base64_encode($datos_imagen);

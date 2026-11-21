@@ -22,6 +22,45 @@ document.addEventListener("DOMContentLoaded", () => {
     const toothModal = document.getElementById("toothModal");
     const closeModal = document.getElementById("closeModal");
 
+    const btnHcAdulto = document.getElementById("btn-hc-adulto");
+    const btnHcNino = document.getElementById("btn-hc-nino");
+    const boxHcAdulto = document.getElementById("hc-odontograma-adulto");
+    const boxHcNino = document.getElementById("hc-odontograma-nino");
+    const tituloHc = document.getElementById("titulo-odontograma-hc");
+    let modoOdontogramaActual = "adulto";
+    let modoFijadoManualmente = false;
+
+    function setModoOdontogramaHc(modo, sufijoFecha = "") {
+        modoOdontogramaActual = modo;
+        if (boxHcAdulto && boxHcNino) {
+            boxHcAdulto.style.display = modo === "nino" ? "none" : "";
+            boxHcNino.style.display = modo === "nino" ? "" : "none";
+        }
+        if (tituloHc) {
+            const baseTxt = modo === "nino" ? "2D Odontograma Infantil (20 Dientes)" : "2D Odontograma Adulto (32 Dientes)";
+            tituloHc.innerHTML = baseTxt + sufijoFecha;
+        }
+        if (btnHcAdulto && btnHcNino) {
+            btnHcAdulto.style.background = modo === "adulto" ? "#3b82f6" : "transparent";
+            btnHcAdulto.style.color = modo === "adulto" ? "#ffffff" : "#475569";
+            btnHcNino.style.background = modo === "nino" ? "#3b82f6" : "transparent";
+            btnHcNino.style.color = modo === "nino" ? "#ffffff" : "#475569";
+        }
+    }
+
+    if (btnHcAdulto) {
+        btnHcAdulto.addEventListener("click", () => {
+            modoFijadoManualmente = true;
+            setModoOdontogramaHc("adulto");
+        });
+    }
+    if (btnHcNino) {
+        btnHcNino.addEventListener("click", () => {
+            modoFijadoManualmente = true;
+            setModoOdontogramaHc("nino");
+        });
+    }
+
     // Función para obtener iniciales
     function getInitials(name) {
         if (!name) return "--";
@@ -34,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 1. CARGAR DATOS GENERALES Y ODONTOGRAMA
     function cargarOdontograma(targetDate = null) {
-        let url = `/odontologo/historial_clinico/datos_odontograma&paciente_id=${pacienteId}`;
+        let url = `/odontologo/historial_clinico/datos_odontograma?paciente_id=${pacienteId}`;
         if (targetDate) {
             url += `&target_date=${targetDate}`;
         }
@@ -46,7 +85,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.paciente) {
                     if (elNombre) elNombre.textContent = data.paciente.paciente_nombre || "Desconocido";
                     if (elAvatar) elAvatar.textContent = getInitials(data.paciente.paciente_nombre);
-                    if (elMeta) elMeta.textContent = `Identificación: ${data.paciente.documento || "--"} • Doctor Asignado: ${data.doctor_sesion || "--"}`;
+                    const edadTxt = (data.paciente.edad !== null && data.paciente.edad !== undefined) ? ` • Edad: ${data.paciente.edad} años` : "";
+                    if (elMeta) elMeta.textContent = `Identificación: ${data.paciente.documento || "--"}${edadTxt} • Doctor Asignado: ${data.doctor_sesion || "--"}`;
+
+                    if (!modoFijadoManualmente) {
+                        const tienePiezaMayor20 = data.dientes && Object.keys(data.dientes).some(k => parseInt(k, 10) > 20);
+                        const esMenor = parseInt(data.paciente.es_menor || 0, 10) === 1;
+                        setModoOdontogramaHc((esMenor && !tienePiezaMayor20) ? "nino" : "adulto");
+                    }
                 }
 
                 // Alertas
@@ -67,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const teethItems = document.querySelectorAll(".tooth-item");
                     const printList = document.getElementById("print-tooth-list");
                     if (printList) printList.innerHTML = ""; // Limpiar lista
+                    const addedToPrint = new Set();
                     
                     // Resetear estado previo
                     teethItems.forEach(item => {
@@ -117,8 +164,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 toothModal.style.display = "flex";
                             });
                             
-                            // Agregar detalle a la lista para impresión/PDF
-                            if (printList) {
+                            // Agregar detalle a la lista para impresión/PDF (una sola vez por pieza)
+                            if (printList && !addedToPrint.has(toothNum)) {
+                                addedToPrint.add(toothNum);
                                 const pastText = !toothData.es_nuevo ? ' <span style="color:#3b82f6;font-size:0.8rem;">(Procedimiento Anterior)</span>' : '';
                                 const detailHtml = `
                                     <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
@@ -155,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 2. CARGAR TIMELINE
-    fetch(`/odontologo/historial_clinico/datos_timeline&paciente_id=${pacienteId}`)
+    fetch(`/odontologo/historial_clinico/datos_timeline?paciente_id=${pacienteId}`)
         .then(res => res.json())
         .then(evoluciones => {
             if (!timelineContainer) return;
@@ -203,11 +251,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     const fechaIso = btnElement.getAttribute('data-fecha');
                     
                     // Actualizar el título de la sección
-                    const sectionTitle = document.querySelector('.odontogram-section h3');
-                    if (sectionTitle) {
-                        const dateText = btnElement.parentElement.parentElement.querySelector('.date').textContent;
-                        sectionTitle.innerHTML = `2D odontograma adulto <span style="color:#3b82f6; font-size: 0.9rem; margin-left: 10px;">(Estado al ${dateText})</span>`;
-                    }
+                    const dateText = btnElement.parentElement.parentElement.querySelector('.date').textContent;
+                    setModoOdontogramaHc(modoOdontogramaActual, ` <span style="color:#3b82f6; font-size: 0.9rem; margin-left: 10px;">(Estado al ${dateText})</span>`);
                     
                     // Resaltar tarjeta seleccionada
                     document.querySelectorAll('.timeline-item').forEach(i => {

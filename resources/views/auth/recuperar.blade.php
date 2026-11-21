@@ -92,8 +92,8 @@
             </div>
             <form id="formFinal" action="{{ route('recuperar.post') }}" method="POST">
                 @csrf
-                <div class="mb-3">
-                    <label class="form-label fw-bold text-dark small mb-1">Contraseña:</label>
+                <div class="mb-2">
+                    <label class="form-label fw-bold text-dark small mb-1">Contraseña *</label>
                     <div class="input-group-custom">
                         <i class="bi bi-lock"></i>
                         <input type="password" id="contrasena" name="contrasena" class="form-control" placeholder="Ingresa tu nueva contraseña" required minlength="8" pattern="(?=.*\d)(?=.*[A-Z])(?=.*[\W_]).{8,}">
@@ -101,13 +101,15 @@
                     </div>
                 </div>
 
-                <div class="progress mt-2 mb-1" style="height: 5px;">
-                    <div id="passwordStrength" class="progress-bar transition-all" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress mt-2" style="height: 5px;">
+                    <div id="passwordStrength" class="progress-bar transition-all" role="progressbar" style="width: 0%; transition: width 0.3s ease, background-color 0.3s ease;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
-                <div id="strengthText" class="small mb-3 fw-bold" style="min-height: 20px;"></div>
+                <div id="strengthText" class="small mt-1 fw-bold" style="min-height: 20px;"></div>
+
+                <div class="text-muted mb-4" style="font-size: 0.78rem;">Mínimo 8 caracteres, con mayúscula, número y un carácter especial (ej. !@#$%).</div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold text-dark small mb-1">Confirmar Contraseña:</label>
+                    <label class="form-label fw-bold text-dark small mb-1">Confirmar Contraseña *</label>
                     <div class="input-group-custom">
                         <i class="bi bi-shield-check"></i>
                         <input type="password" id="confirmar_contrasena" name="confirmar_contrasena" class="form-control" placeholder="Repite tu nueva contraseña" required minlength="8">

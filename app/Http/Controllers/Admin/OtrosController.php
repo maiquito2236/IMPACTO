@@ -179,14 +179,16 @@ class OtrosController extends Controller
                     if (empty($data['nombre_procedimiento']) || empty($data['costo'])) {
                         throw new Exception("Faltan datos obligatorios para el procedimiento.");
                     }
+                    $nombreProc = trim($data['nombre_procedimiento']);
+                    $tipoCobro = isset($data['tipo_cobro']) ? (int)$data['tipo_cobro'] : ($this->esProcedimientoGeneralNombre($nombreProc) ? 2 : 1);
                     $id = DB::table('procedimientos')->insertGetId([
-                        'NOMBRE_PROCEDIMIENTO' => $data['nombre_procedimiento'],
+                        'NOMBRE_PROCEDIMIENTO' => $nombreProc,
                         'DESCRIPCION' => $data['descripcion'] ?? '',
                         'COSTO' => $data['costo'],
                         'TIEMPO_ESTIMADO' => $data['tiempo_estimado'] ?? 0,
                         'ESPECIALIDAD_ID_ESPECIALIDAD' => 1,
                         'ESTADO' => strtoupper($data['estado'] ?? 'ACTIVO'),
-                        'TIPO_COBRO' => 1
+                        'TIPO_COBRO' => $tipoCobro
                     ]);
                     return response()->json(['status' => 'success', 'id' => $id]);
 
@@ -194,12 +196,15 @@ class OtrosController extends Controller
                     if (empty($data['id_procedimiento']) || empty($data['nombre_procedimiento']) || empty($data['costo'])) {
                         throw new Exception("Faltan datos obligatorios para actualizar el procedimiento.");
                     }
+                    $nombreProc = trim($data['nombre_procedimiento']);
+                    $tipoCobro = isset($data['tipo_cobro']) ? (int)$data['tipo_cobro'] : ($this->esProcedimientoGeneralNombre($nombreProc) ? 2 : 1);
                     DB::table('procedimientos')->where('ID_PROCEDIMIENTO', $data['id_procedimiento'])->update([
-                        'NOMBRE_PROCEDIMIENTO' => $data['nombre_procedimiento'],
+                        'NOMBRE_PROCEDIMIENTO' => $nombreProc,
                         'DESCRIPCION' => $data['descripcion'] ?? '',
                         'COSTO' => $data['costo'],
                         'TIEMPO_ESTIMADO' => $data['tiempo_estimado'] ?? 0,
-                        'ESTADO' => strtoupper($data['estado'] ?? 'ACTIVO')
+                        'ESTADO' => strtoupper($data['estado'] ?? 'ACTIVO'),
+                        'TIPO_COBRO' => $tipoCobro
                     ]);
                     return response()->json(['status' => 'success']);
 
@@ -344,5 +349,22 @@ class OtrosController extends Controller
         } catch (Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
+    }
+
+    private function esProcedimientoGeneralNombre($nombre)
+    {
+        $nombreLower = mb_strtolower($nombre);
+        $patrones = [
+            'limpieza', 'detartraje', 'profilaxis', 'valoracion', 'valoración',
+            'diagnostico', 'diagnóstico', 'blanqueamiento', 'aclaramiento',
+            'protesis total', 'prótesis total', 'protesis parcial', 'prótesis parcial',
+            'ortodoncia', 'brackets', 'brakets', 'retenedor', 'diseño de sonrisa', 'diseño sonrisa'
+        ];
+        foreach ($patrones as $p) {
+            if (strpos($nombreLower, $p) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 }

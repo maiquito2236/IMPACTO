@@ -322,16 +322,16 @@ document.getElementById('formUsuario').addEventListener('submit', async (e) => {
 
     const datosCrear = { nombre, email, telefono, rol_id };
     if (parseInt(rol_id) === 2) {
-        const especialidades = getCheckedEspecialidades('especialidad-checkbox-crear');
+        const espSeleccionadas = getCheckedEspecialidades('especialidad-checkbox-crear');
         const consultorio = document.getElementById('formConsultorioCrear').value;
-        if (especialidades.length === 0 || !consultorio) {
+        if (espSeleccionadas.length === 0 || !consultorio) {
             Swal.fire('Atención', 'Debe seleccionar al menos una especialidad y consultorio para el Odontólogo.', 'warning');
             return;
         }
         
         const formData = new URLSearchParams();
         for (const key in datosCrear) formData.append(key, datosCrear[key]);
-        especialidades.forEach(eId => formData.append('especialidad_id[]', eId));
+        espSeleccionadas.forEach(eId => formData.append('especialidad_id[]', eId));
         formData.append('consultorio', consultorio);
         formData.append('op', 'crear');
 
@@ -416,7 +416,7 @@ function abrirModalEditarRol(id) {
     // consultorio actuales para que el admin solo los confirme o cambie.
     document.querySelectorAll('.especialidad-checkbox').forEach(cb => cb.checked = false);
     if (usuario.especialidad_id) {
-        const userEspArr = usuario.especialidad_id.toString().split(',');
+        const userEspArr = usuario.especialidad_id.toString().split(',').map(s => s.trim());
         userEspArr.forEach(eId => {
             const cb = document.querySelector(`.especialidad-checkbox[value="${eId}"]`);
             if (cb) cb.checked = true;
@@ -530,17 +530,17 @@ document.getElementById('formEditarRol').addEventListener('submit', async (e) =>
     // obligatorios: se validan aquí para una respuesta inmediata en el
     // front, pero la validación vinculante real ocurre en el backend.
     if (parseInt(rol_id) === ROL_ODONTOLOGO) {
-        const especialidades = getCheckedEspecialidades('especialidad-checkbox');
+        const espSeleccionadas = getCheckedEspecialidades('especialidad-checkbox');
         const consultorio     = document.getElementById('formConsultorio').value;
 
-        if (especialidades.length === 0 || !consultorio) {
+        if (espSeleccionadas.length === 0 || !consultorio) {
             Swal.fire('Atención', 'Para asignar el rol de Odontólogo debes seleccionar al menos una especialidad y un consultorio.', 'warning');
             return;
         }
 
         const formData = new URLSearchParams();
         for (const key in datosEnvio) formData.append(key, datosEnvio[key]);
-        especialidades.forEach(eId => formData.append('especialidad_id[]', eId));
+        espSeleccionadas.forEach(eId => formData.append('especialidad_id[]', eId));
         formData.append('consultorio', consultorio);
         formData.append('op', 'actualizar_rol');
         
@@ -554,12 +554,12 @@ document.getElementById('formEditarRol').addEventListener('submit', async (e) =>
                     usuarios[index].rol_nombre = resp.rol_nombre || nombresRoles[parseInt(rol_id)];
                     usuarios[index].estado    = estado;
 
-                    const nombresArr = especialidades.map(eId => {
+                    const nombresArr = espSeleccionadas.map(eId => {
                         const esp = especialidades.find(e => parseInt(e.id) === parseInt(eId));
                         return esp ? esp.nombre : null;
                     }).filter(n => n);
 
-                    usuarios[index].especialidad_id     = especialidades.join(',');
+                    usuarios[index].especialidad_id     = espSeleccionadas.join(',');
                     usuarios[index].especialidad_nombre = nombresArr.join(', ');
                     usuarios[index].consultorio         = parseInt(consultorio);
                 }

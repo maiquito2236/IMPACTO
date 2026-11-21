@@ -110,6 +110,10 @@ document.addEventListener("DOMContentLoaded", function () {
         gestionarEstadoColumna(colFechaHora, false);
         gestionarEstadoColumna(colServicio, true);
         actualizarBarraProgreso(2);
+
+        if (!inputFechaSeleccionada.value) {
+            seleccionarPrimerDiaDisponible();
+        }
     });
 
     btnContinuarFecha.addEventListener('click', function () {
@@ -168,6 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const monthLabel = document.getElementById("current-month");
     const prevBtn = document.getElementById("prev-month");
     const nextBtn = document.getElementById("next-month");
+    const alertaDisponibilidad = document.getElementById("alerta-disponibilidad");
 
     // Filtrar fechas únicas con disponibilidad real activa
     let fechasDisponibles = new Set();
@@ -329,6 +334,50 @@ document.addEventListener("DOMContentLoaded", function () {
         daysContainer.innerHTML = ""; 
         monthLabel.textContent = `${monthNames[month]} ${year}`;
 
+        const prefixMes = `${year}-${String(month + 1).padStart(2, "0")}`;
+        const fechasEnEsteMes = [...fechasDisponibles].filter(f => f.startsWith(prefixMes));
+
+        if (alertaDisponibilidad) {
+            if (fechasDisponibles.size === 0) {
+                alertaDisponibilidad.style.display = "block";
+                alertaDisponibilidad.innerHTML = `
+                    <div class="alert alert-warning py-2 px-3 font-xs rounded-3 d-flex align-items-center gap-2 mb-0">
+                        <i class="fa-solid fa-circle-exclamation text-warning fs-6"></i>
+                        <div>No hay turnos disponibles para este tratamiento por el momento.</div>
+                    </div>`;
+            } else if (fechasEnEsteMes.length === 0) {
+                const fechasOrdenadas = [...fechasDisponibles].sort();
+                const proxFecha = fechasOrdenadas.find(f => f > prefixMes) || fechasOrdenadas[0];
+                const [proxY, proxM] = proxFecha.split('-').map(Number);
+                const nombreMesProx = monthNames[proxM - 1];
+
+                alertaDisponibilidad.style.display = "block";
+                alertaDisponibilidad.innerHTML = `
+                    <div class="alert alert-info py-2 px-3 font-xs rounded-3 d-flex align-items-center justify-content-between gap-2 mb-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-calendar-day text-primary fs-6"></i>
+                            <span>Sin turnos en este mes. Próximos en <strong>${nombreMesProx} ${proxY}</strong>.</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary py-1 px-2 font-xs fw-semibold text-nowrap" id="btn-ir-proximo-mes">
+                            Ir a ${nombreMesProx}
+                        </button>
+                    </div>`;
+
+                const btnIrProx = document.getElementById("btn-ir-proximo-mes");
+                if (btnIrProx) {
+                    btnIrProx.addEventListener("click", () => {
+                        currentYear = proxY;
+                        currentMonth = proxM - 1;
+                        renderCalendar(currentMonth, currentYear);
+                        seleccionarPrimerDiaDisponible();
+                    });
+                }
+            } else {
+                alertaDisponibilidad.style.display = "none";
+                alertaDisponibilidad.innerHTML = "";
+            }
+        }
+
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
         const prevTotalDays = new Date(year, month, 0).getDate();
@@ -370,6 +419,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     dayDiv.style.opacity = "0.5";
                 }
             } else {
+                dayDiv.classList.add("dia-disponible");
                 dayDiv.style.cursor = "pointer";
 
                 dayDiv.addEventListener("click", function() {
@@ -408,6 +458,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function seleccionarPrimerDiaDisponible() {
+        if (!fechasDisponibles || fechasDisponibles.size === 0) return;
+        const fechasOrdenadas = [...fechasDisponibles].sort();
+        const primeraFecha = fechasOrdenadas[0];
+        if (!primeraFecha) return;
+
+        const [yP, mP, dP] = primeraFecha.split('-').map(Number);
+        if (yP !== currentYear || (mP - 1) !== currentMonth) {
+            currentYear = yP;
+            currentMonth = mP - 1;
+            renderCalendar(currentMonth, currentYear);
+        }
+
+        const diaNode = Array.from(daysContainer.children).find(el =>
+            parseInt(el.textContent) === dP &&
+            !el.classList.contains("disabled-day") &&
+            !el.classList.contains("text-light-gray")
+        );
+        if (diaNode) {
+            diaNode.click();
+        }
+    }
+
     prevBtn.addEventListener("click", () => {
         const mesActualBogota = realBogotaDate.getMonth();
         const anioActualBogota = realBogotaDate.getFullYear();
@@ -433,22 +506,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     renderCalendar(currentMonth, currentYear);
-
-    // Auto-seleccionar primer día disponible mapeado en la BD
-    const primeraFechaDisponible = [...fechasDisponibles].sort()[0];
-    if (primeraFechaDisponible) {
-        const partes = primeraFechaDisponible.split('-');
-        const anioP = parseInt(partes[0]);
-        const mesP = parseInt(partes[1]) - 1;
-        const diaP = parseInt(partes[2]);
-
-        if (anioP === currentYear && mesP === currentMonth) {
-            const primerDiaNode = Array.from(daysContainer.children).find(el =>
-                el.textContent == diaP && !el.classList.contains("text-light-gray")
-            );
-            if (primerDiaNode) primerDiaNode.click();
-        }
-    }
+    seleccionarPrimerDiaDisponible();
 
     // =============================================================================
     // 3. SELECCIÓN DE TARJETAS DE SERVICIO (ACTUALIZACIÓN DINÁMICA DEL RESUMEN)
@@ -493,6 +551,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (resumenServicio) resumenServicio.textContent = nombreServicio;
             if (resumenPrecio) resumenPrecio.textContent = precioServicio;
             if (resumenDuration) resumenDuration.textContent = duracionServicio;
+
+            // Seleccionar automáticamente el primer día disponible para este procedimiento
+            seleccionarPrimerDiaDisponible();
         });
     });
 

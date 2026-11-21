@@ -64,8 +64,8 @@ APP_URL=http://localhost/proyectlaravel/public
 
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=sigco_esteban_alone
+DB_PORT=3307
+DB_DATABASE=sigco
 DB_USERNAME=root
 DB_PASSWORD=
 
@@ -78,13 +78,13 @@ Asegúrese de que el servicio MySQL de XAMPP esté iniciado.
 
 #### Opción A (Consola Shell de XAMPP - Recomendada):
 ```bash
-mysql -u root -e "CREATE DATABASE sigco_esteban_alone CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root --default-character-set=utf8mb4 sigco_esteban_alone < SIGCO.sql
+mysql -u root -e "CREATE DATABASE sigco CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root --default-character-set=utf8mb4 sigco < SIGCO.sql
 ```
 
 #### Opción B (Vía phpMyAdmin):
 1. Ingrese a `http://localhost/phpmyadmin/`.
-2. Cree una nueva base de datos llamada `sigco_esteban_alone` con cotejamiento `utf8mb4_unicode_ci`.
+2. Cree una nueva base de datos llamada `sigco` con cotejamiento `utf8mb4_unicode_ci`.
 3. Seleccione la base de datos, diríjase a la pestaña **Importar**, seleccione el archivo `SIGCO.sql` ubicado en la raíz del proyecto y haga clic en **Importar**.
 
 ### 6. Enlace de Almacenamiento y Limpieza de Caché
@@ -113,7 +113,7 @@ Verifique que los módulos Apache y MySQL estén iniciados en el panel de contro
 | **`APP_ENV`** | `local` / `production` | Entorno de ejecución de Laravel. |
 | **`APP_DEBUG`** | `true` (dev) / `false` (prod) | Muestra trazas de depuración detalladas. |
 | **`DB_CONNECTION`** | `mysql` | Controlador de base de datos MySQL / MariaDB. |
-| **`DB_DATABASE`** | `sigco_esteban_alone` | Base de datos principal de la clínica odontológica. |
+| **`DB_DATABASE`** | `sigco` | Base de datos principal de la clínica odontológica. |
 | **`DB_COLLATION`** | `utf8mb4_unicode_ci` | Codificación internacional UTF-8 (tildes, diéresis, ñ). |
 | **`SESSION_DRIVER`** | `file` | Mecanismo de persistencia de sesiones. |
 | **`TIMEZONE`** | `America/Bogota` | Zona horaria oficial de Colombia (`config/app.php`). |

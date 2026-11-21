@@ -4,7 +4,7 @@
 
 @push('css')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css">
-    <link rel="stylesheet" href="{{ asset('css/administrador/gestion_horario.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/administrador/gestion_horario.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset('css/administrador/global.css') }}">
 @endpush
 
@@ -219,5 +219,5 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
-    <script src="{{ asset('js/administrador/gestion_horario.js') }}"></script>
+    <script src="{{ asset('js/administrador/gestion_horario.js') }}?v={{ time() }}"></script>
 @endpush

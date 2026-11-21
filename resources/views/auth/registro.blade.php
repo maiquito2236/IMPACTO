@@ -67,8 +67,8 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold text-dark small mb-1">Número de documento *</label>
-                    <input type="text" name="numero_documento" class="form-control" placeholder="Ingresa tu número" required
-                        value="{{ old('numero_documento') }}">
+                    <input type="text" name="numero_documento" class="form-control" placeholder="Ingresa tu número (sin puntos)" required
+                        inputmode="numeric" pattern="[0-9]+" value="{{ old('numero_documento') }}">
                 </div>
             </div>
 

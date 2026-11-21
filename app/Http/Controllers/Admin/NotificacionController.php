@@ -107,10 +107,48 @@ class NotificacionController extends Controller
 
                     return response()->json(['success' => (bool)$updated]);
 
+                case 'marcar_no_leida':
+                    $id = (int) $request->input('id', 0);
+                    if ($id <= 0) throw new Exception("ID de notificación inválido.");
+
+                    $updated = DB::table('notificaciones')
+                        ->where('ID_NOTIFICACIONES', $id)
+                        ->where(function($q) use ($usuarioId) {
+                            $q->where('USUARIOS_ID_USUARIOS', $usuarioId)
+                              ->orWhereNull('USUARIOS_ID_USUARIOS');
+                        })
+                        ->update([
+                            'ESTADO' => 'NO_LEIDA',
+                            'FECHA_LECTURA' => null
+                        ]);
+
+                    return response()->json(['success' => (bool)$updated]);
+
+                case 'marcar_seleccionadas':
+                    $idsRaw = $request->input('ids', '');
+                    $ids = is_array($idsRaw)
+                        ? array_map('intval', $idsRaw)
+                        : array_filter(array_map('intval', explode(',', (string)$idsRaw)));
+
+                    if (empty($ids)) throw new Exception("No se seleccionaron notificaciones.");
+
+                    DB::table('notificaciones')
+                        ->whereIn('ID_NOTIFICACIONES', $ids)
+                        ->where(function($q) use ($usuarioId) {
+                            $q->where('USUARIOS_ID_USUARIOS', $usuarioId)
+                              ->orWhereNull('USUARIOS_ID_USUARIOS');
+                        })
+                        ->update([
+                            'ESTADO' => 'LEIDA',
+                            'FECHA_LECTURA' => now()
+                        ]);
+
+                    return response()->json(['success' => true]);
+
                 case 'marcar_todas':
                     DB::statement("
                         UPDATE notificaciones n
-                        INNER JOIN tipo_notificacion tn ON n.TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION = tn.ID_TIPO_NOTIFICACION
+                        LEFT JOIN tipo_notificacion tn ON n.TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION = tn.ID_TIPO_NOTIFICACION
                         SET n.ESTADO = 'LEIDA', n.FECHA_LECTURA = NOW() 
                         WHERE n.ESTADO = 'NO_LEIDA' 
                           AND (n.USUARIOS_ID_USUARIOS = ? OR (n.USUARIOS_ID_USUARIOS IS NULL AND tn.ROL_DESTINO = 1))

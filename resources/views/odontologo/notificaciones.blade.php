@@ -14,7 +14,7 @@
             <label for="filter-tipo">Tipo</label>
             <select id="filter-tipo" class="filter-input">
                 <option value="todos">Todos</option>
-                @foreach ($tiposNotificacion as $tipo)
+                @foreach (array_unique($tiposNotificacion) as $tipo)
                     <option value="{{ mb_strtoupper($tipo) }}">{{ mb_strtoupper($tipo) }}</option>
                 @endforeach
             </select>
@@ -71,9 +71,11 @@
                                     $icon = "fa-solid fa-calendar-xmark"; $catClass = "badge-alerta"; $tipoText = "Cita";
                                 } elseif (str_contains($tipoNombre, 'CITA') || str_contains($tipoNombre, 'AGENDA')) {
                                     $icon = "fa-regular fa-calendar"; $catClass = "badge-agenda"; $tipoText = "Cita";
+                                } elseif (str_contains($tipoNombre, 'DEUDA') || str_contains($tipoNombre, 'SALDO')) {
+                                    $icon = "fa-solid fa-file-invoice-dollar"; $catClass = "badge-yellow"; $tipoText = "Facturación";
                                 } elseif (str_contains($tipoNombre, 'ABONO')) {
                                     $icon = "fa-solid fa-money-bill-transfer"; $catClass = "badge-teal"; $tipoText = "Pago";
-                                } elseif (str_contains($tipoNombre, 'PAGO') || str_contains($tipoNombre, 'COMISION')) {
+                                } elseif (str_contains($tipoNombre, 'PAGO') || str_contains($tipoNombre, 'COMISION') || str_contains($tipoNombre, 'LIQUIDACION')) {
                                     $icon = "fa-solid fa-dollar-sign"; $catClass = "badge-facturacion"; $tipoText = "Pago";
                                 } elseif (str_contains($tipoNombre, 'HISTORIA CLINICA')) {
                                     $icon = "fa-solid fa-notes-medical"; $catClass = "badge-yellow"; $tipoText = "Historia Clínica";
@@ -124,5 +126,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/odontologo/notificaciones_odon.js') }}" defer></script>
+    <script src="{{ asset('js/odontologo/notificaciones_odon.js') }}?v={{ time() }}" defer></script>
 @endpush

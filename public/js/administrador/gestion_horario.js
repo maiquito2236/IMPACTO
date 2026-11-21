@@ -79,6 +79,20 @@ function buscarOdontologo(texto) {
     renderTabla();
 }
 
+function esHorarioPasado(o) {
+    if (!o) return false;
+    if ((o.ESTADO || '').toLowerCase() === 'no utilizado') return true;
+    if (!o.FECHA) return false;
+    const hoy = new Date();
+    const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    if (o.FECHA < hoyStr) return true;
+    if (o.FECHA === hoyStr && o.HORA_FIN && o.HORA_FIN > '00:00:00') {
+        const horaActual = `${String(hoy.getHours()).padStart(2, '0')}:${String(hoy.getMinutes()).padStart(2, '0')}:${String(hoy.getSeconds()).padStart(2, '0')}`;
+        if (o.HORA_FIN < horaActual) return true;
+    }
+    return false;
+}
+
 // ── RENDERIZAR TABLA ──────────
 function renderTabla() {
     const tbody = document.getElementById('tabla-body');
@@ -107,6 +121,11 @@ function renderTabla() {
         const tr = document.createElement('tr');
         const rangoHorario = `${o.HORA_INICIO.substring(0, 5)} - ${o.HORA_FIN.substring(0, 5)}`;
         const consultorio = o.CONSULTORIO || 'Sin asignar';
+        const pasado = esHorarioPasado(o);
+        const estadoMostrar = (pasado && o.ESTADO !== 'Ocupado') ? 'No utilizado' : (o.ESTADO || 'Disponible');
+        const badgeClass = estadoMostrar === 'Ocupado'
+            ? 'badge-status--busy'
+            : (estadoMostrar === 'No utilizado' ? 'badge-status--unused' : 'badge-status--active');
         
         tr.innerHTML = `
             <td><div class="doc-cell"><span class="doc-name"><strong>${o.NOMBRES} ${o.APELLIDOS}</strong></span></div></td>
@@ -115,13 +134,13 @@ function renderTabla() {
             <td>${rangoHorario}</td>
             <td>${o.FECHA || 'No definida'}</td> 
             <td>
-                <span class="badge-status ${o.ESTADO === 'Ocupado' ? 'badge-status--busy' : 'badge-status--active'}">
-                    ${o.ESTADO || 'Disponible'}
+                <span class="badge-status ${badgeClass}">
+                    ${estadoMostrar}
                 </span>
             </td>
             <td>
                 <div class="action-btns">
-                    <button class="action-btn action-btn--edit" onclick="editarHorario(${o.ID_HORARIO})"><i class="fa-solid fa-pen"></i></button>
+                    <button class="action-btn action-btn--edit" ${pasado ? 'style="opacity: 0.45; cursor: not-allowed;" title="No se puede editar un horario pasado"' : 'title="Editar horario"'} onclick="editarHorario(${o.ID_HORARIO})"><i class="fa-solid fa-pen"></i></button>
                     <button class="action-btn action-btn--del" onclick="eliminarHorario(${o.ID_HORARIO})"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </td>
@@ -246,6 +265,16 @@ function cerrarModalOverlay(e, key) {
 function editarHorario(idHorario) {
     const o = window.odontologosDB.find(x => x.ID_HORARIO == idHorario);
     if (!o) return;
+
+    if (esHorarioPasado(o)) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Horario no editable',
+            text: 'No se puede editar este horario porque la fecha u hora ya pasó.',
+            confirmButtonColor: '#2563eb'
+        });
+        return;
+    }
 
     const titulo = document.getElementById('modal-horario-titulo'); 
     const btnGuardar = document.getElementById('btn-guardar-horario');
@@ -546,11 +575,16 @@ function mostrarDetalleDia(fecha) {
     } else {
         horarios.forEach(h => {
             const nombrePaciente = (h.NOMBRE_PACIENTE) ? `${h.NOMBRE_PACIENTE} ${h.APELLIDO_PACIENTE || ''}` : 'Sin paciente asignado';
+            const pasado = esHorarioPasado(h);
+            const estadoMostrar = (pasado && h.ESTADO !== "Ocupado") ? "No utilizado" : h.ESTADO;
+            const estadoClass = estadoMostrar === "Disponible"
+                ? "estado-disponible"
+                : (estadoMostrar === "No utilizado" ? "estado-no-utilizado" : "estado-ocupado");
             body.innerHTML += `
             <div class="detalle-card">
                 <div class="detalle-header">
                     <div class="doctor"><i class="fa-solid fa-user-doctor"></i><strong>${h.NOMBRES} ${h.APELLIDOS}</strong></div>
-                    <span class="${h.ESTADO === "Disponible" ? "estado-disponible" : "estado-ocupado"}">${h.ESTADO}</span>
+                    <span class="${estadoClass}">${estadoMostrar}</span>
                 </div>
                 <div class="detalle-grid">
                     <div style="grid-column: 1 / -1; background-color: #f8fafc; padding: 10px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-bottom: 5px;">

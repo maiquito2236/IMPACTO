@@ -34,6 +34,18 @@ class HistoriaClinicaController extends Controller
     public function api(Request $request, $op = null)
     {
         $op = $op ?: str_replace(['odontologo/historial_clinico/', 'odontologo/historial-clinico/'], '', $request->input('action', $request->query('action')));
+        
+        if ($op && strpos($op, '&') !== false) {
+            $parts = explode('&', $op);
+            $op = $parts[0];
+            foreach (array_slice($parts, 1) as $param) {
+                $kv = explode('=', $param, 2);
+                if (count($kv) === 2 && !$request->has($kv[0])) {
+                    $request->merge([$kv[0] => $kv[1]]);
+                }
+            }
+        }
+
         switch ($op) {
             case 'datos_odontograma':
                 return $this->datosOdontograma($request);
@@ -74,12 +86,12 @@ class HistoriaClinicaController extends Controller
         // 1. Demográficos (usando vista_pacientes)
         $demograficos = DB::selectOne("
             SELECT ID_PACIENTE, NUMERO_DOCUMENTO AS documento, CORREO AS correo,
-                   NOMBRE_COMPLETO AS paciente_nombre
+                   NOMBRE_COMPLETO AS paciente_nombre, EDAD AS edad, ES_MENOR AS es_menor
             FROM vista_pacientes
             WHERE ID_PACIENTE = ?
         ", [$pacienteId]);
 
-        $pacienteData = $demograficos ? (array)$demograficos : ['paciente_nombre' => 'Paciente', 'documento' => 'S/N'];
+        $pacienteData = $demograficos ? (array)$demograficos : ['paciente_nombre' => 'Paciente', 'documento' => 'S/N', 'edad' => null, 'es_menor' => 0];
 
         // 2. Dientes del odontograma (usando vista_odontograma)
         $sqlDientes = "
@@ -192,14 +204,26 @@ class HistoriaClinicaController extends Controller
 
         $citas = $resCita ? (array)$resCita : ['sesion_hoy' => 'Sin citas', 'proxima_cita' => 'No programada'];
 
-        return response()->json([
+        $cleanUtf8 = function ($item) use (&$cleanUtf8) {
+            if (is_array($item)) return array_map($cleanUtf8, $item);
+            if (is_object($item)) {
+                foreach ($item as $k => $v) { $item->$k = $cleanUtf8($v); }
+                return $item;
+            }
+            if (is_string($item) && strpos($item, 'Ã') !== false) {
+                return mb_convert_encoding($item, 'ISO-8859-1', 'UTF-8');
+            }
+            return $item;
+        };
+
+        return response()->json($cleanUtf8([
             'paciente' => $pacienteData,
             'alertas' => $alertas,
             'financiero' => $financiero,
             'citas' => $citas,
             'dientes' => $toothData,
             'doctor_sesion' => $nombreDoc
-        ]);
+        ]));
     }
 
     public function datosTimeline(Request $request)
@@ -226,6 +250,14 @@ class HistoriaClinicaController extends Controller
         ";
 
         $evoluciones = DB::select($sql, [$pacienteId]);
+        $evoluciones = array_map(function ($ev) {
+            foreach ($ev as $k => $v) {
+                if (is_string($v) && strpos($v, 'Ã') !== false) {
+                    $ev->$k = mb_convert_encoding($v, 'ISO-8859-1', 'UTF-8');
+                }
+            }
+            return $ev;
+        }, $evoluciones);
         return response()->json($evoluciones);
     }
 
@@ -234,7 +266,7 @@ class HistoriaClinicaController extends Controller
         $citaId = (int) $request->query('cita_id', 0);
         $pacienteId = (int) $request->query('paciente_id', 0);
 
-        if ($citaId > 0 && $pacienteId > 0) {
+        if ($pacienteId > 0) {
             $this->completarCitaYTratamientos($citaId, $pacienteId);
         }
 
@@ -246,7 +278,7 @@ class HistoriaClinicaController extends Controller
         $citaId = (int) $request->input('cita_id', 0);
         $pacienteId = (int) $request->input('paciente_id', 0);
 
-        if ($citaId > 0 && $pacienteId > 0) {
+        if ($pacienteId > 0) {
             $this->completarCitaYTratamientos($citaId, $pacienteId);
         }
 
@@ -262,24 +294,60 @@ class HistoriaClinicaController extends Controller
             DB::beginTransaction();
 
             $hcRecords = DB::select("
-                SELECT hc.ID_HISTORIA_CLINICA 
+                SELECT hc.ID_HISTORIA_CLINICA, hc.ODONTOLOGO_ID_ODONTOLOGO 
                 FROM historia_clinica hc
                 LEFT JOIN factura f ON hc.ID_HISTORIA_CLINICA = f.HISTORIA_CLINICA_ID_HISTORIA_CLINICA
                 WHERE hc.PACIENTE_ID_PACIENTE = ? AND f.ID_FACTURA IS NULL
             ", [$pacienteId]);
+
+            $totalDeudaGenerada = 0.0;
+            $facturasGeneradas = [];
+            $odontologoIdHc = null;
 
             foreach ($hcRecords as $hc) {
                 $totalHc = (float) DB::table('historia_clinica_has_procedimientos')
                     ->where('HISTORIA_CLINICA_ID_HISTORIA_CLINICA', $hc->ID_HISTORIA_CLINICA)
                     ->sum(DB::raw('PRECIO_APLICADO * CANTIDAD'));
 
-                DB::table('factura')->insert([
+                $idFac = DB::table('factura')->insertGetId([
                     'HISTORIA_CLINICA_ID_HISTORIA_CLINICA' => $hc->ID_HISTORIA_CLINICA,
                     'CITA_ID_CITA' => $citaId ?: 0,
                     'FECHA_EMISION' => now(),
                     'TOTAL' => $totalHc,
-                    'ESTADO' => 'EMITIDA'
+                    'ESTADO' => 'EMITIDA',
+                    'PACIENTE_ID_PACIENTE' => $pacienteId
                 ]);
+
+                if ($totalHc > 0) {
+                    $totalDeudaGenerada += $totalHc;
+                    $facturasGeneradas[] = $idFac;
+                    $odontologoIdHc = $hc->ODONTOLOGO_ID_ODONTOLOGO ?: $odontologoIdHc;
+                }
+            }
+
+            if ($totalDeudaGenerada > 0) {
+                $pacUser = DB::selectOne("
+                    SELECT ID_USUARIOS, NOMBRE_COMPLETO as nombre 
+                    FROM vista_pacientes 
+                    WHERE ID_PACIENTE = ?
+                ", [$pacienteId]);
+
+                $nombrePaciente = $pacUser ? $pacUser->nombre : 'Paciente';
+                $montoFmt = number_format($totalDeudaGenerada, 2, ',', '.');
+                $refFacturas = !empty($facturasGeneradas)
+                    ? implode(', ', array_map(fn($id) => 'FAC-' . str_pad((string)$id, 4, '0', STR_PAD_LEFT), $facturasGeneradas))
+                    : '';
+                $detalleFac = $refFacturas ? " ({$refFacturas})" : "";
+
+                \App\Helpers\Notificador::enviarAAdmin(26, "Se generó nueva deuda{$detalleFac} para {$nombrePaciente} con saldo pendiente de \${$montoFmt}.");
+
+                if ($pacUser && $pacUser->ID_USUARIOS) {
+                    \App\Helpers\Notificador::insertar(27, $pacUser->ID_USUARIOS, "Tu factura{$detalleFac} ha sido generada. Saldo pendiente: \${$montoFmt}.");
+                }
+
+                if ($odontologoIdHc) {
+                    \App\Helpers\Notificador::enviarAOdontologo($odontologoIdHc, 28, "El paciente {$nombrePaciente} quedó con saldo pendiente de \${$montoFmt}{$detalleFac}.");
+                }
             }
 
             if ($citaId > 0) {

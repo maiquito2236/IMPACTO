@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -132,16 +133,23 @@ class AuthController extends Controller
     public function procesarRegistro(Request $request)
     {
         $tipoDoc   = $request->input('tipo_documento');
-        $numDoc    = trim($request->input('numero_documento'));
-        $nombres   = trim($request->input('nombres'));
-        $apellidos = trim($request->input('apellidos'));
-        $telefono  = trim($request->input('telefono'));
-        $correo    = trim($request->input('correo'));
+        $rawNumDoc = trim($request->input('numero_documento', ''));
+        $nombres   = trim(preg_replace('/\s+/', ' ', $request->input('nombres', '')));
+        $apellidos = trim(preg_replace('/\s+/', ' ', $request->input('apellidos', '')));
+        $telefono  = trim($request->input('telefono', ''));
+        $correo    = strtolower(trim($request->input('correo', '')));
         $pass      = $request->input('contrasena');
         $genero    = $request->input('genero');
 
+        // Limpiar puntos, guiones y espacios del documento
+        $numDoc = preg_replace('/\D/', '', $rawNumDoc);
+
         if (empty($tipoDoc) || empty($numDoc) || empty($nombres) || empty($apellidos) || empty($correo) || empty($pass) || empty($genero)) {
             return back()->withInput()->with('ERROR', 'Todos los campos obligatorios deben ser diligenciados.');
+        }
+
+        if (strlen($numDoc) < 5 || strlen($numDoc) > 15) {
+            return back()->withInput()->with('ERROR', 'El número de documento debe contener entre 5 y 15 dígitos numéricos.');
         }
 
         if (!empty($telefono) && !preg_match('/^[0-9]{10}$/', $telefono)) {
@@ -152,6 +160,10 @@ class AuthController extends Controller
             return back()->withInput()->with('ERROR', 'El correo electrónico ya se encuentra registrado.');
         }
 
+        if (User::where('NUMERO_DOCUMENTO', $numDoc)->exists()) {
+            return back()->withInput()->with('ERROR', 'El número de documento ya se encuentra registrado.');
+        }
+
         if (!preg_match('/^(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/', $pass)) {
             return back()->withInput()->with('ERROR', 'La contraseña debe tener mínimo 8 caracteres, incluir una mayúscula, un número y un carácter especial.');
         }
@@ -159,42 +171,43 @@ class AuthController extends Controller
         try {
             DB::beginTransaction();
 
-            $idUsuario = DB::table('usuarios')->insertGetId([
-                'ROLES_ID_ROLES'   => 3,
-                'NOMBRES'          => $nombres,
-                'APELLIDOS'        => $apellidos,
-                'TIPO_DOCUMENTO'   => $tipoDoc,
-                'NUMERO_DOCUMENTO' => $numDoc,
-                'TELEFONO'         => $telefono,
-                'CORREO'           => $correo,
-                'GENERO'           => $genero,
-                'CONTRASEÑA'       => Hash::make($pass),
-                'ESTADO'           => 'Activo'
+            DB::statement('CALL sp_registrar_paciente_completo(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @nuevo_usr, @nuevo_pac)', [
+                mb_substr($nombres, 0, 45),
+                mb_substr($apellidos, 0, 45),
+                $tipoDoc,
+                (int) $numDoc,
+                $telefono ?: '',
+                $correo,
+                $genero,
+                Hash::make($pass),
+                0,
+                '',
+                ''
             ]);
 
-            // Asignar EPS 1 por defecto para cumplir la regla NOT NULL de la BD
-            DB::table('paciente')->insert([
-                'USUARIOS_ID_USUARIOS'         => $idUsuario,
-                'EPS_ID_EPS'                   => 1,
-                'NOMBRE_CONTACTO_EMERGENCIA'   => '',
-                'NUMERO_CONTACTO_EMERGENCIA'   => ''
-            ]);
+            $resSp = DB::selectOne('SELECT @nuevo_usr AS id_usuario');
+            $idUsuario = $resSp ? (int) $resSp->id_usuario : 0;
 
             DB::commit();
 
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error en procesarRegistro: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput()->with('ERROR', 'Hubo un error al guardar el usuario en el sistema. ' . (config('app.debug') ? '(' . $e->getMessage() . ')' : ''));
+        }
+
+        // Notificaciones fuera de la transacción para no bloquear el registro
+        try {
             // Notificar al Administrador
             Notificador::enviarAAdmin(18, "El paciente $nombres $apellidos se ha registrado en la plataforma.");
 
             // Notificar al Paciente
-            Notificador::enviarAUsuario($idUsuario, 16, "¡Bienvenido/a $nombres a Sonríe Dental! Ya puedes agendar tus citas desde el portal.");
-
-            return redirect()->route('login')->with('ALERTA_EXITO', 'Usuario registrado exitosamente. Ya puede iniciar sesión.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error("Error en procesarRegistro: " . $e->getMessage());
-            return back()->withInput()->with('ERROR', 'Hubo un error al guardar el usuario en el sistema.');
+            Notificador::enviarAUsuario($idUsuario, 16, "¡Bienvenido/a $nombres a Odonto Estética! Ya puedes agendar tus citas desde el portal.");
+        } catch (\Exception $eNotif) {
+            Log::warning("Error al enviar notificaciones de registro: " . $eNotif->getMessage());
         }
+
+        return redirect()->route('login')->with('ALERTA_EXITO', 'Usuario registrado exitosamente. Ya puede iniciar sesión.');
     }
 
     /**
@@ -234,7 +247,7 @@ class AuthController extends Controller
     {
         // FASE 1: Solicitar Código OTP
         if ($request->has('correo') && !$request->has('codigo') && !$request->has('contrasena')) {
-            $correo = trim($request->input('correo'));
+            $correo = strtolower(trim($request->input('correo')));
             $usuario = User::where('CORREO', $correo)->first();
 
             if ($usuario) {
@@ -244,19 +257,34 @@ class AuthController extends Controller
                     'TOKEN_EXPIRACION'   => now()->addMinutes(15)
                 ]);
 
+                // Enviar correo real por SMTP
+                try {
+                    Mail::send('emails.recuperar_codigo', [
+                        'nombres' => $usuario->NOMBRES,
+                        'codigo'  => $codigoOTP
+                    ], function ($message) use ($correo, $usuario) {
+                        $message->to($correo, $usuario->NOMBRES)
+                                ->subject('Código de Verificación - Odonto Estética');
+                    });
+                } catch (\Exception $eMail) {
+                    Log::error("Error enviando correo OTP a {$correo}: " . $eMail->getMessage());
+                    session(['recuperar_fase' => 'solicitar']);
+                    return back()->with('ERROR', 'No pudimos despachar el correo de verificación. Por favor verifica tu conexión o intenta más tarde.');
+                }
+
                 // Almacenar correo en sesión y pasar a fase verificar
                 session([
                     'recuperar_correo' => $correo,
                     'recuperar_fase'   => 'verificar'
                 ]);
 
-                return view('auth.recuperar')->with('SUCCESS', "Hemos generado tu código de verificación. (Código: $codigoOTP)");
+                return view('auth.recuperar')->with('SUCCESS', 'Hemos enviado un código de verificación de 6 dígitos a tu correo electrónico.');
             } else {
                 session([
                     'recuperar_correo' => $correo,
                     'recuperar_fase'   => 'verificar'
                 ]);
-                return view('auth.recuperar');
+                return view('auth.recuperar')->with('SUCCESS', 'Si el correo está registrado en el sistema, recibirás un código de verificación en tu bandeja de entrada.');
             }
         }
 

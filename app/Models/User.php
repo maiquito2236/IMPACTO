@@ -30,6 +30,7 @@ class User extends Authenticatable
         'TOKEN_RECUPERACION',
         'TOKEN_EXPIRACION',
         'ESTADO',
+        'NOTIFICACIONES_ACTIVAS',
     ];
 
     protected $hidden = [

@@ -60,12 +60,24 @@
     </div>
 
     <section class="dashboard-block odontogram-section">
-        <div class="block-header">
-            <h3>2D odontograma adulto</h3>
+        <div class="block-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <h3 id="titulo-odontograma-hc" style="margin: 0;">2D Odontograma Adulto (32 Dientes)</h3>
+                <div class="no-print" style="display: inline-flex; background: #f1f5f9; padding: 4px; border-radius: 8px; border: 1px solid #cbd5e1; gap: 4px;">
+                    <button type="button" id="btn-hc-adulto"
+                        style="border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: #3b82f6; color: #ffffff;">
+                        <i class="fa-solid fa-user"></i> Adulto (32)
+                    </button>
+                    <button type="button" id="btn-hc-nino"
+                        style="border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; background: transparent; color: #475569;">
+                        <i class="fa-solid fa-child"></i> Niño (20)
+                    </button>
+                </div>
+            </div>
             <a href="/odontologo/agenda" class="link-view-all">Ver agenda completa</a>
         </div>
 
-        <div class="odontogram-graphic">
+        <div class="odontogram-graphic" id="hc-odontograma-adulto">
             <div class="teeth-row superior">
                 @foreach([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16] as $num)
                     <div class="tooth-item" data-tooth-number="{{ $num }}">
@@ -79,6 +91,26 @@
                 @foreach([17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32] as $num)
                     <div class="tooth-item" data-tooth-number="{{ $num }}">
                         <div class="tooth-shape premolar" id="shape-{{ $num }}"></div>
+                        <span class="tooth-number">{{ $num }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="odontogram-graphic" id="hc-odontograma-nino" style="display: none;">
+            <div class="teeth-row superior" style="justify-content: center; gap: 14px;">
+                @foreach([1,2,3,4,5,6,7,8,9,10] as $num)
+                    <div class="tooth-item" data-tooth-number="{{ $num }}">
+                        <span class="tooth-number">{{ $num }}</span>
+                        <div class="tooth-shape premolar" id="shape-nino-{{ $num }}"></div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="teeth-row inferior" style="justify-content: center; gap: 14px;">
+                @foreach([11,12,13,14,15,16,17,18,19,20] as $num)
+                    <div class="tooth-item" data-tooth-number="{{ $num }}">
+                        <div class="tooth-shape premolar" id="shape-nino-{{ $num }}"></div>
                         <span class="tooth-number">{{ $num }}</span>
                     </div>
                 @endforeach
@@ -153,5 +185,5 @@
 
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
-    <script src="{{ asset('js/odontologo/historial_clinico_odon.js') }}" defer></script>
+    <script src="{{ asset('js/odontologo/historial_clinico_odon.js') }}?v={{ time() }}" defer></script>
 @endpush

@@ -65,8 +65,16 @@
 
 <!-- Modal Detalle Historia -->
 <div id="modal-detalle-historia" class="modal-backdrop" style="display:none; align-items:flex-start; justify-content:center; background-color: rgba(15, 23, 42, 0.75); position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1000; overflow-y: auto; padding: 40px 0;">
-    <div class="modal-window" style="background: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 800px; width: 95%; margin: auto; position: relative;">
+    <div class="modal-window" style="background: white; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 850px; width: 95%; margin: auto; position: relative;">
         <div class="modal-top-bar" data-html2canvas-ignore style="background: #f8fafc; padding: 15px 25px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; position: sticky; top: 0; z-index: 10;">
+            <div style="display: flex; gap: 10px;">
+                <button type="button" id="btn-imprimir-modal" style="background: #64748b; color: white; border: none; padding: 7px 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 7px; font-size: 0.9rem; font-weight: 600; transition: background 0.2s;">
+                    <i class="fa-solid fa-print"></i> Imprimir
+                </button>
+                <button type="button" id="btn-pdf-modal" style="background: #ef4444; color: white; border: none; padding: 7px 15px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 7px; font-size: 0.9rem; font-weight: 600; transition: background 0.2s;">
+                    <i class="fa-solid fa-file-pdf"></i> Descargar PDF
+                </button>
+            </div>
             <a href="#" class="close-modal-x" id="closeDetailModal" style="font-size: 1.8rem; color: #94a3b8; text-decoration: none; line-height: 1;">&times;</a>
         </div>
         
@@ -87,19 +95,44 @@
                 </div>
                 <div style="text-align: right; color: #475569; font-size: 0.95rem;">
                     <p style="margin: 0 0 8px 0;"><i class="fa-solid fa-user-doctor" style="color: #3b82f6;"></i> <strong>Doctor Asignado:</strong> <span id="modal-doctor">--</span></p>
-                    <p style="margin: 0;"><i class="fa-regular fa-calendar" style="color: #3b82f6;"></i> <strong>Fecha:</strong> <span id="modal-fecha-impresion">--</span></p>
+                    <p style="margin: 0;"><i class="fa-regular fa-calendar" style="color: #3b82f6;"></i> <strong>Fecha de Atención:</strong> <span id="modal-fecha-impresion">--</span></p>
                 </div>
             </section>
 
-            <div style="background: #fff; padding: 20px; border-radius: 12px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9;">
+            <div style="background: #fff; padding: 20px; border-radius: 12px; border-left: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-top: 1px solid #f1f5f9; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; margin-bottom: 25px;">
                 <h3 style="margin-top:0; color: #1e293b; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
-                    <i class="fa-solid fa-tooth" style="color: #3b82f6;"></i> Detalle del Procedimiento
+                    <i class="fa-solid fa-notes-medical" style="color: #3b82f6;"></i> Diagnóstico y Resumen General
                 </h3>
-                <div style="margin: 15px 0 0 0; color: #334155; font-size: 1.05rem; line-height: 1.6;">
-                    <p><strong>Motivo de Consulta:</strong> <span id="modal-motivo"></span></p>
-                    <p><strong>Diagnóstico Principal:</strong> <span id="modal-diagnostico"></span></p>
-                    <p><strong>Detalle del Tratamiento:</strong> <span id="modal-tratamiento"></span></p>
-                    <p><strong>Dientes Tratados:</strong> <span id="modal-dientes-tratados"></span></p>
+                <div style="margin: 15px 0 0 0; color: #334155; font-size: 1rem; line-height: 1.6;">
+                    <p style="margin-bottom: 8px;"><strong>Motivo de Consulta:</strong> <span id="modal-motivo"></span></p>
+                    <p style="margin-bottom: 8px;"><strong>Diagnóstico Principal:</strong> <span id="modal-diagnostico"></span></p>
+                    <p style="margin-bottom: 8px;"><strong>Resumen de Tratamientos:</strong> <span id="modal-tratamiento"></span></p>
+                    <p style="margin-bottom: 0;"><strong>Dientes Tratados:</strong> <span id="modal-dientes-tratados"></span></p>
+                </div>
+            </div>
+
+            <!-- Tabla de Procedimientos Totales Realizados -->
+            <div id="contenedor-tabla-procedimientos" style="background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <div style="background: #f8fafc; padding: 12px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0; color: #1e293b; font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-list-check" style="color: #3b82f6;"></i> Procedimientos Totales Realizados
+                    </h4>
+                    <span id="badge-total-procs" style="background: #eff6ff; color: #1d4ed8; padding: 3px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">0 procedimientos</span>
+                </div>
+                <div style="padding: 15px 20px; overflow-x: auto;">
+                    <table id="tabla-procedimientos-modal" style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b;">
+                                <th style="padding: 10px 12px;">Procedimiento</th>
+                                <th style="padding: 10px 12px; text-align: center;">Cantidad</th>
+                                <th style="padding: 10px 12px; text-align: center;">Pieza / Zona</th>
+                                <th style="padding: 10px 12px;">Observaciones / Diagnóstico</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-procedimientos-modal">
+                            <!-- Inyectado dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

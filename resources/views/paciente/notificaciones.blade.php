@@ -59,7 +59,6 @@
                     <div class="tab-item active" data-tab="todas">Todas ({{ $totalAlertas }})</div>
                     <div class="tab-item" data-tab="sin-leer">Sin leer ({{ $sinLeer }})</div>
                     <div class="tab-item" data-tab="leidas">Leídas ({{ $leidas }})</div>
-                    <div class="tab-item" data-tab="preferencias">Preferencias</div>
                 </div>
 
                 @if ($sinLeer > 0)
@@ -103,6 +102,10 @@
                                         $icon = "fa-solid fa-calendar-xmark"; $catClass = "badge-alerta"; $tipoText = "Cita";
                                     } elseif (str_contains($tipoNombre, 'RECORDATORIO') || str_contains($tipoNombre, 'CITA') || str_contains($tipoNombre, 'AGENDA')) {
                                         $icon = "fa-regular fa-calendar-check"; $catClass = "badge-agenda"; $tipoText = "Cita";
+                                    } elseif (str_contains($tipoNombre, 'PRESUPUESTO')) {
+                                        $icon = "fa-solid fa-file-medical"; $catClass = "badge-agenda"; $tipoText = "Presupuesto";
+                                    } elseif (str_contains($tipoNombre, 'SALDO') || str_contains($tipoNombre, 'DEUDA')) {
+                                        $icon = "fa-solid fa-file-invoice-dollar"; $catClass = "badge-yellow"; $tipoText = "Facturación";
                                     } elseif (str_contains($tipoNombre, 'ABONO')) {
                                         $icon = "fa-solid fa-money-bill-transfer"; $catClass = "badge-teal"; $tipoText = "Pago";
                                     } elseif (str_contains($tipoNombre, 'PAGO') || str_contains($tipoNombre, 'COMISION')) {
@@ -153,44 +156,6 @@
                         @endif
                     </tbody>
                 </table>
-            </div>
-
-            <!-- Panel de Preferencias de Notificación -->
-            <div id="preferences-container" style="display: none; padding: 24px;">
-                <h4 class="mb-2 fw-bold text-dark-blue">Preferencias de Notificación</h4>
-                <p class="text-muted mb-4 small">Elige por qué canales deseas recibir notificaciones externas de tus citas, pagos y actualizaciones.</p>
-                
-                <div class="d-flex flex-column gap-3">
-                    <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-white">
-                        <div>
-                            <h6 class="mb-1 fw-bold text-dark-blue"><i class="fa-solid fa-comment-sms text-primary me-2"></i> SMS</h6>
-                            <small class="text-muted">Recibe alertas directamente en tu teléfono por mensaje de texto.</small>
-                        </div>
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input shadow-none" type="checkbox" role="switch" id="pref-sms" style="transform: scale(1.3); cursor: pointer;" checked>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-white">
-                        <div>
-                            <h6 class="mb-1 fw-bold text-dark-blue"><i class="fa-brands fa-whatsapp text-success me-2"></i> WhatsApp</h6>
-                            <small class="text-muted">Recibe notificaciones inmediatas a través de WhatsApp.</small>
-                        </div>
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input shadow-none" type="checkbox" role="switch" id="pref-whatsapp" style="transform: scale(1.3); cursor: pointer;" checked>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 bg-white">
-                        <div>
-                            <h6 class="mb-1 fw-bold text-dark-blue"><i class="fa-regular fa-envelope text-danger me-2"></i> Correo Electrónico</h6>
-                            <small class="text-muted">Recibe un resumen y notificaciones en tu bandeja de entrada.</small>
-                        </div>
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input shadow-none" type="checkbox" role="switch" id="pref-correo" style="transform: scale(1.3); cursor: pointer;" checked>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
     </div>

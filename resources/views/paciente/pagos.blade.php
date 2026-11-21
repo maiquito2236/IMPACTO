@@ -10,6 +10,19 @@
 
 @section('contenido')
 <div class="container-fluid p-0">
+    @if(session('mp_status'))
+        @php
+            $mpClase = match(session('mp_status')) {
+                'success' => 'success',
+                'warning' => 'warning',
+                default   => 'danger',
+            };
+        @endphp
+        <div class="alert alert-{{ $mpClase }} alert-dismissible fade show mt-3" role="alert">
+            <i class="fa-solid fa-circle-info me-2"></i>{{ session('mp_message') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    @endif
     <!-- Header Card Resumen -->
     <div class="row g-3 mt-1">
         <div class="col-md-4">
@@ -246,10 +259,14 @@
         <div class="mb-3">
             <label class="form-label font-xs fw-bold text-muted">Método de Pago</label>
             <select id="pagoMetodo" class="form-select" required>
-                <option value="Efectivo">Efectivo</option>
+                <option value="Efectivo">Efectivo (registro presencial)</option>
                 <option value="Transferencia">Transferencia</option>
-                <option value="Tarjeta">Tarjeta</option>
+                <option value="MERCADO_PAGO">Mercado Pago (tarjeta, PSE, Nequi)</option>
             </select>
+            <div id="mpInfo" class="alert alert-info font-xs mt-2 mb-0" style="display: none;">
+                <i class="fa-solid fa-lock me-1"></i>
+                Te redirigiremos a Mercado Pago para completar el pago de forma segura. Al volver, el abono se registrará automáticamente.
+            </div>
         </div>
         
         <div class="mb-4">

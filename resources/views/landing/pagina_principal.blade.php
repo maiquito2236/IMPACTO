@@ -3,6 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+    (function(){
+        const m = document.querySelector('meta[name="csrf-token"]');
+        if (!m) return;
+        const t = m.getAttribute('content');
+        const sameOrigin = u => typeof u !== 'string' || !/^https?:\/\//i.test(u) || u.startsWith(window.location.origin);
+        const of = window.fetch;
+        window.fetch = function(input, init) {
+            init = init || {};
+            const url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+            const method = (init.method || (input && input.method) || 'GET').toUpperCase();
+            if (sameOrigin(url) && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                const h = new Headers(init.headers || {});
+                if (!h.has('X-CSRF-TOKEN')) h.set('X-CSRF-TOKEN', t);
+                init.headers = h;
+            }
+            return of.call(this, input, init);
+        };
+    })();
+    </script>
     <title>Odonto Estética - Salud y Bienestar</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,6 +32,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ asset('css/landing/pagina_principal.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/landing/chatbot.css') }}">
 </head>
 <body>
 
@@ -391,7 +413,11 @@
         </div>
     </footer>
 
+    {{-- Widget Chatbot Flotante (Solo Página Principal) --}}
+    @include('landing.chatbot')
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/landing/pagina_principal.js') }}"></script>
+    <script src="{{ asset('js/landing/chatbot.js') }}"></script>
 </body>
 </html>

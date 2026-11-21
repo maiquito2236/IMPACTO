@@ -137,6 +137,16 @@
                         <a href="{{ url('/odontologo/perfil?mode=edit#password-section') }}" class="btn-outline-full">
                             <i class="fa-solid fa-lock-open text-blue"></i> Cambiar Contraseña
                         </a>
+                        <div class="toggle-box mt-3">
+                            <div class="toggle-left">
+                                <i class="fa-regular fa-bell"></i>
+                                <span>Notificaciones Web</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggleNotificacionesOdon" {{ ($perfil['NOTIFICACIONES_ACTIVAS'] ?? 1) ? 'checked' : '' }}>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -278,5 +288,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/odontologo/perfil_odon.js') }}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('js/odontologo/perfil_odon.js') }}?v={{ time() }}" defer></script>
 @endpush

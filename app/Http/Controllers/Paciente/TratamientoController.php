@@ -65,6 +65,42 @@ class TratamientoController extends Controller
 
             $citas = json_decode(json_encode($citas), true);
 
+            // Precarga en una sola consulta para evitar N+1
+            $procsAll = DB::table('historia_clinica as hc')
+                ->join('historia_clinica_has_procedimientos as hcp', 'hc.ID_HISTORIA_CLINICA', '=', 'hcp.HISTORIA_CLINICA_ID_HISTORIA_CLINICA')
+                ->join('procedimientos as p', 'hcp.PROCEDIMIENTOS_ID_PROCEDIMIENTO', '=', 'p.ID_PROCEDIMIENTO')
+                ->whereIn('hc.PACIENTE_ID_PACIENTE', $pacientesIds)
+                ->select('hc.CITA_ID_CITA', 'hc.PACIENTE_ID_PACIENTE', DB::raw('DATE(hc.FECHA_REGISTRO) as fecha_reg'), 'p.NOMBRE_PROCEDIMIENTO')
+                ->get();
+
+            $procsPorCita = [];
+            $procsPorPacFecha = [];
+            foreach ($procsAll as $pr) {
+                if (!empty($pr->CITA_ID_CITA)) {
+                    $procsPorCita[$pr->CITA_ID_CITA][] = $pr->NOMBRE_PROCEDIMIENTO;
+                }
+                $keyPf = $pr->PACIENTE_ID_PACIENTE . '_' . $pr->fecha_reg;
+                $procsPorPacFecha[$keyPf][] = $pr->NOMBRE_PROCEDIMIENTO;
+            }
+
+            foreach ($citas as &$c) {
+                $procsRealizados = [];
+                if (!empty($c['ID_CITA']) && isset($procsPorCita[$c['ID_CITA']])) {
+                    $procsRealizados = array_merge($procsRealizados, $procsPorCita[$c['ID_CITA']]);
+                }
+                $fechaCita = !empty($c['FECHA_HORA']) ? date('Y-m-d', strtotime($c['FECHA_HORA'])) : '';
+                $keyPf = $c['PACIENTE_ID_PACIENTE'] . '_' . $fechaCita;
+                if ($fechaCita && isset($procsPorPacFecha[$keyPf])) {
+                    $procsRealizados = array_merge($procsRealizados, $procsPorPacFecha[$keyPf]);
+                }
+                $procsRealizados = array_values(array_unique($procsRealizados));
+
+                if (!empty($procsRealizados)) {
+                    $c['NOMBRE_PROCEDIMIENTO'] = implode(', ', $procsRealizados);
+                }
+            }
+            unset($c);
+
             // Estadísticas
             $totalConsultas = count($citas);
             $totalTratamientos = DB::table('historia_clinica')->whereIn('PACIENTE_ID_PACIENTE', $pacientesIds)->count();

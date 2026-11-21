@@ -135,12 +135,16 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
 
         $("#overlay").addClass("active");
         $("#modal-pago").fadeIn(200);
+        $("#mpInfo").hide();
+        $("#formPagoPaciente button[type=submit]").text("Confirmar Pago");
     });
 
     $(document).on("click", "#cerrar-modal-pago", function() {
         $("#modal-pago").fadeOut(200);
         $("#overlay").removeClass("active");
         $("#formPagoPaciente")[0].reset();
+        $("#mpInfo").hide();
+        $("#formPagoPaciente button[type=submit]").text("Confirmar Pago");
     });
 
     // Validar maximo antes de enviar
@@ -150,10 +154,19 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
         if(val > max) { $(this).val(max); }
     });
 
+    // Mostrar aviso y ajustar el botón cuando se elige Mercado Pago
+    $(document).on("change", "#pagoMetodo", function() {
+        const esMercadoPago = $(this).val() === "MERCADO_PAGO";
+        $("#mpInfo").toggle(esMercadoPago);
+        $("#formPagoPaciente button[type=submit]")
+            .text(esMercadoPago ? "Ir a Mercado Pago" : "Confirmar Pago");
+    });
+
     $("#formPagoPaciente").on("submit", async function(e) {
         e.preventDefault();
         
         const btn = $(this).find("button[type=submit]");
+        const textoOriginal = btn.text();
         btn.prop("disabled", true).text("Procesando...");
 
         const data = {
@@ -162,14 +175,29 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
             metodo: $("#pagoMetodo").val()
         };
 
+        const esMercadoPago = data.metodo === "MERCADO_PAGO";
+        const url = esMercadoPago
+            ? "/paciente/pagos/mercadopago/preferencia"
+            : "/paciente/pagos/guardar";
+
         try {
-            const resp = await fetch("/paciente/pagos/guardar", {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+            const resp = await fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken
+                },
                 body: JSON.stringify(data)
             });
             const result = await resp.json();
             
+            if(result.status === "success" && result.init_point) {
+                // Checkout Pro: el paciente sale de la app hacia Mercado Pago.
+                window.location.href = result.init_point;
+                return;
+            }
+
             if(result.status === "success") {
                 $("#modal-pago").fadeOut(200);
                 $("#overlay").removeClass("active");
@@ -190,7 +218,7 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
                     text: result.message || "Error al procesar pago.",
                     confirmButtonColor: '#dc3545'
                 });
-                btn.prop("disabled", false).text("Confirmar Pago");
+                btn.prop("disabled", false).text(textoOriginal);
             }
         } catch(error) {
             console.error(error);
@@ -200,6 +228,6 @@ $(document).on('click', '.btn-ver-detalle', function (e) {
                 text: 'Hubo un problema al conectar con el servidor.',
                 confirmButtonColor: '#dc3545'
             });
-            btn.prop("disabled", false).text("Confirmar Pago");
+            btn.prop("disabled", false).text(textoOriginal);
         }
     });

@@ -228,16 +228,21 @@ class AgendaController extends Controller
                 'ESTADO_CITA_ID' => 1
             ]);
 
-            // Enviar notificación automática
+            // Enviar notificación automática (web + correo electrónico) al paciente y al odontólogo
             $usr = DB::table('paciente')->where('ID_PACIENTE', $paciente_id)->value('USUARIOS_ID_USUARIOS');
             $fecha_fmt = date('d/m/Y', strtotime($fecha)) . ' a las ' . date('h:i A', strtotime($hora . ':00'));
-            DB::table('notificaciones')->insert([
-                'MENSAJE' => "El administrador agendó una cita para el $fecha_fmt. Motivo: $tratamiento",
-                'FECHA_ENVIO' => now(),
-                'ESTADO' => 'NO_LEIDA',
-                'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 2,
-                'USUARIOS_ID_USUARIOS' => $usr
-            ]);
+            \App\Helpers\Notificador::enviarAUsuario(
+                $usr,
+                1,
+                "El administrador agendó tu cita médica para el $fecha_fmt. Motivo: $tratamiento"
+            );
+            if ($odontologo_id) {
+                \App\Helpers\Notificador::enviarAOdontologo(
+                    $odontologo_id,
+                    21,
+                    "El administrador te ha asignado una nueva cita médica para el $fecha_fmt. Motivo: $tratamiento"
+                );
+            }
 
             DB::commit();
             return $id_cita;
@@ -248,11 +253,24 @@ class AgendaController extends Controller
     }
 
     private function cancelarCita($id_cita, $motivo) {
-        DB::table('cita')->where('ID_CITA', $id_cita)->update([
-            'ESTADO_CITA_ID' => 3,
-            'FECHA_CANCELACION' => now(),
-            'MOTIVO_CANCELACION' => $motivo
+        $cita = DB::table('cita')->where('ID_CITA', $id_cita)->first();
+        DB::statement('CALL sp_cancelar_cita(?, ?)', [
+            (int) $id_cita,
+            mb_substr((string) ($motivo ?? ''), 0, 255)
         ]);
+
+        if ($cita) {
+            $fecha_fmt = date('d/m/Y \a \l\a\s h:i A', strtotime($cita->FECHA_HORA));
+            $usr = DB::table('paciente')->where('ID_PACIENTE', $cita->PACIENTE_ID_PACIENTE)->value('USUARIOS_ID_USUARIOS');
+            if ($usr) {
+                $msg = "Tu cita programada para el $fecha_fmt ha sido cancelada." . (!empty($motivo) ? " Motivo: $motivo" : "");
+                \App\Helpers\Notificador::enviarCorreoCita($usr, 7, $msg);
+            }
+            if ($cita->ODONTOLOGO_ID_ODONTOLOGO) {
+                $msgOdo = "La cita programada en tu agenda para el $fecha_fmt ha sido cancelada por administración." . (!empty($motivo) ? " Motivo: $motivo" : "");
+                \App\Helpers\Notificador::enviarAOdontologo($cita->ODONTOLOGO_ID_ODONTOLOGO, 8, $msgOdo);
+            }
+        }
     }
 
     private function reprogramarCita($id_cita, $nueva_fecha, $nueva_hora, $motivo) {
@@ -262,6 +280,26 @@ class AgendaController extends Controller
             'ESTADO_CITA_ID' => 1,
             'MOTIVO' => DB::raw("CONCAT(MOTIVO, ' | Reprogramada: $motivo')")
         ]);
+
+        $cita = DB::table('cita')->where('ID_CITA', $id_cita)->first();
+        if ($cita) {
+            $fecha_fmt = date('d/m/Y \a \l\a\s h:i A', strtotime($fecha_hora));
+            $usr = DB::table('paciente')->where('ID_PACIENTE', $cita->PACIENTE_ID_PACIENTE)->value('USUARIOS_ID_USUARIOS');
+            if ($usr) {
+                \App\Helpers\Notificador::enviarAUsuario(
+                    $usr,
+                    13,
+                    "Tu cita médica ha sido reprogramada para el $fecha_fmt." . (!empty($motivo) ? " Motivo: $motivo" : "")
+                );
+            }
+            if ($cita->ODONTOLOGO_ID_ODONTOLOGO) {
+                \App\Helpers\Notificador::enviarAOdontologo(
+                    $cita->ODONTOLOGO_ID_ODONTOLOGO,
+                    14,
+                    "Una cita en tu agenda ha sido reprogramada por administración para el $fecha_fmt." . (!empty($motivo) ? " Motivo: $motivo" : "")
+                );
+            }
+        }
     }
 
     public function cargaMasiva(Request $request)
@@ -271,7 +309,12 @@ class AgendaController extends Controller
         }
 
         if ($request->hasFile('archivo_csv')) {
-            $file = fopen($request->file('archivo_csv')->getRealPath(), 'r');
+            $uploaded = $request->file('archivo_csv');
+            $ext = strtolower($uploaded->getClientOriginalExtension());
+            if (!in_array($ext, ['csv', 'txt'], true) || $uploaded->getSize() > 5 * 1024 * 1024) {
+                return response()->json(['success' => false, 'message' => 'El archivo debe ser CSV/TXT y no superar los 5 MB.'], 422);
+            }
+            $file = fopen($uploaded->getRealPath(), 'r');
             $line = fgets($file);
             $separator = (strpos($line, ';') !== false) ? ';' : ',';
             rewind($file);
@@ -312,12 +355,40 @@ class AgendaController extends Controller
                         throw new Exception("Odontólogo con documento $docOdontologo no encontrado.");
                     }
 
+                    // Buscar o crear horario de disponibilidad
+                    $fechaSolo = date('Y-m-d', strtotime($fechaHora));
+                    $horaSolo = date('H:i:s', strtotime($fechaHora));
+                    $horaFin = date('H:i:s', strtotime($fechaHora) + 3600);
+
+                    $horario = DB::table('horario_disponibilidad')
+                        ->where('ODONTOLOGO_ID_ODONTOLOGO', $odo->ID_ODONTOLOGO)
+                        ->where('FECHA', $fechaSolo)
+                        ->where('HORA_INICIO', $horaSolo)
+                        ->first();
+
+                    if ($horario) {
+                        $idHorario = $horario->ID_HORARIO;
+                        DB::table('horario_disponibilidad')->where('ID_HORARIO', $idHorario)->update(['ESTADO' => 'Ocupado']);
+                    } else {
+                        $diasSemana = [1 => 'lunes', 2 => 'martes', 3 => 'miercoles', 4 => 'jueves', 5 => 'viernes', 6 => 'sabado', 7 => 'domingo'];
+                        $numDia = date('N', strtotime($fechaSolo));
+                        $idHorario = DB::table('horario_disponibilidad')->insertGetId([
+                            'ODONTOLOGO_ID_ODONTOLOGO' => $odo->ID_ODONTOLOGO,
+                            'FECHA' => $fechaSolo,
+                            'HORA_INICIO' => $horaSolo,
+                            'HORA_FIN' => $horaFin,
+                            'DIA' => $diasSemana[$numDia] ?? 'lunes',
+                            'ESTADO' => 'Ocupado'
+                        ]);
+                    }
+
                     DB::table('cita')->insert([
                         'PACIENTE_ID_PACIENTE'     => $pac->ID_PACIENTE,
                         'ODONTOLOGO_ID_ODONTOLOGO' => $odo->ID_ODONTOLOGO,
                         'FECHA_HORA'               => $fechaHora,
                         'FECHA_ATENCION'           => $fechaHora,
                         'MOTIVO'                   => $motivo,
+                        'HORARIO_DISPONIBILIDAD_ID_HORARIO' => $idHorario,
                         'ESTADO_CITA_ID'           => $estadoId,
                         'FECHA_CREACION'           => now()
                     ]);
@@ -341,13 +412,30 @@ class AgendaController extends Controller
 
     public function descargarPlantillaCsv()
     {
-        return response()->streamDownload(function() {
+        $mes = date('Y-m');
+        return response()->streamDownload(function() use ($mes) {
             $output = fopen('php://output', 'w');
             fputs($output, "\xEF\xBB\xBF");
-            fputcsv($output, ['DOCUMENTO_PACIENTE', 'DOCUMENTO_ODONTOLOGO', 'FECHA_HORA', 'MOTIVO', 'ESTADO_CITA_ID']);
-            fputcsv($output, ['1001001001', '1002003001', date('Y-m-d 09:00:00'), 'Consulta general', '1']);
+            fputcsv($output, ['DOCUMENTO_PACIENTE', 'PACIENTE', 'DOCUMENTO_ODONTOLOGO', 'ODONTOLOGO', 'FECHA_HORA', 'MOTIVO', 'ESTADO'], ';');
+
+            $citas = DB::select("
+                SELECT DOC_PACIENTE, NOMBRE_PACIENTE, 
+                       (SELECT uo.NUMERO_DOCUMENTO FROM odontologo o2 JOIN usuarios uo ON o2.USUARIOS_ID_USUARIOS = uo.ID_USUARIOS WHERE o2.ID_ODONTOLOGO = vc.ODONTOLOGO_ID_ODONTOLOGO) AS DOC_ODONTOLOGO,
+                       NOMBRE_ODONTOLOGO, FECHA_HORA, MOTIVO, ESTADO_CITA
+                FROM vista_citas vc
+                WHERE DATE_FORMAT(FECHA_HORA, '%Y-%m') = ?
+                GROUP BY ID_CITA
+                ORDER BY FECHA_HORA
+            ", [$mes]);
+
+            foreach ($citas as $c) {
+                fputcsv($output, [
+                    $c->DOC_PACIENTE, $c->NOMBRE_PACIENTE, $c->DOC_ODONTOLOGO,
+                    $c->NOMBRE_ODONTOLOGO, $c->FECHA_HORA, $c->MOTIVO, $c->ESTADO_CITA
+                ], ';');
+            }
             fclose($output);
-        }, 'plantilla_citas.csv', [
+        }, "citas_{$mes}.csv", [
             'Content-Type' => 'text/csv; charset=utf-8'
         ]);
     }

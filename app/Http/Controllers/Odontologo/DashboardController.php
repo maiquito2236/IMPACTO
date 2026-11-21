@@ -116,6 +116,22 @@ class DashboardController extends Controller
         ", [$docUser?->ID_USUARIOS ?? $usuarioId]);
         $alertas = array_map(fn($item) => (array)$item, $alertasRaw);
 
+        $cleanUtf8 = function ($item) use (&$cleanUtf8) {
+            if (is_array($item)) {
+                return array_map($cleanUtf8, $item);
+            }
+            if (is_string($item) && strpos($item, 'Ã') !== false) {
+                return mb_convert_encoding($item, 'ISO-8859-1', 'UTF-8');
+            }
+            return $item;
+        };
+
+        $agendaHoy = array_map($cleanUtf8, $agendaHoy);
+        $pacientesRecientes = array_map($cleanUtf8, $pacientesRecientes);
+        $tratamientosDinamicos = array_map($cleanUtf8, $tratamientosDinamicos);
+        $alertas = array_map($cleanUtf8, $alertas);
+        $doctorNombre = $cleanUtf8($doctorNombre);
+
         return view('odontologo.dashboard', compact(
             'citasHoy',
             'proximaCita',

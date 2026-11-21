@@ -22,3 +22,16 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Archivos locales, sensibles y de infraestructura del servidor local (NO subir a GitHub)
+/.amp
+/cloudflared
+cloudflared_sigco.exe
+ACTIVAR_SIGCO.bat
+APAGAR_SIGCO.bat
+REINICIAR_SIGCO.bat
+start_server.bat
+/docs_revision
+/storage/app/backups
+HISTORIAS DE USUARIOS.xlsx
+Requisitos.xlsx

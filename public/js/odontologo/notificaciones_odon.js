@@ -133,9 +133,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 const formData = new FormData();
                 formData.append('id', idNotificacion);
 
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
                 const fetchUrl = window.IS_PACIENTE_MODULE ? '/paciente/notificaciones/marcar_leida' : '/odontologo/notificaciones/marcar_leida';
                 fetch(fetchUrl, {
                     method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin',
                     body: formData
                 })
                 .then(() => {
@@ -208,8 +214,16 @@ document.addEventListener('DOMContentLoaded', () => {
             actualizarContadores();
             aplicarFiltros();
 
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const fetchUrlMasivo = window.IS_PACIENTE_MODULE ? '/paciente/notificaciones/marcar_todas' : '/odontologo/notificaciones/marcar_todas_leidas';
-            fetch(fetchUrlMasivo)
+            fetch(fetchUrlMasivo, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
             .catch(err => console.error("Error en actualización masiva:", err));
         });
     }

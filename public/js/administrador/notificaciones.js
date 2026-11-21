@@ -1,4 +1,4 @@
-﻿/* ========================================================
+/* ========================================================
    NOTIFICACIONES — administrador
    Odonto Estética
    Los datos vienen de la BD a través de NOTIFICACIONES_BD
@@ -10,8 +10,8 @@
 // Lo copiamos a un array mutable para que el JS pueda
 // reflejar cambios de estado sin recargar la página.
 let notificaciones = (typeof NOTIFICACIONES_BD !== 'undefined')
-    ? NOTIFICACIONES_BD.map(n => ({ ...n, archivada: false }))
-    : [];
+  ? NOTIFICACIONES_BD.map(n => ({ ...n, archivada: false }))
+  : [];
 
 /* ── 2. CONFIGURACIÓN DE ICONOS Y COLORES ──────────── */
 const TIPO_CONFIG = {
@@ -25,16 +25,19 @@ const TIPO_CONFIG = {
   "CITA CANCELADA / MODIFICADA":{ icon:"fa-solid fa-calendar-xmark",        bg:"#fee2e2", color:"#991b1b" },
   "NUEVA CITA REGISTRADA":      { icon:"fa-regular fa-calendar-plus",       bg:"#dcfce7", color:"#16a34a" },
   "ABONO":                      { icon:"fa-solid fa-money-bill-wave",       bg:"#d1fae5", color:"#065f46" },
-  "PAGO RECIBIDO":              { icon:"fa-solid fa-check-double",          bg:"#dcfce7", color:"#16a34a" }
+  "PAGO RECIBIDO":              { icon:"fa-solid fa-check-double",          bg:"#dcfce7", color:"#16a34a" },
+  "LIQUIDACION REGISTRADA":     { icon:"fa-solid fa-file-invoice-dollar",   bg:"#fef3c7", color:"#b45309" },
+  "NUEVO PRESUPUESTO":          { icon:"fa-solid fa-file-medical",          bg:"#e0e7ff", color:"#3730a3" },
+  "NUEVA DEUDA REGISTRADA":     { icon:"fa-solid fa-file-circle-exclamation", bg:"#ffedd5", color:"#c2410c" }
 };
 
 /* ── 3. ESTADO ─────────────────────────────────────── */
-let paginaActual    = 1;
-let porPagina       = 10;
-let tabActiva       = "todas";
-let seleccionados   = new Set();
+let paginaActual = 1;
+let porPagina = 10;
+let tabActiva = "todas";
+let seleccionados = new Set();
 let dropdownAbierto = null;
-let sortDir         = "desc";
+let sortDir = "desc";
 
 let filtros = { tipo: "", fecha: "" };
 
@@ -43,7 +46,7 @@ const $ = id => document.getElementById(id);
 
 function toast(msg, tipo = "success") {
   const el = $("toast");
-  const icons = { success:"fa-circle-check", warning:"fa-triangle-exclamation", error:"fa-circle-xmark" };
+  const icons = { success: "fa-circle-check", warning: "fa-triangle-exclamation", error: "fa-circle-xmark" };
   el.className = `toast ${tipo}`;
   el.innerHTML = `<i class="fa-solid ${icons[tipo]}"></i> ${msg}`;
   el.classList.add("show");
@@ -52,7 +55,7 @@ function toast(msg, tipo = "success") {
 }
 
 function formatFecha(fecha, hora) {
-  const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
   const d = new Date(fecha + "T00:00:00");
   return `${d.getDate()} ${meses[d.getMonth()]}, ${hora}`;
 }
@@ -61,11 +64,11 @@ function formatFecha(fecha, hora) {
 function getListaFiltrada() {
   return notificaciones.filter(n => {
     if (tabActiva === "sin-leer" && (n.archivada || n.estado !== "Sin leer")) return false;
-    if (tabActiva === "leidas"   && (n.archivada || n.estado !== "Leída"))    return false;
-    if (tabActiva === "todas"    && n.archivada)                               return false;
+    if (tabActiva === "leidas" && (n.archivada || n.estado !== "Leída")) return false;
+    if (tabActiva === "todas" && n.archivada) return false;
 
-    if (filtros.tipo   && n.tipo   !== filtros.tipo)   return false;
-    if (filtros.fecha  && n.fecha  !== filtros.fecha)   return false;
+    if (filtros.tipo && n.tipo !== filtros.tipo) return false;
+    if (filtros.fecha && n.fecha !== filtros.fecha) return false;
 
     return true;
   }).sort((a, b) => sortDir === "desc"
@@ -76,25 +79,25 @@ function getListaFiltrada() {
 
 /* ── 6. CONTADORES ─────────────────────────────────── */
 function actualizarContadores() {
-  const todas   = notificaciones.filter(n => !n.archivada).length;
+  const todas = notificaciones.filter(n => !n.archivada).length;
   const sinLeer = notificaciones.filter(n => !n.archivada && n.estado === "Sin leer").length;
-  const leidas  = notificaciones.filter(n => !n.archivada && n.estado === "Leída").length;
+  const leidas = notificaciones.filter(n => !n.archivada && n.estado === "Leída").length;
 
-  $("count-todas").textContent    = todas;
+  $("count-todas").textContent = todas;
   $("count-sin-leer").textContent = sinLeer;
   if ($("count-leidas")) {
     $("count-leidas").textContent = leidas;
   }
 
   const badge = $("bell-badge");
-  badge.textContent   = sinLeer;
+  badge.textContent = sinLeer;
   badge.style.display = sinLeer > 0 ? "" : "none";
 }
 
 /* ── 7. RENDER TABLA ───────────────────────────────── */
 function renderTabla() {
-  const lista  = getListaFiltrada();
-  const total  = lista.length;
+  const lista = getListaFiltrada();
+  const total = lista.length;
   const inicio = (paginaActual - 1) * porPagina;
   const pagina = lista.slice(inicio, inicio + porPagina);
 
@@ -111,14 +114,14 @@ function renderTabla() {
   empty.style.display = "none";
 
   pagina.forEach(n => {
-    const cfg    = TIPO_CONFIG[n.tipo] || { icon:"fa-solid fa-bell", bg:"#f1f5f9", color:"#475569" };
+    const cfg = TIPO_CONFIG[n.tipo] || { icon: "fa-solid fa-bell", bg: "#f1f5f9", color: "#475569" };
     const unread = n.estado === "Sin leer" && !n.archivada;
-    const selec  = seleccionados.has(n.id);
+    const selec = seleccionados.has(n.id);
 
     const tr = document.createElement("tr");
     tr.dataset.id = n.id;
     if (unread) tr.classList.add("unread");
-    if (selec)  tr.classList.add("selected");
+    if (selec) tr.classList.add("selected");
 
     tr.innerHTML = `
       <td>
@@ -173,7 +176,7 @@ function renderTabla() {
   });
 
   const allVisible = pagina.every(n => seleccionados.has(n.id));
-  $("check-all").checked       = pagina.length > 0 && allVisible;
+  $("check-all").checked = pagina.length > 0 && allVisible;
   $("check-all").indeterminate = !allVisible && pagina.some(n => seleccionados.has(n.id));
 }
 
@@ -224,11 +227,11 @@ function abrirDropdown(id, btn) {
 
   const acciones = [];
   if (n.estado === "Sin leer")
-    acciones.push({ label:"Marcar como leída", icon:"fa-regular fa-circle-check", fn:() => marcarLeida(id) });
+    acciones.push({ label: "Marcar como leída", icon: "fa-regular fa-circle-check", fn: () => marcarLeida(id) });
   else
-    acciones.push({ label:"Marcar como sin leer", icon:"fa-regular fa-circle", fn:() => marcarSinLeer(id) });
+    acciones.push({ label: "Marcar como sin leer", icon: "fa-regular fa-circle", fn: () => marcarSinLeer(id) });
 
-  acciones.push({ label:"Ver detalle", icon:"fa-regular fa-eye", fn:() => abrirModal(id) });
+  acciones.push({ label: "Ver detalle", icon: "fa-regular fa-eye", fn: () => abrirModal(id) });
 
   acciones.forEach(a => {
     const b = document.createElement("button");
@@ -250,8 +253,14 @@ function cerrarDropdowns() {
 async function marcarLeida(id) {
   const fd = new FormData();
   fd.append("id", id);
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   try {
-    const r = await fetch("/api_notificaciones/marcar_leida", { method:"POST", body:fd });
+    const r = await fetch("/api_notificaciones/marcar_leida", {
+      method: "POST",
+      headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
+      credentials: "same-origin",
+      body: fd
+    });
     const j = await r.json();
     if (j.success) {
       const n = notificaciones.find(x => x.id === id);
@@ -268,21 +277,42 @@ async function marcarLeida(id) {
 }
 
 async function marcarSinLeer(id) {
-  // La BD solo maneja NO_LEIDA/LEIDA; actualizamos solo visualmente
-  const n = notificaciones.find(x => x.id === id);
-  if (!n) return;
-  n.estado = "Sin leer";
-  actualizarContadores();
-  renderTabla();
-  toast("Marcada como sin leer.", "warning");
+  const fd = new FormData();
+  fd.append("id", id);
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  try {
+    const r = await fetch("/api_notificaciones/marcar_no_leida", {
+      method: "POST",
+      headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
+      credentials: "same-origin",
+      body: fd
+    });
+    const j = await r.json();
+    if (j.success) {
+      const n = notificaciones.find(x => x.id === id);
+      if (n) n.estado = "Sin leer";
+      actualizarContadores();
+      renderTabla();
+      toast("Marcada como sin leer.", "warning");
+    } else {
+      toast("Error al actualizar.", "error");
+    }
+  } catch {
+    toast("Error de conexión.", "error");
+  }
 }
 
 async function marcarTodas() {
   const hayNoLeidas = notificaciones.some(n => !n.archivada && n.estado === "Sin leer");
   if (!hayNoLeidas) { toast("Ya no hay notificaciones sin leer.", "warning"); return; }
 
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   try {
-    const r = await fetch("/api_notificaciones/marcar_todas", { method:"POST" });
+    const r = await fetch("/api_notificaciones/marcar_todas", {
+      method: "POST",
+      headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
+      credentials: "same-origin"
+    });
     const j = await r.json();
     if (j.success) {
       notificaciones.forEach(n => { if (!n.archivada) n.estado = "Leída"; });
@@ -299,27 +329,34 @@ async function marcarTodas() {
 
 async function marcarSeleccionadasLeidas() {
   const ids = [...seleccionados];
-  const fd  = new FormData();
+  if (ids.length === 0) return;
 
-  // Llamadas en paralelo, una por ID
-  const promesas = ids.map(id => {
-    const f = new FormData();
-    f.append("id", id);
-    return fetch("/api_notificaciones/marcar_leida", { method:"POST", body:f });
-  });
+  const fd = new FormData();
+  fd.append("ids", ids.join(","));
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
   try {
-    await Promise.all(promesas);
-    ids.forEach(id => {
-      const n = notificaciones.find(x => x.id === id);
-      if (n) n.estado = "Leída";
+    const r = await fetch("/api_notificaciones/marcar_seleccionadas", {
+      method: "POST",
+      headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
+      credentials: "same-origin",
+      body: fd
     });
-    const c = seleccionados.size;
-    seleccionados.clear();
-    actualizarContadores();
-    actualizarBulkBar();
-    renderTabla();
-    toast(`${c} notificación${c !== 1 ? "es" : ""} marcada${c !== 1 ? "s" : ""} como leída${c !== 1 ? "s" : ""}.`);
+    const j = await r.json();
+    if (j.success) {
+      ids.forEach(id => {
+        const n = notificaciones.find(x => x.id === id);
+        if (n) n.estado = "Leída";
+      });
+      const c = seleccionados.size;
+      seleccionados.clear();
+      actualizarContadores();
+      actualizarBulkBar();
+      renderTabla();
+      toast(`${c} notificación${c !== 1 ? "es" : ""} marcada${c !== 1 ? "s" : ""} como leída${c !== 1 ? "s" : ""}.`);
+    } else {
+      toast("Error al actualizar.", "error");
+    }
   } catch {
     toast("Error de conexión.", "error");
   }
@@ -334,15 +371,15 @@ function abrirModal(id) {
     marcarLeida(id); // también persiste en BD
   }
 
-  const cfg     = TIPO_CONFIG[n.tipo] || { icon:"fa-solid fa-bell", bg:"#f1f5f9", color:"#475569" };
+  const cfg = TIPO_CONFIG[n.tipo] || { icon: "fa-solid fa-bell", bg: "#f1f5f9", color: "#475569" };
   const overlay = $("modal-overlay");
 
   $("modal-icon-wrap").style.background = cfg.bg;
-  $("modal-icon-wrap").style.color      = cfg.color;
+  $("modal-icon-wrap").style.color = cfg.color;
   $("modal-icon-wrap").innerHTML = `<i class="${cfg.icon}"></i>`;
-  $("modal-title").textContent   = n.tipo;
-  $("modal-fecha").textContent   = formatFecha(n.fecha, n.hora);
-  $("modal-msg").textContent     = n.mensaje;
+  $("modal-title").textContent = n.tipo;
+  $("modal-fecha").textContent = formatFecha(n.fecha, n.hora);
+  $("modal-msg").textContent = n.mensaje;
 
   $("modal-meta").innerHTML = `
     <div class="modal-meta-row"><span>Usuario / Origen</span><strong>${n.paciente}</strong></div>
@@ -359,7 +396,7 @@ function cerrarModal() {
 
 /* ── 12. BULK BAR ─────────────────────────────────── */
 function actualizarBulkBar() {
-  const bar   = $("bulk-bar");
+  const bar = $("bulk-bar");
   const count = seleccionados.size;
   $("bulk-count").textContent = `${count} seleccionada${count !== 1 ? "s" : ""}`;
   bar.classList.toggle("visible", count > 0);
@@ -381,12 +418,12 @@ function init() {
   });
 
   /* FILTROS */
-  $("filtro-tipo").addEventListener("change",   e => { filtros.tipo   = e.target.value; paginaActual = 1; renderTabla(); });
-  $("filtro-fecha").addEventListener("change",  e => { filtros.fecha  = e.target.value; paginaActual = 1; renderTabla(); });
+  $("filtro-tipo").addEventListener("change", e => { filtros.tipo = e.target.value; paginaActual = 1; renderTabla(); });
+  $("filtro-fecha").addEventListener("change", e => { filtros.fecha = e.target.value; paginaActual = 1; renderTabla(); });
 
   const limpiar = () => {
-    filtros = { tipo:"", fecha:"" };
-    ["filtro-tipo","filtro-fecha"].forEach(id => {
+    filtros = { tipo: "", fecha: "" };
+    ["filtro-tipo", "filtro-fecha"].forEach(id => {
       const el = $(id);
       if (el) el.value = "";
     });
@@ -394,7 +431,7 @@ function init() {
     renderTabla();
     toast("Filtros limpiados.");
   };
-  $("btn-limpiar").addEventListener("click",  limpiar);
+  $("btn-limpiar").addEventListener("click", limpiar);
   $("btn-limpiar2").addEventListener("click", limpiar);
 
   /* MARCAR TODAS */
@@ -403,7 +440,7 @@ function init() {
   /* CHECK ALL */
   $("check-all").addEventListener("change", e => {
     const lista = getListaFiltrada();
-    const pag   = lista.slice((paginaActual - 1) * porPagina, paginaActual * porPagina);
+    const pag = lista.slice((paginaActual - 1) * porPagina, paginaActual * porPagina);
     pag.forEach(n => {
       if (e.target.checked) seleccionados.add(n.id);
       else seleccionados.delete(n.id);
@@ -427,7 +464,7 @@ function init() {
   });
 
   /* SORT FECHA */
-  document.querySelector(".sortable").addEventListener("click", function() {
+  document.querySelector(".sortable").addEventListener("click", function () {
     sortDir = sortDir === "desc" ? "asc" : "desc";
     this.querySelector("i").className = sortDir === "desc"
       ? "fa-solid fa-sort-down" : "fa-solid fa-sort-up";

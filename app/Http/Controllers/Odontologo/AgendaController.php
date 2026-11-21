@@ -175,6 +175,9 @@ class AgendaController extends Controller
                     ->first();
 
                 $usuario_id = $citaRow ? $citaRow->ID_USUARIO_PACIENTE : 1;
+                $idOdontologo = $citaRow ? $citaRow->ODONTOLOGO_ID_ODONTOLOGO : $this->getOdontologoId();
+                $nombrePaciente = $citaRow ? ($citaRow->NOMBRE_PACIENTE ?? 'Paciente') : 'Paciente';
+                $nombreDoctor = $citaRow ? ($citaRow->NOMBRE_ODONTOLOGO ?? 'Odontólogo') : 'Odontólogo';
 
                 DB::table('cita')->where('ID_CITA', $id_cita)->update([
                     'FECHA_HORA' => $nueva_fecha_hora,
@@ -182,15 +185,18 @@ class AgendaController extends Controller
                     'MOTIVO' => DB::raw("CONCAT(MOTIVO, " . DB::getPdo()->quote($nota_reprogramacion) . ")")
                 ]);
 
-                DB::table('notificaciones')->insert([
-                    'MENSAJE' => $mensajeNotificacion,
-                    'FECHA_ENVIO' => now(),
-                    'ESTADO' => 'NO_LEIDA',
-                    'TIPO_NOTIFICACION_ID_TIPO_NOTIFICACION' => 2,
-                    'USUARIOS_ID_USUARIOS' => $usuario_id
-                ]);
-
                 DB::commit();
+
+                $msgPaciente = "El Dr(a). $nombreDoctor ha reprogramado tu cita médica para el $fecha_formateada. Motivo: $motivo_texto";
+                $msgOdontologo = "Has reprogramado la cita del paciente $nombrePaciente para el $fecha_formateada. Motivo: $motivo_texto";
+                $msgAdmin = "El Dr(a). $nombreDoctor reprogramó la cita del paciente $nombrePaciente para el $fecha_formateada. Motivo: $motivo_texto";
+
+                \App\Helpers\Notificador::enviarAUsuario($usuario_id, 13, $msgPaciente);
+                if ($idOdontologo) {
+                    \App\Helpers\Notificador::enviarAOdontologo($idOdontologo, 14, $msgOdontologo);
+                }
+                \App\Helpers\Notificador::enviarAAdmin(15, $msgAdmin);
+
                 return response()->json(["status" => "success", "message" => "Cita actualizada y notificación creada"]);
             } catch (Exception $e) {
                 DB::rollBack();
@@ -208,6 +214,14 @@ class AgendaController extends Controller
             FROM procedimientos 
             WHERE UPPER(ESTADO) = 'ACTIVO' OR ESTADO = '1'
         ");
+
+        $procedimientos = array_map(function ($p) {
+            if (isset($p->NOMBRE_PROCEDIMIENTO) && strpos($p->NOMBRE_PROCEDIMIENTO, 'Ã') !== false) {
+                $p->NOMBRE_PROCEDIMIENTO = mb_convert_encoding($p->NOMBRE_PROCEDIMIENTO, 'ISO-8859-1', 'UTF-8');
+            }
+            return $p;
+        }, $procedimientos);
+
         return response()->json($procedimientos);
     }
 

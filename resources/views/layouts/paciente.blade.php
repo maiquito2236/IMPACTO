@@ -4,6 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+    (function(){
+        const m = document.querySelector('meta[name="csrf-token"]');
+        if (!m) return;
+        const t = m.getAttribute('content');
+        const sameOrigin = u => typeof u !== 'string' || !/^https?:\/\//i.test(u) || u.startsWith(window.location.origin);
+        const of = window.fetch;
+        window.fetch = function(input, init) {
+            init = init || {};
+            const url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+            const method = (init.method || (input && input.method) || 'GET').toUpperCase();
+            if (sameOrigin(url) && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                const h = new Headers(init.headers || {});
+                if (!h.has('X-CSRF-TOKEN')) h.set('X-CSRF-TOKEN', t);
+                init.headers = h;
+            }
+            return of.call(this, input, init);
+        };
+        const oo = XMLHttpRequest.prototype.open, os = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function(method, url) { this._cm = (method||'GET').toUpperCase(); this._cu = url; return oo.apply(this, arguments); };
+        XMLHttpRequest.prototype.send = function() {
+            if (sameOrigin(this._cu) && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(this._cm)) {
+                try { this.setRequestHeader('X-CSRF-TOKEN', t); } catch (e) {}
+            }
+            return os.apply(this, arguments);
+        };
+    })();
+    </script>
     <title>@yield('titulo', 'Odonto Estética - Portal Paciente')</title>
 
     <!-- Fuentes e Íconos -->
@@ -85,9 +113,11 @@
                         <i class="fa-regular fa-calendar-plus"></i>
                         Pedir Cita
                     </a>
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100" 
-                         alt="Usuario" 
-                         class="rounded-circle border border-2 border-white object-fit-cover header-profile-img">
+                    <a href="/paciente/perfil" title="Mi Perfil" style="text-decoration: none;">
+                        <div style="width: 42px; height: 42px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: 2px solid #dbeafe; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 4px 12px rgba(37,99,235,0.4)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                            {{ Auth::check() ? substr(Auth::user()->NOMBRES, 0, 1) : 'P' }}
+                        </div>
+                    </a>
                 </div>
             </header>
 
