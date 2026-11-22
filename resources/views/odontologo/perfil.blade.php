@@ -187,7 +187,6 @@
                                     <option value="C.C" {{ (($perfil['TIPO_DOCUMENTO'] ?? '') == 'C.C') ? 'selected' : '' }}>Cédula de Ciudadanía</option>
                                     <option value="C.E" {{ (($perfil['TIPO_DOCUMENTO'] ?? '') == 'C.E') ? 'selected' : '' }}>Cédula de Extranjería</option>
                                     <option value="PPT" {{ (($perfil['TIPO_DOCUMENTO'] ?? '') == 'PPT') ? 'selected' : '' }}>Permiso por Protección</option>
-                                    <option value="T.I" {{ (($perfil['TIPO_DOCUMENTO'] ?? '') == 'T.I') ? 'selected' : '' }}>Tarjeta de Identidad</option>
                                 </select>
                                 <i class="fa-solid fa-chevron-down arrow-down"></i>
                             </div>
@@ -196,7 +195,7 @@
                             <label>Número de documento:</label>
                             <div class="input-wrap">
                                 <i class="fa-solid fa-hashtag"></i>
-                                <input type="number" name="numero_documento" value="{{ $perfil['NUMERO_DOCUMENTO'] ?? '' }}" required>
+                                <input type="number" name="numero_documento" value="{{ $perfil['NUMERO_DOCUMENTO'] ?? '' }}" readonly tabindex="-1" title="El número de documento no se puede modificar" style="background-color: #f1f5f9; color: #64748b; cursor: not-allowed;">
                             </div>
                         </div>
                         <div class="form-group">

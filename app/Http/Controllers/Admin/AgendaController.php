@@ -46,7 +46,19 @@ class AgendaController extends Controller
                     return response()->json(['status' => 'success']);
                 
                 case 'reprogramar_cita':
-                    $this->reprogramarCita($request->id_cita, $request->nueva_fecha, $request->nueva_hora, $request->motivo);
+                    $nuevaFecha = $request->nueva_fecha;
+                    $nuevaHora  = $request->nueva_hora;
+                    if ((!$nuevaFecha || !$nuevaHora) && $request->nueva_fecha_hora) {
+                        $ts = strtotime($request->nueva_fecha_hora);
+                        if ($ts !== false) {
+                            $nuevaFecha = date('Y-m-d', $ts);
+                            $nuevaHora  = date('H:i', $ts);
+                        }
+                    }
+                    if (!$request->id_cita || !$nuevaFecha || !$nuevaHora) {
+                        throw new Exception("Faltan datos válidos de fecha u hora para reprogramar la cita.");
+                    }
+                    $this->reprogramarCita($request->id_cita, $nuevaFecha, $nuevaHora, $request->motivo ?? 'Reprogramada desde administrador');
                     return response()->json(['status' => 'success']);
                 
                 case 'carga_masiva':
@@ -275,10 +287,11 @@ class AgendaController extends Controller
 
     private function reprogramarCita($id_cita, $nueva_fecha, $nueva_hora, $motivo) {
         $fecha_hora = $nueva_fecha . ' ' . $nueva_hora . ':00';
+        $notaRepro = " | Reprogramada: " . ($motivo ?: 'Reprogramada desde administrador');
         DB::table('cita')->where('ID_CITA', $id_cita)->update([
             'FECHA_HORA' => $fecha_hora,
             'ESTADO_CITA_ID' => 1,
-            'MOTIVO' => DB::raw("CONCAT(MOTIVO, ' | Reprogramada: $motivo')")
+            'MOTIVO' => DB::raw("CONCAT(COALESCE(MOTIVO, ''), " . DB::getPdo()->quote($notaRepro) . ")")
         ]);
 
         $cita = DB::table('cita')->where('ID_CITA', $id_cita)->first();

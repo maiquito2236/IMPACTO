@@ -354,10 +354,8 @@
                             <i class="fa-regular fa-id-card icon-left"></i>
                             <select name="tipo_documento" required>
                                 <option value="C.C" {{ ($usuario['TIPO_DOCUMENTO'] ?? '') == 'C.C' ? 'selected' : '' }}>Cédula de Ciudadanía</option>
-                                <option value="T.I" {{ ($usuario['TIPO_DOCUMENTO'] ?? '') == 'T.I' ? 'selected' : '' }}>Tarjeta de Identidad</option>
                                 <option value="C.E" {{ ($usuario['TIPO_DOCUMENTO'] ?? '') == 'C.E' ? 'selected' : '' }}>Cédula de Extranjería</option>
                                 <option value="PPT" {{ ($usuario['TIPO_DOCUMENTO'] ?? '') == 'PPT' ? 'selected' : '' }}>PPT</option>
-                                <option value="R.C" {{ ($usuario['TIPO_DOCUMENTO'] ?? '') == 'R.C' ? 'selected' : '' }}>Registro Civil</option>
                             </select>
                         </div>
                     </div>
@@ -367,7 +365,7 @@
                         <label>Número de documento:</label>
                         <div class="input-icon-container">
                             <i class="fa-regular fa-address-card icon-left"></i>
-                            <input type="text" name="numero_documento" value="{{ $usuario['NUMERO_DOCUMENTO'] }}" required>
+                            <input type="text" name="numero_documento" value="{{ $usuario['NUMERO_DOCUMENTO'] }}" readonly tabindex="-1" title="El número de documento no se puede modificar" style="background-color: #f1f5f9; color: #64748b; cursor: not-allowed;">
                         </div>
                     </div>
 

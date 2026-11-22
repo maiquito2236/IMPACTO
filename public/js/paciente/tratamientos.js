@@ -123,7 +123,8 @@ $(document).ready(function () {
                     
                     $('#txtDetalleDoctor').text(cita.NOMBRE_DOCTOR ? `Dr(a). ${cita.NOMBRE_DOCTOR}` : 'No registrado');
                     $('#txtDetalleEspecialidad').text(cita.ESPECIALIDAD || 'General'); 
-                    $('#txtDetalleConsultorio').text(cita.CONSULTORIO ? `Consultorio ${cita.CONSULTORIO}` : '--');
+                    const cons = (cita.CONSULTORIO || '').toString().trim();
+                    $('#txtDetalleConsultorio').text(cons ? (/^\d+$/.test(cons) ? `Consultorio ${cons}` : cons) : '--');
                     
                     let tratamientoHTML = (cita.TRATAMIENTO || 'Valoración / Control General').replace(/\n/g, '<br>');
                     $('#txtDetalleTratamiento').html(tratamientoHTML);

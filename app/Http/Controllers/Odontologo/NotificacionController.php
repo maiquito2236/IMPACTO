@@ -36,11 +36,9 @@ class NotificacionController extends Controller
         $sinLeer = count(array_filter($notificaciones, fn($n) => $n['ESTADO'] === 'NO_LEIDA'));
 
         $tiposBase = DB::table('tipo_notificacion')
-            ->where(function ($q) {
-                $q->where('ROL_DESTINO', 2)
-                  ->orWhere('NOMBRE', 'like', '%AGENDA%');
-            })
+            ->where('ROL_DESTINO', 2)
             ->where('ESTADO', 'ACTIVO')
+            ->whereNotIn('ID_TIPO_NOTIFICACION', [3, 11, 24, 25])
             ->distinct()
             ->pluck('NOMBRE')
             ->toArray();

@@ -44,6 +44,7 @@ class NotificacionController extends Controller
         $tiposNotificacion = DB::table('tipo_notificacion')
             ->where('ROL_DESTINO', 1)
             ->where('ESTADO', 'ACTIVO')
+            ->whereNotIn('ID_TIPO_NOTIFICACION', [12, 31])
             ->distinct()
             ->orderBy('NOMBRE', 'ASC')
             ->pluck('NOMBRE')

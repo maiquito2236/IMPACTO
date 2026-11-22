@@ -175,7 +175,7 @@
                         <label>Número de documento:</label>
                         <div class="input-wrap">
                             <i class="fa-solid fa-hashtag"></i>
-                            <input type="number" name="numero_documento" value="{{ $usuario->NUMERO_DOCUMENTO ?? '' }}" required>
+                            <input type="number" name="numero_documento" value="{{ $usuario->NUMERO_DOCUMENTO ?? '' }}" readonly tabindex="-1" title="El número de documento no se puede modificar" style="background-color: #f1f5f9; color: #64748b; cursor: not-allowed;">
                         </div>
                     </div>
                     <div class="form-group">

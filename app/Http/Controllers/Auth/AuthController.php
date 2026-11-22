@@ -202,11 +202,11 @@ class AuthController extends Controller
 
         // Notificaciones fuera de la transacción para no bloquear el registro
         try {
-            // Notificar al Administrador
-            Notificador::enviarAAdmin(18, "El paciente $nombres $apellidos se ha registrado en la plataforma.");
+            // Notificar al Administrador (tipo 36: NUEVO PACIENTE REGISTRADO)
+            Notificador::enviarAAdmin(36, "El paciente $nombres $apellidos se ha registrado en la plataforma.");
 
-            // Notificar al Paciente
-            Notificador::enviarAUsuario($idUsuario, 16, "¡Bienvenido/a $nombres a Odonto Estética! Ya puedes agendar tus citas desde el portal.");
+            // Notificar al Paciente (tipo 35: BIENVENIDA)
+            Notificador::enviarAUsuario($idUsuario, 35, "¡Bienvenido/a $nombres a Odonto Estética! Ya puedes agendar tus citas desde el portal.");
         } catch (\Exception $eNotif) {
             Log::warning("Error al enviar notificaciones de registro: " . $eNotif->getMessage());
         }

@@ -53,7 +53,7 @@ $(document).ready(function () {
                     <select id="filtroEstado" class="form-select form-select-sm ms-2" style="width:140px">
                         <option value="">Filtrar Estado</option>
                         <option value="Pagada">Pagada</option>
-                        <option value="Abonando">Abonando</option>
+                        <option value="Abonada">Abonada</option>
                         <option value="Pendiente">Pendiente</option>
                     </select>
                 `);

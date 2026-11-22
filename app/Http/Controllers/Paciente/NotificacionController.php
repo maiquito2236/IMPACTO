@@ -45,6 +45,7 @@ class NotificacionController extends Controller
         $tiposNotificacion = DB::table('tipo_notificacion')
             ->where('ROL_DESTINO', 3)
             ->where('ESTADO', 'ACTIVO')
+            ->whereNotIn('ID_TIPO_NOTIFICACION', [3, 6, 10])
             ->orderBy('NOMBRE', 'asc')
             ->pluck('NOMBRE')
             ->toArray();
