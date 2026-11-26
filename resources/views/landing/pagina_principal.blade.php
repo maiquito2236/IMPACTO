@@ -68,7 +68,7 @@
             <div class="hero-grid">
                 <div class="hero-content">
                     <span class="sub-tag">Salud y Bienestar</span>
-                    <h1 class="hero-title">Bienvenido a <span class="highlight">Odontoestetica</span></h1>
+                    <h1 class="hero-title">Bienvenido a <span class="highlight">Odonto Estética</span></h1>
                     <p class="hero-text">En Odonto Estética, entendemos que una sonrisa saludable es el reflejo de tu bienestar general. Nacimos con la misión de transformar la experiencia de ir al dentista, combinando la calidez humana con los últimos avances en tecnología digital y estética dental.</p>
                     <div class="hero-actions">
                         <a href="{{ Auth::check() ? url('/paciente/pedir_cita') : route('login') }}" class="btn-primary">
